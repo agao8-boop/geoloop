@@ -1,0 +1,13 @@
+{
+  "_note": "Fixture values for testing only. Real values populated by scripts/precompute_loads.py after EnergyPlus runs.",
+  "small_office": {
+    "5A": {"q_h": -78500.0, "q_m": -32000.0, "q_y": -3800.0},
+    "3B": {"q_h":  45000.0, "q_m":  18000.0, "q_y":  2200.0},
+    "2A": {"q_h":  52000.0, "q_m":  22000.0, "q_y":  4100.0}
+  },
+  "medium_office": {
+    "5A": {"q_h": -620000.0, "q_m": -250000.0, "q_y": -28000.0},
+    "3B": {"q_h":  380000.0, "q_m":  155000.0, "q_y":  18000.0},
+    "2A": {"q_h":  430000.0, "q_m":  175000.0, "q_y":  32000.0}
+  }
+}
