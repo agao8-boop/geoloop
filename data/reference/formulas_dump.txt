@@ -1,0 +1,1000 @@
+EXCEL FORMULA / VALUE DUMP
+Reference directory: /Users/agao/Downloads/CEE299/geosite_advisor/data/reference
+
+======================================================================
+FILE: philippe_2010_sizing.xls  [format: xls — cached values only, no formula strings]
+======================================================================
+
+Sheets: ['Instructions', 'bh_sizing', 'coefficients']
+
+
+--- Sheet: Instructions ---
+
+  [Formulas] — not extractable from .xls binary format; see cached values below
+
+  [Labelled numeric values]
+  (none)
+
+--- Sheet: bh_sizing ---
+
+  [Formulas] — not extractable from .xls binary format; see cached values below
+
+  [Labelled numeric values]
+  bh_sizing!D3  label='W'  value=12000.0
+  bh_sizing!E3  label='Sign convention:
++: heat injection to the ground
+-: heat extraction from the ground'  value=-392250.0
+  bh_sizing!D4  label='W'  value=6000.0
+  bh_sizing!D5  label='W'  value=1500.0
+  bh_sizing!D7  label='W.m-1K-1'  value=2.0
+  bh_sizing!D8  label='m2.day-1'  value=0.086
+  bh_sizing!E8  label='<- Warning: α must be in the range between 0.025 and 0.2 m²/day'  value=0.06757039008
+  bh_sizing!D9  label='°C'  value=15.0
+  bh_sizing!D11  label='J.kg-1.K-1'  value=4200.0
+  bh_sizing!D12  label='kg.s-1.kW-1'  value=0.05
+  bh_sizing!E12  label='<- Mass flow rate in kg/s divided by the absolute value of the peak hourly ground load in kW'  value=0.074
+  bh_sizing!D13  label='°C'  value=40.2
+  bh_sizing!E13  label='<- Design criterion for the operation of the heat pump'  value=4.44
+  bh_sizing!D15  label='m'  value=0.06
+  bh_sizing!E15  label='<- Warning: rbore must be in the range between 0.05 and 0.1 m'  value=0.054
+  bh_sizing!D16  label='m'  value=0.01365
+  bh_sizing!D17  label='m'  value=0.0167
+  bh_sizing!D18  label='W.m-1.K-1'  value=1.5
+  bh_sizing!D19  label='W.m-1.K-1'  value=0.42
+  bh_sizing!D20  label='m'  value=0.0511
+  bh_sizing!D21  label='W.m-2.K-1'  value=1000.0
+  bh_sizing!D24  label='m.K.W-1'  value=0.011659702790615043
+  bh_sizing!D25  label='m.K.W-1'  value=0.07642059451888729
+  bh_sizing!D26  label='m.K.W-1'  value=0.07611423391286232
+  bh_sizing!D27  label='m.K.W-1'  value=0.12015438256761349
+  bh_sizing!D29  label='m.K.W-1'  value=0.11445903013141503
+  bh_sizing!D30  label='m.K.W-1'  value=0.18020547706451287
+  bh_sizing!D31  label='m.K.W-1'  value=0.19083864808240175
+  bh_sizing!D33  label='°C'  value=44.96190476190476
+  bh_sizing!D34  label='°C'  value=42.58095238095238
+  bh_sizing!D35  label='m'  value=151.65726437306537
+  bh_sizing!E39  label='<- Warning: NB must be in the range between 4 and 144'  value=120.0
+  bh_sizing!E40  label='<- Number of boreholes in the longest direction over the number of borehole in the other direction, A must be in the range between 1 and 9'  value=1.2
+  bh_sizing!E44  label='Important note on the evaluation of Tp:'  value=0.0739449490376491
+  bh_sizing!E45  label='The correlation for Tp is based on 1485 simulations covering the following range of borefield configurations:'  value=-1.1196400189685967
+  bh_sizing!E54  label='However, in certain cases, when Tp is near zero, values of Tp are less accurate'  value=0.07212058668367449
+  bh_sizing!E55  label='This inaccuracy combined with small values of (Tm-Tg) can lead to inaccurate borehole depths'  value=-1.1696027215635696
+
+--- Sheet: coefficients ---
+
+  [Formulas] — not extractable from .xls binary format; see cached values below
+
+  [Labelled numeric values]
+  coefficients!C4  label='a0'  value=0.6619352
+  coefficients!H4  label='b0'  value=7.8189
+  coefficients!C5  label='a1'  value=-4.815693
+  coefficients!H5  label='b1'  value=-64.27
+  coefficients!C6  label='a2'  value=15.03571
+  coefficients!H6  label='b2'  value=153.87
+  coefficients!C7  label='a3'  value=-0.09879421000000001
+  coefficients!H7  label='b3'  value=-84.809
+  coefficients!C8  label='a4'  value=0.02917889
+  coefficients!H8  label='b4'  value=3.461
+  coefficients!C9  label='a5'  value=0.1138498
+  coefficients!H9  label='b5'  value=-0.9475300000000001
+  coefficients!C10  label='a6'  value=0.005610933
+  coefficients!H10  label='b6'  value=-0.060416
+  coefficients!C11  label='a7'  value=0.7796329
+  coefficients!H11  label='b7'  value=1.5631
+  coefficients!C12  label='a8'  value=-0.324388
+  coefficients!H12  label='b8'  value=-0.0089416
+  coefficients!C13  label='a9'  value=-0.018241010000000002
+  coefficients!H13  label='b9'  value=1.9061000000000003e-05
+  coefficients!H14  label='b10'  value=-2.289
+  coefficients!H15  label='b11'  value=0.10187
+  coefficients!H16  label='b12'  value=0.006568999999999999
+  coefficients!H17  label='b13'  value=-40.918
+  coefficients!H18  label='b14'  value=15.557
+  coefficients!H19  label='b15'  value=-19.107
+  coefficients!H20  label='b16'  value=0.10529000000000001
+  coefficients!H21  label='b17'  value=25.501
+  coefficients!H22  label='b18'  value=-2.1177
+  coefficients!H23  label='b19'  value=77.529
+  coefficients!H24  label='b20'  value=-50.454
+  coefficients!H25  label='b21'  value=76.352
+  coefficients!H26  label='b22'  value=-0.5371900000000001
+  coefficients!H27  label='b23'  value=-132.0
+  coefficients!H28  label='b24'  value=12.878
+  coefficients!H29  label='b25'  value=0.12697
+  coefficients!H30  label='b26'  value=-0.00040284
+  coefficients!H31  label='b27'  value=-0.07206499999999999
+  coefficients!H32  label='b28'  value=0.00095184
+  coefficients!H33  label='b29'  value=-0.024166999999999998
+  coefficients!H34  label='b30'  value=9.6811e-05
+  coefficients!H35  label='b31'  value=0.028317
+  coefficients!H36  label='b32'  value=-0.0010904999999999999
+  coefficients!H37  label='b33'  value=0.12207000000000001
+  coefficients!H38  label='b34'  value=-0.007104999999999999
+  coefficients!H39  label='b35'  value=-0.0011129
+  coefficients!H40  label='b36'  value=-0.00045566
+
+======================================================================
+FILE: 390geothermal_calc.xlsx  [format: xlsx — formula strings available]
+======================================================================
+
+Sheets: ['Instructions', 'bh_sizing', 'Close-loop h - c', 'Close-loop h - s', 'Close-loop h', 'Close-loop c', 'Sheet2', 'openloop', 'prelim', 'coefficients']
+
+
+--- Sheet: Instructions ---
+
+  [Formulas]
+  (none)
+
+  [Labelled numeric values]
+  (none)
+
+--- Sheet: bh_sizing ---
+
+  [Formulas]
+  bh_sizing!G12  =ABS(E12*E3)/1000
+  bh_sizing!G13  =G12/1000
+  bh_sizing!G14  =G13*15850
+  bh_sizing!D24  =1/(2*PI()*D$16*D$21)
+  bh_sizing!E24  =1/(2*PI()*E$16*E$21)
+  bh_sizing!G24  =3300/90
+  bh_sizing!D25  =LN(D$17/D$16)/(2*PI()*D$19)
+  bh_sizing!E25  =LN(E$17/E$16)/(2*PI()*E$19)
+  bh_sizing!D26  =1/(4*PI()*D$18)*(LN(D$15/D$17)+LN(D$15/D$20)+(D$18-D$7)/(D$18+D$7)*LN(D$15^4/(D$15^4-(D$20/2)^4)))
+  bh_sizing!E26  =1/(4*PI()*E$18)*(LN(E$15/E$17)+LN(E$15/E$20)+(E$18-E$7)/(E$18+E$7)*LN(E$15^4/(E$15^4-(E$20/2)^4)))
+  bh_sizing!D27  =D$26+(D$24+D$25)/2
+  bh_sizing!E27  =E$26+(E$24+E$25)/2
+  bh_sizing!D29  =1/D$7*(coefficients!$C$4+coefficients!$C$5*D$15+coefficients!$C$6*D$15^2+coefficients!$C$7*D$8+coefficients!$C$8*D$8^2+coefficients!$C$9*LN(D$8)+coefficients!$C$10*LN(D$8)^2+coefficients!$C$11*D$15*D$8+coefficients!$C$12*D$15*LN(D$8)+coefficients!$C$13*D$8*LN(D$8))
+  bh_sizing!E29  =1/E$7*(coefficients!$C$4+coefficients!$C$5*E$15+coefficients!$C$6*E$15^2+coefficients!$C$7*E$8+coefficients!$C$8*E$8^2+coefficients!$C$9*LN(E$8)+coefficients!$C$10*LN(E$8)^2+coefficients!$C$11*E$15*E$8+coefficients!$C$12*E$15*LN(E$8)+coefficients!$C$13*E$8*LN(E$8))
+  bh_sizing!D30  =1/D$7*(coefficients!$D$4+coefficients!$D$5*D$15+coefficients!$D$6*D$15^2+coefficients!$D$7*D$8+coefficients!$D$8*D$8^2+coefficients!$D$9*LN(D$8)+coefficients!$D$10*LN(D$8)^2+coefficients!$D$11*D$15*D$8+coefficients!$D$12*D$15*LN(D$8)+coefficients!$D$13*D$8*LN(D$8))
+  bh_sizing!E30  =1/E$7*(coefficients!$D$4+coefficients!$D$5*E$15+coefficients!$D$6*E$15^2+coefficients!$D$7*E$8+coefficients!$D$8*E$8^2+coefficients!$D$9*LN(E$8)+coefficients!$D$10*LN(E$8)^2+coefficients!$D$11*E$15*E$8+coefficients!$D$12*E$15*LN(E$8)+coefficients!$D$13*E$8*LN(E$8))
+  bh_sizing!D31  =1/D$7*(coefficients!$E$4+coefficients!$E$5*D$15+coefficients!$E$6*D$15^2+coefficients!$E$7*D$8+coefficients!$E$8*D$8^2+coefficients!$E$9*LN(D$8)+coefficients!$E$10*LN(D$8)^2+coefficients!$E$11*D$15*D$8+coefficients!$E$12*D$15*LN(D$8)+coefficients!$E$13*D$8*LN(D$8))
+  bh_sizing!E31  =1/E$7*(coefficients!$E$4+coefficients!$E$5*E$15+coefficients!$E$6*E$15^2+coefficients!$E$7*E$8+coefficients!$E$8*E$8^2+coefficients!$E$9*LN(E$8)+coefficients!$E$10*LN(E$8)^2+coefficients!$E$11*E$15*E$8+coefficients!$E$12*E$15*LN(E$8)+coefficients!$E$13*E$8*LN(E$8))
+  bh_sizing!D33  =D$13+D$3/(D$12*ABS(D$3)/1000*D$11)
+  bh_sizing!E33  =E$13+E$3/(E$12*ABS(E$3)/1000*E$11)
+  bh_sizing!D34  =(D$13+D$33)/2
+  bh_sizing!E34  =(E$13+E$33)/2
+  bh_sizing!G34  =151*7+6*9.1
+  bh_sizing!D35  =(D$5*D$31+D$4*D$30+D$3*D$29+D$3*D$27)/(D$34-D$9)
+  bh_sizing!E35  =(E$5*E$31+E$4*E$30+E$3*E$29+E$3*E$27)/(E$34-E$9)
+  bh_sizing!F35  =D35*3.280833
+  bh_sizing!G35  =151*10+9*9.1
+  bh_sizing!G36  =G35-G34
+  bh_sizing!G37  =G36/G34
+  bh_sizing!F38  =E38*3.280833
+  bh_sizing!E43  =IF(E44<0.05,IF(E45<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E45>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E44>0.1,IF(E45<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E45>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E45<-2,"! ln(t10y/ts)<-2",IF(E45>3,"! ln(t10y/ts)>3",""))))
+  bh_sizing!E44  =E$38/(E$35/E$39)
+  bh_sizing!E45  =LN(365.25*10/((E$35/E$39)^2/(9*E$8)))
+  bh_sizing!E46  =E$5/(2*PI()*E$7*E$35)*(coefficients!$H$4+coefficients!$H$5*E44+coefficients!$H$6*E44^2+coefficients!$H$7*E44^3+coefficients!$H$8*E45+coefficients!$H$9*E45^2+coefficients!$H$10*E45^3+coefficients!$H$11*E$39+coefficients!$H$12*E$39^2+coefficients!$H$13*E$39^3+coefficients!$H$14*E$40+coefficients!$H$15*E$40^2+coefficients!$H$16*E$40^3+coefficients!$H$17*E44*E45+coefficients!$H$18*E44*E45^2+coefficients!$H$19*E44*E$39+coefficients!$H$20*E44*E$39^2+coefficients!$H$21*E44*E$40+coefficients!$H$22*E44*E$40^2+coefficients!$H$23*E44^2*E45+coefficients!$H$24*E44^2*E45^2+coefficients!$H$25*E44^2*E$39+coefficients!$H$26*E44^2*E$39^2+coefficients!$H$27*E44^2*E$40+coefficients!$H$28*E44^2*E$40^2+coefficients!$H$29*E45*E$39+coefficients!$H$30*E45*E$39^2+coefficients!$H$31*E45*E$40+coefficients!$H$32*E45*E$40^2+coefficients!$H$33*E45^2*E$39+coefficients!$H$34*E45^2*E$39^2+coefficients!$H$35*E45^2*E$40+coefficients!$H$36*E45^2*E$40^2+coefficients!$H$37*E$39*E$40+coefficients!$H$38*E$39*E$40^2+coefficients!$H$39*E$39^2*E$40+coefficients!$H$40*E$39^2*E$40^2)
+  bh_sizing!E47  =(E$5*E$31+E$4*E$30+E$3*E$29+E$3*E$27)/(E$34-E$9-E46)
+  bh_sizing!E48  =IF(E49<0.05,IF(E50<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E50>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E49>0.1,IF(E50<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E50>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E50<-2,"! ln(t10y/ts)<-2",IF(E50>3,"! ln(t10y/ts)>3",""))))
+  bh_sizing!E49  =E$38/(E47/E$39)
+  bh_sizing!E50  =LN(365.25*10/((E47/E$39)^2/(9*E$8)))
+  bh_sizing!E51  =E$5/(2*PI()*E$7*E47)*(coefficients!$H$4+coefficients!$H$5*E49+coefficients!$H$6*E49^2+coefficients!$H$7*E49^3+coefficients!$H$8*E50+coefficients!$H$9*E50^2+coefficients!$H$10*E50^3+coefficients!$H$11*E$39+coefficients!$H$12*E$39^2+coefficients!$H$13*E$39^3+coefficients!$H$14*E$40+coefficients!$H$15*E$40^2+coefficients!$H$16*E$40^3+coefficients!$H$17*E49*E50+coefficients!$H$18*E49*E50^2+coefficients!$H$19*E49*E$39+coefficients!$H$20*E49*E$39^2+coefficients!$H$21*E49*E$40+coefficients!$H$22*E49*E$40^2+coefficients!$H$23*E49^2*E50+coefficients!$H$24*E49^2*E50^2+coefficients!$H$25*E49^2*E$39+coefficients!$H$26*E49^2*E$39^2+coefficients!$H$27*E49^2*E$40+coefficients!$H$28*E49^2*E$40^2+coefficients!$H$29*E50*E$39+coefficients!$H$30*E50*E$39^2+coefficients!$H$31*E50*E$40+coefficients!$H$32*E50*E$40^2+coefficients!$H$33*E50^2*E$39+coefficients!$H$34*E50^2*E$39^2+coefficients!$H$35*E50^2*E$40+coefficients!$H$36*E50^2*E$40^2+coefficients!$H$37*E$39*E$40+coefficients!$H$38*E$39*E$40^2+coefficients!$H$39*E$39^2*E$40+coefficients!$H$40*E$39^2*E$40^2)
+  bh_sizing!E52  =(E$5*E$31+E$4*E$30+E$3*E$29+E$3*E$27)/(E$34-E$9-E51)
+  bh_sizing!E53  =IF(E54<0.05,IF(E55<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E55>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E54>0.1,IF(E55<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E55>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E55<-2,"! ln(t10y/ts)<-2",IF(E55>3,"! ln(t10y/ts)>3",""))))
+  bh_sizing!E54  =E$38/(E52/E$39)
+  bh_sizing!E55  =LN(365.25*10/((E52/E$39)^2/(9*E$8)))
+  bh_sizing!E56  =E$5/(2*PI()*E$7*E52)*(coefficients!$H$4+coefficients!$H$5*E54+coefficients!$H$6*E54^2+coefficients!$H$7*E54^3+coefficients!$H$8*E55+coefficients!$H$9*E55^2+coefficients!$H$10*E55^3+coefficients!$H$11*E$39+coefficients!$H$12*E$39^2+coefficients!$H$13*E$39^3+coefficients!$H$14*E$40+coefficients!$H$15*E$40^2+coefficients!$H$16*E$40^3+coefficients!$H$17*E54*E55+coefficients!$H$18*E54*E55^2+coefficients!$H$19*E54*E$39+coefficients!$H$20*E54*E$39^2+coefficients!$H$21*E54*E$40+coefficients!$H$22*E54*E$40^2+coefficients!$H$23*E54^2*E55+coefficients!$H$24*E54^2*E55^2+coefficients!$H$25*E54^2*E$39+coefficients!$H$26*E54^2*E$39^2+coefficients!$H$27*E54^2*E$40+coefficients!$H$28*E54^2*E$40^2+coefficients!$H$29*E55*E$39+coefficients!$H$30*E55*E$39^2+coefficients!$H$31*E55*E$40+coefficients!$H$32*E55*E$40^2+coefficients!$H$33*E55^2*E$39+coefficients!$H$34*E55^2*E$39^2+coefficients!$H$35*E55^2*E$40+coefficients!$H$36*E55^2*E$40^2+coefficients!$H$37*E$39*E$40+coefficients!$H$38*E$39*E$40^2+coefficients!$H$39*E$39^2*E$40+coefficients!$H$40*E$39^2*E$40^2)
+  bh_sizing!E57  =(E$5*E$31+E$4*E$30+E$3*E$29+E$3*E$27)/(E$34-E$9-E56)
+  bh_sizing!E58  =IF(E59<0.05,IF(E60<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E60>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E59>0.1,IF(E60<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E60>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E60<-2,"! ln(t10y/ts)<-2",IF(E60>3,"! ln(t10y/ts)>3",""))))
+  bh_sizing!E59  =E$38/(E57/E$39)
+  bh_sizing!E60  =LN(365.25*10/((E57/E$39)^2/(9*E$8)))
+  bh_sizing!E61  =E$5/(2*PI()*E$7*E57)*(coefficients!$H$4+coefficients!$H$5*E59+coefficients!$H$6*E59^2+coefficients!$H$7*E59^3+coefficients!$H$8*E60+coefficients!$H$9*E60^2+coefficients!$H$10*E60^3+coefficients!$H$11*E$39+coefficients!$H$12*E$39^2+coefficients!$H$13*E$39^3+coefficients!$H$14*E$40+coefficients!$H$15*E$40^2+coefficients!$H$16*E$40^3+coefficients!$H$17*E59*E60+coefficients!$H$18*E59*E60^2+coefficients!$H$19*E59*E$39+coefficients!$H$20*E59*E$39^2+coefficients!$H$21*E59*E$40+coefficients!$H$22*E59*E$40^2+coefficients!$H$23*E59^2*E60+coefficients!$H$24*E59^2*E60^2+coefficients!$H$25*E59^2*E$39+coefficients!$H$26*E59^2*E$39^2+coefficients!$H$27*E59^2*E$40+coefficients!$H$28*E59^2*E$40^2+coefficients!$H$29*E60*E$39+coefficients!$H$30*E60*E$39^2+coefficients!$H$31*E60*E$40+coefficients!$H$32*E60*E$40^2+coefficients!$H$33*E60^2*E$39+coefficients!$H$34*E60^2*E$39^2+coefficients!$H$35*E60^2*E$40+coefficients!$H$36*E60^2*E$40^2+coefficients!$H$37*E$39*E$40+coefficients!$H$38*E$39*E$40^2+coefficients!$H$39*E$39^2*E$40+coefficients!$H$40*E$39^2*E$40^2)
+  bh_sizing!E62  =(E$5*E$31+E$4*E$30+E$3*E$29+E$3*E$27)/(E$34-E$9-E61)
+  bh_sizing!E63  =IF(E64<0.05,IF(E65<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E65>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E64>0.1,IF(E65<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E65>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E65<-2,"! ln(t10y/ts)<-2",IF(E65>3,"! ln(t10y/ts)>3",""))))
+  bh_sizing!E64  =E$38/(E62/E$39)
+  bh_sizing!E65  =LN(365.25*10/((E62/E$39)^2/(9*E$8)))
+  bh_sizing!E66  =E$5/(2*PI()*E$7*E62)*(coefficients!$H$4+coefficients!$H$5*E64+coefficients!$H$6*E64^2+coefficients!$H$7*E64^3+coefficients!$H$8*E65+coefficients!$H$9*E65^2+coefficients!$H$10*E65^3+coefficients!$H$11*E$39+coefficients!$H$12*E$39^2+coefficients!$H$13*E$39^3+coefficients!$H$14*E$40+coefficients!$H$15*E$40^2+coefficients!$H$16*E$40^3+coefficients!$H$17*E64*E65+coefficients!$H$18*E64*E65^2+coefficients!$H$19*E64*E$39+coefficients!$H$20*E64*E$39^2+coefficients!$H$21*E64*E$40+coefficients!$H$22*E64*E$40^2+coefficients!$H$23*E64^2*E65+coefficients!$H$24*E64^2*E65^2+coefficients!$H$25*E64^2*E$39+coefficients!$H$26*E64^2*E$39^2+coefficients!$H$27*E64^2*E$40+coefficients!$H$28*E64^2*E$40^2+coefficients!$H$29*E65*E$39+coefficients!$H$30*E65*E$39^2+coefficients!$H$31*E65*E$40+coefficients!$H$32*E65*E$40^2+coefficients!$H$33*E65^2*E$39+coefficients!$H$34*E65^2*E$39^2+coefficients!$H$35*E65^2*E$40+coefficients!$H$36*E65^2*E$40^2+coefficients!$H$37*E$39*E$40+coefficients!$H$38*E$39*E$40^2+coefficients!$H$39*E$39^2*E$40+coefficients!$H$40*E$39^2*E$40^2)
+  bh_sizing!E67  =(E$5*E$31+E$4*E$30+E$3*E$29+E$3*E$27)/(E$34-E$9-E66)
+  bh_sizing!E69  =E67
+  bh_sizing!F69  =E69*3.280833
+  bh_sizing!E70  =E67/E$39
+  bh_sizing!E72  =E70*3.280833
+
+  [Labelled numeric values]
+  bh_sizing!D3  label='W'  value=-200000
+  bh_sizing!E3  label='Sign convention:
++: heat injection to the ground
+-: heat extraction from the ground'  value=-180000
+  bh_sizing!D4  label='W'  value=-90000
+  bh_sizing!D5  label='W'  value=-25000
+  bh_sizing!D7  label='W.m-1K-1'  value=1.11
+  bh_sizing!D8  label='m2.day-1'  value=0.025
+  bh_sizing!E8  label='<- Warning: α must be in the range between 0.025 and 0.2 m²/day'  value=0.1
+  bh_sizing!D9  label='°C'  value=15
+  bh_sizing!D11  label='J.kg-1.K-1'  value=4200
+  bh_sizing!D12  label='kg.s-1.kW-1'  value=0.05
+  bh_sizing!E12  label='<- Mass flow rate in kg/s divided by the absolute value of the peak hourly ground load in kW'  value=0.05
+  bh_sizing!D13  label='°C'  value=3
+  bh_sizing!E13  label='<- Design criterion for the operation of the heat pump'  value=3
+  bh_sizing!D15  label='m'  value=0.06
+  bh_sizing!E15  label='<- Warning: rbore must be in the range between 0.05 and 0.1 m'  value=0.0508
+  bh_sizing!D16  label='m'  value=0.01365
+  bh_sizing!D17  label='m'  value=0.0167
+  bh_sizing!D18  label='W.m-1.K-1'  value=1.53
+  bh_sizing!D19  label='W.m-1.K-1'  value=0.42
+  bh_sizing!D20  label='m'  value=0.0511
+  bh_sizing!D21  label='W.m-2.K-1'  value=1000
+  bh_sizing!E38  label='=E38*3.280833'  value=9.144
+  bh_sizing!E39  label='<- Warning: NB must be in the range between 4 and 144'  value=68
+  bh_sizing!E40  label='<- Number of boreholes in the longest direction over the number of borehole in the other direction, A must be in the range between 1 and 9'  value=1
+
+--- Sheet: Close-loop h - c ---
+
+  [Formulas]
+  Close-loop h - c!H2  =TODAY()
+  Close-loop h - c!E49  =E98
+  Close-loop h - c!G49  =3.280833*E49
+  Close-loop h - c!D50  =D71
+  Close-loop h - c!E50  =E49/E$45
+  Close-loop h - c!G50  =3.280833*E50
+  Close-loop h - c!H52  =TODAY()
+  Close-loop h - c!D60  =1/(2*PI()*D$37*D$42)
+  Close-loop h - c!E60  =1/(2*PI()*E$37*E$42)
+  Close-loop h - c!D61  =LN(D$38/D$37)/(2*PI()*D$40)
+  Close-loop h - c!E61  =LN(E$38/E$37)/(2*PI()*E$40)
+  Close-loop h - c!D62  =1/(4*PI()*D$39)*(LN(D$36/D$38)+LN(D$36/D$41)+(D$39-D$28)/(D$39+D$28)*LN(D$36^4/(D$36^4-(D$41/2)^4)))
+  Close-loop h - c!E62  =1/(4*PI()*E$39)*(LN(E$36/E$38)+LN(E$36/E$41)+(E$39-E$28)/(E$39+E$28)*LN(E$36^4/(E$36^4-(E$41/2)^4)))
+  Close-loop h - c!D63  =D$62+(D$61+D$60)/2
+  Close-loop h - c!E63  =E$62+(E$61+E$60)/2
+  Close-loop h - c!D65  =1/D$28*(coefficients!$C$4+coefficients!$C$5*D$36+coefficients!$C$6*D$36^2+coefficients!$C$7*D$29+coefficients!$C$8*D$29^2+coefficients!$C$9*LN(D$29)+coefficients!$C$10*LN(D$29)^2+coefficients!$C$11*D$36*D$29+coefficients!$C$12*D$36*LN(D$29)+coefficients!$C$13*D$29*LN(D$29))
+  Close-loop h - c!E65  =1/E$28*(coefficients!$C$4+coefficients!$C$5*E$36+coefficients!$C$6*E$36^2+coefficients!$C$7*E$29+coefficients!$C$8*E$29^2+coefficients!$C$9*LN(E$29)+coefficients!$C$10*LN(E$29)^2+coefficients!$C$11*E$36*E$29+coefficients!$C$12*E$36*LN(E$29)+coefficients!$C$13*E$29*LN(E$29))
+  Close-loop h - c!D66  =1/D$28*(coefficients!$D$4+coefficients!$D$5*D$36+coefficients!$D$6*D$36^2+coefficients!$D$7*D$29+coefficients!$D$8*D$29^2+coefficients!$D$9*LN(D$29)+coefficients!$D$10*LN(D$29)^2+coefficients!$D$11*D$36*D$29+coefficients!$D$12*D$36*LN(D$29)+coefficients!$D$13*D$29*LN(D$29))
+  Close-loop h - c!E66  =1/E$28*(coefficients!$D$4+coefficients!$D$5*E$36+coefficients!$D$6*E$36^2+coefficients!$D$7*E$29+coefficients!$D$8*E$29^2+coefficients!$D$9*LN(E$29)+coefficients!$D$10*LN(E$29)^2+coefficients!$D$11*E$36*E$29+coefficients!$D$12*E$36*LN(E$29)+coefficients!$D$13*E$29*LN(E$29))
+  Close-loop h - c!D67  =1/D$28*(coefficients!$E$4+coefficients!$E$5*D$36+coefficients!$E$6*D$36^2+coefficients!$E$7*D$29+coefficients!$E$8*D$29^2+coefficients!$E$9*LN(D$29)+coefficients!$E$10*LN(D$29)^2+coefficients!$E$11*D$36*D$29+coefficients!$E$12*D$36*LN(D$29)+coefficients!$E$13*D$29*LN(D$29))
+  Close-loop h - c!E67  =1/E$28*(coefficients!$E$4+coefficients!$E$5*E$36+coefficients!$E$6*E$36^2+coefficients!$E$7*E$29+coefficients!$E$8*E$29^2+coefficients!$E$9*LN(E$29)+coefficients!$E$10*LN(E$29)^2+coefficients!$E$11*E$36*E$29+coefficients!$E$12*E$36*LN(E$29)+coefficients!$E$13*E$29*LN(E$29))
+  Close-loop h - c!D69  =D$34+D$24/(D$33*ABS(D$24)/1000*D$32)
+  Close-loop h - c!E69  =E$34+E$24/(E$33*ABS(E$24)/1000*E$32)
+  Close-loop h - c!D70  =(D$34+D$69)/2
+  Close-loop h - c!E70  =(E$34+E$69)/2
+  Close-loop h - c!D71  =(D$26*D$67+D$25*D$66+D$24*D$65+D$24*D$63)/(D$70-D$30)
+  Close-loop h - c!E71  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30)
+  Close-loop h - c!E75  =E$44/(E$71/E$45)
+  Close-loop h - c!E76  =LN(365.25*10/((E$71/E$45)^2/(9*E$29)))
+  Close-loop h - c!E77  =E$26/(2*PI()*E$28*E$71)*(coefficients!$H$4+coefficients!$H$5*E$75+coefficients!$H$6*E$75^2+coefficients!$H$7*E$75^3+coefficients!$H$8*E$76+coefficients!$H$9*E$76^2+coefficients!$H$10*E$76^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$75*E$76+coefficients!$H$18*E$75*E$76^2+coefficients!$H$19*E$75*E$45+coefficients!$H$20*E$75*E$45^2+coefficients!$H$21*E$75*E$46+coefficients!$H$22*E$75*E$46^2+coefficients!$H$23*E$75^2*E$76+coefficients!$H$24*E$75^2*E$76^2+coefficients!$H$25*E$75^2*E$45+coefficients!$H$26*E$75^2*E$45^2+coefficients!$H$27*E$75^2*E$46+coefficients!$H$28*E$75^2*E$46^2+coefficients!$H$29*E$76*E$45+coefficients!$H$30*E$76*E$45^2+coefficients!$H$31*E$76*E$46+coefficients!$H$32*E$76*E$46^2+coefficients!$H$33*E$76^2*E$45+coefficients!$H$34*E$76^2*E$45^2+coefficients!$H$35*E$76^2*E$46+coefficients!$H$36*E$76^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - c!E78  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$77)
+  Close-loop h - c!E79  =IF(E$80<0.05,IF(E$81<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$80>0.1,IF(E$81<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$81<-2,"! ln(t10y/ts)<-2",IF(E$81>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - c!E80  =E$44/(E$78/E$45)
+  Close-loop h - c!E81  =LN(365.25*10/((E$78/E$45)^2/(9*E$29)))
+  Close-loop h - c!E82  =E$26/(2*PI()*E$28*E$78)*(coefficients!$H$4+coefficients!$H$5*E$80+coefficients!$H$6*E$80^2+coefficients!$H$7*E$80^3+coefficients!$H$8*E$81+coefficients!$H$9*E$81^2+coefficients!$H$10*E$81^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$80*E$81+coefficients!$H$18*E$80*E$81^2+coefficients!$H$19*E$80*E$45+coefficients!$H$20*E$80*E$45^2+coefficients!$H$21*E$80*E$46+coefficients!$H$22*E$80*E$46^2+coefficients!$H$23*E$80^2*E$81+coefficients!$H$24*E$80^2*E$81^2+coefficients!$H$25*E$80^2*E$45+coefficients!$H$26*E$80^2*E$45^2+coefficients!$H$27*E$80^2*E$46+coefficients!$H$28*E$80^2*E$46^2+coefficients!$H$29*E$81*E$45+coefficients!$H$30*E$81*E$45^2+coefficients!$H$31*E$81*E$46+coefficients!$H$32*E$81*E$46^2+coefficients!$H$33*E$81^2*E$45+coefficients!$H$34*E$81^2*E$45^2+coefficients!$H$35*E$81^2*E$46+coefficients!$H$36*E$81^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - c!E83  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$82)
+  Close-loop h - c!E84  =IF(E$85<0.05,IF(E$86<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$85>0.1,IF(E$86<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$86<-2,"! ln(t10y/ts)<-2",IF(E$86>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - c!E85  =E$44/(E$83/E$45)
+  Close-loop h - c!E86  =LN(365.25*10/((E$83/E$45)^2/(9*E$29)))
+  Close-loop h - c!E87  =E$26/(2*PI()*E$28*E$83)*(coefficients!$H$4+coefficients!$H$5*E$85+coefficients!$H$6*E$85^2+coefficients!$H$7*E$85^3+coefficients!$H$8*E$86+coefficients!$H$9*E$86^2+coefficients!$H$10*E$86^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$85*E$86+coefficients!$H$18*E$85*E$86^2+coefficients!$H$19*E$85*E$45+coefficients!$H$20*E$85*E$45^2+coefficients!$H$21*E$85*E$46+coefficients!$H$22*E$85*E$46^2+coefficients!$H$23*E$85^2*E$86+coefficients!$H$24*E$85^2*E$86^2+coefficients!$H$25*E$85^2*E$45+coefficients!$H$26*E$85^2*E$45^2+coefficients!$H$27*E$85^2*E$46+coefficients!$H$28*E$85^2*E$46^2+coefficients!$H$29*E$86*E$45+coefficients!$H$30*E$86*E$45^2+coefficients!$H$31*E$86*E$46+coefficients!$H$32*E$86*E$46^2+coefficients!$H$33*E$86^2*E$45+coefficients!$H$34*E$86^2*E$45^2+coefficients!$H$35*E$86^2*E$46+coefficients!$H$36*E$86^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - c!E88  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$87)
+  Close-loop h - c!E89  =IF(E$90<0.05,IF(E$91<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$90>0.1,IF(E$91<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$91<-2,"! ln(t10y/ts)<-2",IF(E$91>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - c!E90  =E$44/(E$88/E$45)
+  Close-loop h - c!E91  =LN(365.25*10/((E$88/E$45)^2/(9*E$29)))
+  Close-loop h - c!E92  =E$26/(2*PI()*E$28*E$88)*(coefficients!$H$4+coefficients!$H$5*E$90+coefficients!$H$6*E$90^2+coefficients!$H$7*E$90^3+coefficients!$H$8*E$91+coefficients!$H$9*E$91^2+coefficients!$H$10*E$91^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$90*E$91+coefficients!$H$18*E$90*E$91^2+coefficients!$H$19*E$90*E$45+coefficients!$H$20*E$90*E$45^2+coefficients!$H$21*E$90*E$46+coefficients!$H$22*E$90*E$46^2+coefficients!$H$23*E$90^2*E$91+coefficients!$H$24*E$90^2*E$91^2+coefficients!$H$25*E$90^2*E$45+coefficients!$H$26*E$90^2*E$45^2+coefficients!$H$27*E$90^2*E$46+coefficients!$H$28*E$90^2*E$46^2+coefficients!$H$29*E$91*E$45+coefficients!$H$30*E$91*E$45^2+coefficients!$H$31*E$91*E$46+coefficients!$H$32*E$91*E$46^2+coefficients!$H$33*E$91^2*E$45+coefficients!$H$34*E$91^2*E$45^2+coefficients!$H$35*E$91^2*E$46+coefficients!$H$36*E$91^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - c!E93  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$92)
+  Close-loop h - c!E94  =IF(E$95<0.05,IF(E$96<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$95>0.1,IF(E$96<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$96<-2,"! ln(t10y/ts)<-2",IF(E$96>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - c!E95  =E$44/(E$93/E$45)
+  Close-loop h - c!E96  =LN(365.25*10/((E$93/E$45)^2/(9*E$29)))
+  Close-loop h - c!E97  =E$26/(2*PI()*E$28*E$93)*(coefficients!$H$4+coefficients!$H$5*E$95+coefficients!$H$6*E$95^2+coefficients!$H$7*E$95^3+coefficients!$H$8*E$96+coefficients!$H$9*E$96^2+coefficients!$H$10*E$96^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$95*E$96+coefficients!$H$18*E$95*E$96^2+coefficients!$H$19*E$95*E$45+coefficients!$H$20*E$95*E$45^2+coefficients!$H$21*E$95*E$46+coefficients!$H$22*E$95*E$46^2+coefficients!$H$23*E$95^2*E$96+coefficients!$H$24*E$95^2*E$96^2+coefficients!$H$25*E$95^2*E$45+coefficients!$H$26*E$95^2*E$45^2+coefficients!$H$27*E$95^2*E$46+coefficients!$H$28*E$95^2*E$46^2+coefficients!$H$29*E$96*E$45+coefficients!$H$30*E$96*E$45^2+coefficients!$H$31*E$96*E$46+coefficients!$H$32*E$96*E$46^2+coefficients!$H$33*E$96^2*E$45+coefficients!$H$34*E$96^2*E$45^2+coefficients!$H$35*E$96^2*E$46+coefficients!$H$36*E$96^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - c!E98  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$97)
+  Close-loop h - c!H102  =TODAY()
+  Close-loop h - c!E122  =E45
+  Close-loop h - c!E124  =E50
+  Close-loop h - c!G124  =E124*3.28084
+  Close-loop h - c!G125  =_xlfn.CEILING.MATH(G124,10)
+  Close-loop h - c!D135  =D36
+  Close-loop h - c!E135  =E36
+  Close-loop h - c!D136  =E124
+  Close-loop h - c!E136  =D136*E122
+  Close-loop h - c!G136  =G125
+  Close-loop h - c!D137  =(D135)^2*PI()*D136
+  Close-loop h - c!E137  =D137*E122
+  Close-loop h - c!D138  =D38
+  Close-loop h - c!E138  =E38
+  Close-loop h - c!D139  =(D138/2)^2*PI()*D136*2
+  Close-loop h - c!E139  =D139*E122
+  Close-loop h - c!D140  =D137-D139
+  Close-loop h - c!E140  =E137-E139
+  Close-loop h - c!G140  =D140*1000
+  Close-loop h - c!D141  =G140/E130
+  Close-loop h - c!D142  =_xlfn.CEILING.MATH(D141,1)
+  Close-loop h - c!E142  =D142*E122
+  Close-loop h - c!C145  =G125
+  Close-loop h - c!G145  =(17*2+48+5)*5
+  Close-loop h - c!F148  =C148*E148
+  Close-loop h - c!E149  =C145*E122
+  Close-loop h - c!F149  =C149*E149
+  Close-loop h - c!E150  =E122*(G125-C145)
+  Close-loop h - c!F150  =C150*E150
+  Close-loop h - c!F151  =C151*E151
+  Close-loop h - c!E152  =400/50*E142
+  Close-loop h - c!F152  =C152*E152
+  Close-loop h - c!E153  =E142
+  Close-loop h - c!F153  =C153*E153
+  Close-loop h - c!E154  =G136*E122
+  Close-loop h - c!F154  =C154*E154
+  Close-loop h - c!E155  =E156*2
+  Close-loop h - c!F155  =C155*E155
+  Close-loop h - c!E156  =G145+3.28*E44*(E122-1)
+  Close-loop h - c!F156  =C156*E156
+  Close-loop h - c!F158  =SUM(F148:F156)
+
+  [Labelled numeric values]
+  Close-loop h - c!D24  label='qh'  value=-200000
+  Close-loop h - c!E24  label='W'  value=-200000
+  Close-loop h - c!D25  label='qm'  value=-90000
+  Close-loop h - c!E25  label='W'  value=-90000
+  Close-loop h - c!D26  label='qy'  value=-25000
+  Close-loop h - c!E26  label='W'  value=-25000
+  Close-loop h - c!D28  label='k'  value=1.5480155012607755
+  Close-loop h - c!E28  label='W.m-1K-1'  value=1.5480155012607755
+  Close-loop h - c!D29  label='α'  value=0.22291423218155165
+  Close-loop h - c!E29  label='m2.day-1'  value=0.22291423218155165
+  Close-loop h - c!D30  label='Tg'  value=15
+  Close-loop h - c!E30  label='°C'  value=15
+  Close-loop h - c!D32  label='Cp'  value=4200
+  Close-loop h - c!E32  label='J.kg-1.K-1'  value=4200
+  Close-loop h - c!D33  label='mfls'  value=0.05
+  Close-loop h - c!E33  label='kg.s-1.kW-1'  value=0.05
+  Close-loop h - c!D34  label='TinHP'  value=5
+  Close-loop h - c!E34  label='°C'  value=5
+  Close-loop h - c!D36  label='rbore'  value=0.0762
+  Close-loop h - c!E36  label='m'  value=0.0762
+  Close-loop h - c!D37  label='rpin'  value=0.01365
+  Close-loop h - c!E37  label='m'  value=0.01365
+  Close-loop h - c!D38  label='rpext'  value=0.0167
+  Close-loop h - c!E38  label='m'  value=0.0167
+  Close-loop h - c!D39  label='kgrout'  value=2.05
+  Close-loop h - c!E39  label='W.m-1.K-1'  value=2.05
+  Close-loop h - c!D40  label='kpipe'  value=0.42
+  Close-loop h - c!E40  label='W.m-1.K-1'  value=0.42
+  Close-loop h - c!D41  label='LU'  value=0.0511
+  Close-loop h - c!E41  label='m'  value=0.0511
+  Close-loop h - c!D42  label='hconv'  value=1000
+  Close-loop h - c!E42  label='W.m-2.K-1'  value=1000
+  Close-loop h - c!E44  label='-'  value=6.7
+  Close-loop h - c!E45  label='-'  value=32
+  Close-loop h - c!E46  label='-'  value=9
+  Close-loop h - c!K65  label='1m ='  value=3.28084
+  Close-loop h - c!C148  label='/once'  value=1000
+  Close-loop h - c!E148  label='/once'  value=1
+  Close-loop h - c!C149  label='/LF'  value=30
+  Close-loop h - c!C150  label='/LF'  value=100
+  Close-loop h - c!C151  label='/LF'  value=20
+  Close-loop h - c!E151  label='/LF'  value=0
+  Close-loop h - c!C152  label='/50lb bag'  value=10
+  Close-loop h - c!C153  label='/50lb bag'  value=20
+  Close-loop h - c!C154  label='/LF'  value=2
+  Close-loop h - c!C155  label='/LF'  value=1
+  Close-loop h - c!C156  label='/LF'  value=5
+
+--- Sheet: Close-loop h - s ---
+
+  [Formulas]
+  Close-loop h - s!H2  =TODAY()
+  Close-loop h - s!E49  =E98
+  Close-loop h - s!G49  =3.280833*E49
+  Close-loop h - s!D50  =D71
+  Close-loop h - s!E50  =E49/E$45
+  Close-loop h - s!G50  =3.280833*E50
+  Close-loop h - s!H52  =TODAY()
+  Close-loop h - s!D60  =1/(2*PI()*D$37*D$42)
+  Close-loop h - s!E60  =1/(2*PI()*E$37*E$42)
+  Close-loop h - s!D61  =LN(D$38/D$37)/(2*PI()*D$40)
+  Close-loop h - s!E61  =LN(E$38/E$37)/(2*PI()*E$40)
+  Close-loop h - s!D62  =1/(4*PI()*D$39)*(LN(D$36/D$38)+LN(D$36/D$41)+(D$39-D$28)/(D$39+D$28)*LN(D$36^4/(D$36^4-(D$41/2)^4)))
+  Close-loop h - s!E62  =1/(4*PI()*E$39)*(LN(E$36/E$38)+LN(E$36/E$41)+(E$39-E$28)/(E$39+E$28)*LN(E$36^4/(E$36^4-(E$41/2)^4)))
+  Close-loop h - s!D63  =D$62+(D$61+D$60)/2
+  Close-loop h - s!E63  =E$62+(E$61+E$60)/2
+  Close-loop h - s!D65  =1/D$28*(coefficients!$C$4+coefficients!$C$5*D$36+coefficients!$C$6*D$36^2+coefficients!$C$7*D$29+coefficients!$C$8*D$29^2+coefficients!$C$9*LN(D$29)+coefficients!$C$10*LN(D$29)^2+coefficients!$C$11*D$36*D$29+coefficients!$C$12*D$36*LN(D$29)+coefficients!$C$13*D$29*LN(D$29))
+  Close-loop h - s!E65  =1/E$28*(coefficients!$C$4+coefficients!$C$5*E$36+coefficients!$C$6*E$36^2+coefficients!$C$7*E$29+coefficients!$C$8*E$29^2+coefficients!$C$9*LN(E$29)+coefficients!$C$10*LN(E$29)^2+coefficients!$C$11*E$36*E$29+coefficients!$C$12*E$36*LN(E$29)+coefficients!$C$13*E$29*LN(E$29))
+  Close-loop h - s!D66  =1/D$28*(coefficients!$D$4+coefficients!$D$5*D$36+coefficients!$D$6*D$36^2+coefficients!$D$7*D$29+coefficients!$D$8*D$29^2+coefficients!$D$9*LN(D$29)+coefficients!$D$10*LN(D$29)^2+coefficients!$D$11*D$36*D$29+coefficients!$D$12*D$36*LN(D$29)+coefficients!$D$13*D$29*LN(D$29))
+  Close-loop h - s!E66  =1/E$28*(coefficients!$D$4+coefficients!$D$5*E$36+coefficients!$D$6*E$36^2+coefficients!$D$7*E$29+coefficients!$D$8*E$29^2+coefficients!$D$9*LN(E$29)+coefficients!$D$10*LN(E$29)^2+coefficients!$D$11*E$36*E$29+coefficients!$D$12*E$36*LN(E$29)+coefficients!$D$13*E$29*LN(E$29))
+  Close-loop h - s!D67  =1/D$28*(coefficients!$E$4+coefficients!$E$5*D$36+coefficients!$E$6*D$36^2+coefficients!$E$7*D$29+coefficients!$E$8*D$29^2+coefficients!$E$9*LN(D$29)+coefficients!$E$10*LN(D$29)^2+coefficients!$E$11*D$36*D$29+coefficients!$E$12*D$36*LN(D$29)+coefficients!$E$13*D$29*LN(D$29))
+  Close-loop h - s!E67  =1/E$28*(coefficients!$E$4+coefficients!$E$5*E$36+coefficients!$E$6*E$36^2+coefficients!$E$7*E$29+coefficients!$E$8*E$29^2+coefficients!$E$9*LN(E$29)+coefficients!$E$10*LN(E$29)^2+coefficients!$E$11*E$36*E$29+coefficients!$E$12*E$36*LN(E$29)+coefficients!$E$13*E$29*LN(E$29))
+  Close-loop h - s!D69  =D$34+D$24/(D$33*ABS(D$24)/1000*D$32)
+  Close-loop h - s!E69  =E$34+E$24/(E$33*ABS(E$24)/1000*E$32)
+  Close-loop h - s!D70  =(D$34+D$69)/2
+  Close-loop h - s!E70  =(E$34+E$69)/2
+  Close-loop h - s!D71  =(D$26*D$67+D$25*D$66+D$24*D$65+D$24*D$63)/(D$70-D$30)
+  Close-loop h - s!E71  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30)
+  Close-loop h - s!E75  =E$44/(E$71/E$45)
+  Close-loop h - s!E76  =LN(365.25*10/((E$71/E$45)^2/(9*E$29)))
+  Close-loop h - s!E77  =E$26/(2*PI()*E$28*E$71)*(coefficients!$H$4+coefficients!$H$5*E$75+coefficients!$H$6*E$75^2+coefficients!$H$7*E$75^3+coefficients!$H$8*E$76+coefficients!$H$9*E$76^2+coefficients!$H$10*E$76^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$75*E$76+coefficients!$H$18*E$75*E$76^2+coefficients!$H$19*E$75*E$45+coefficients!$H$20*E$75*E$45^2+coefficients!$H$21*E$75*E$46+coefficients!$H$22*E$75*E$46^2+coefficients!$H$23*E$75^2*E$76+coefficients!$H$24*E$75^2*E$76^2+coefficients!$H$25*E$75^2*E$45+coefficients!$H$26*E$75^2*E$45^2+coefficients!$H$27*E$75^2*E$46+coefficients!$H$28*E$75^2*E$46^2+coefficients!$H$29*E$76*E$45+coefficients!$H$30*E$76*E$45^2+coefficients!$H$31*E$76*E$46+coefficients!$H$32*E$76*E$46^2+coefficients!$H$33*E$76^2*E$45+coefficients!$H$34*E$76^2*E$45^2+coefficients!$H$35*E$76^2*E$46+coefficients!$H$36*E$76^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - s!E78  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$77)
+  Close-loop h - s!E79  =IF(E$80<0.05,IF(E$81<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$80>0.1,IF(E$81<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$81<-2,"! ln(t10y/ts)<-2",IF(E$81>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - s!E80  =E$44/(E$78/E$45)
+  Close-loop h - s!E81  =LN(365.25*10/((E$78/E$45)^2/(9*E$29)))
+  Close-loop h - s!E82  =E$26/(2*PI()*E$28*E$78)*(coefficients!$H$4+coefficients!$H$5*E$80+coefficients!$H$6*E$80^2+coefficients!$H$7*E$80^3+coefficients!$H$8*E$81+coefficients!$H$9*E$81^2+coefficients!$H$10*E$81^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$80*E$81+coefficients!$H$18*E$80*E$81^2+coefficients!$H$19*E$80*E$45+coefficients!$H$20*E$80*E$45^2+coefficients!$H$21*E$80*E$46+coefficients!$H$22*E$80*E$46^2+coefficients!$H$23*E$80^2*E$81+coefficients!$H$24*E$80^2*E$81^2+coefficients!$H$25*E$80^2*E$45+coefficients!$H$26*E$80^2*E$45^2+coefficients!$H$27*E$80^2*E$46+coefficients!$H$28*E$80^2*E$46^2+coefficients!$H$29*E$81*E$45+coefficients!$H$30*E$81*E$45^2+coefficients!$H$31*E$81*E$46+coefficients!$H$32*E$81*E$46^2+coefficients!$H$33*E$81^2*E$45+coefficients!$H$34*E$81^2*E$45^2+coefficients!$H$35*E$81^2*E$46+coefficients!$H$36*E$81^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - s!E83  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$82)
+  Close-loop h - s!E84  =IF(E$85<0.05,IF(E$86<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$85>0.1,IF(E$86<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$86<-2,"! ln(t10y/ts)<-2",IF(E$86>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - s!E85  =E$44/(E$83/E$45)
+  Close-loop h - s!E86  =LN(365.25*10/((E$83/E$45)^2/(9*E$29)))
+  Close-loop h - s!E87  =E$26/(2*PI()*E$28*E$83)*(coefficients!$H$4+coefficients!$H$5*E$85+coefficients!$H$6*E$85^2+coefficients!$H$7*E$85^3+coefficients!$H$8*E$86+coefficients!$H$9*E$86^2+coefficients!$H$10*E$86^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$85*E$86+coefficients!$H$18*E$85*E$86^2+coefficients!$H$19*E$85*E$45+coefficients!$H$20*E$85*E$45^2+coefficients!$H$21*E$85*E$46+coefficients!$H$22*E$85*E$46^2+coefficients!$H$23*E$85^2*E$86+coefficients!$H$24*E$85^2*E$86^2+coefficients!$H$25*E$85^2*E$45+coefficients!$H$26*E$85^2*E$45^2+coefficients!$H$27*E$85^2*E$46+coefficients!$H$28*E$85^2*E$46^2+coefficients!$H$29*E$86*E$45+coefficients!$H$30*E$86*E$45^2+coefficients!$H$31*E$86*E$46+coefficients!$H$32*E$86*E$46^2+coefficients!$H$33*E$86^2*E$45+coefficients!$H$34*E$86^2*E$45^2+coefficients!$H$35*E$86^2*E$46+coefficients!$H$36*E$86^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - s!E88  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$87)
+  Close-loop h - s!E89  =IF(E$90<0.05,IF(E$91<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$90>0.1,IF(E$91<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$91<-2,"! ln(t10y/ts)<-2",IF(E$91>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - s!E90  =E$44/(E$88/E$45)
+  Close-loop h - s!E91  =LN(365.25*10/((E$88/E$45)^2/(9*E$29)))
+  Close-loop h - s!E92  =E$26/(2*PI()*E$28*E$88)*(coefficients!$H$4+coefficients!$H$5*E$90+coefficients!$H$6*E$90^2+coefficients!$H$7*E$90^3+coefficients!$H$8*E$91+coefficients!$H$9*E$91^2+coefficients!$H$10*E$91^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$90*E$91+coefficients!$H$18*E$90*E$91^2+coefficients!$H$19*E$90*E$45+coefficients!$H$20*E$90*E$45^2+coefficients!$H$21*E$90*E$46+coefficients!$H$22*E$90*E$46^2+coefficients!$H$23*E$90^2*E$91+coefficients!$H$24*E$90^2*E$91^2+coefficients!$H$25*E$90^2*E$45+coefficients!$H$26*E$90^2*E$45^2+coefficients!$H$27*E$90^2*E$46+coefficients!$H$28*E$90^2*E$46^2+coefficients!$H$29*E$91*E$45+coefficients!$H$30*E$91*E$45^2+coefficients!$H$31*E$91*E$46+coefficients!$H$32*E$91*E$46^2+coefficients!$H$33*E$91^2*E$45+coefficients!$H$34*E$91^2*E$45^2+coefficients!$H$35*E$91^2*E$46+coefficients!$H$36*E$91^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - s!E93  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$92)
+  Close-loop h - s!E94  =IF(E$95<0.05,IF(E$96<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$95>0.1,IF(E$96<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$96<-2,"! ln(t10y/ts)<-2",IF(E$96>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h - s!E95  =E$44/(E$93/E$45)
+  Close-loop h - s!E96  =LN(365.25*10/((E$93/E$45)^2/(9*E$29)))
+  Close-loop h - s!E97  =E$26/(2*PI()*E$28*E$93)*(coefficients!$H$4+coefficients!$H$5*E$95+coefficients!$H$6*E$95^2+coefficients!$H$7*E$95^3+coefficients!$H$8*E$96+coefficients!$H$9*E$96^2+coefficients!$H$10*E$96^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$95*E$96+coefficients!$H$18*E$95*E$96^2+coefficients!$H$19*E$95*E$45+coefficients!$H$20*E$95*E$45^2+coefficients!$H$21*E$95*E$46+coefficients!$H$22*E$95*E$46^2+coefficients!$H$23*E$95^2*E$96+coefficients!$H$24*E$95^2*E$96^2+coefficients!$H$25*E$95^2*E$45+coefficients!$H$26*E$95^2*E$45^2+coefficients!$H$27*E$95^2*E$46+coefficients!$H$28*E$95^2*E$46^2+coefficients!$H$29*E$96*E$45+coefficients!$H$30*E$96*E$45^2+coefficients!$H$31*E$96*E$46+coefficients!$H$32*E$96*E$46^2+coefficients!$H$33*E$96^2*E$45+coefficients!$H$34*E$96^2*E$45^2+coefficients!$H$35*E$96^2*E$46+coefficients!$H$36*E$96^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h - s!E98  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$97)
+  Close-loop h - s!H102  =TODAY()
+  Close-loop h - s!E122  =E45
+  Close-loop h - s!E124  =E50
+  Close-loop h - s!G124  =E124*3.28084
+  Close-loop h - s!G125  =_xlfn.CEILING.MATH(G124,10)
+  Close-loop h - s!D135  =D36
+  Close-loop h - s!E135  =E36
+  Close-loop h - s!D136  =E124
+  Close-loop h - s!E136  =D136*E122
+  Close-loop h - s!G136  =G125
+  Close-loop h - s!D137  =(D135)^2*PI()*D136
+  Close-loop h - s!E137  =D137*E122
+  Close-loop h - s!D138  =D38
+  Close-loop h - s!E138  =E38
+  Close-loop h - s!D139  =(D138/2)^2*PI()*D136*2
+  Close-loop h - s!E139  =D139*E122
+  Close-loop h - s!D140  =D137-D139
+  Close-loop h - s!E140  =E137-E139
+  Close-loop h - s!G140  =D140*1000
+  Close-loop h - s!D141  =G140/E130
+  Close-loop h - s!D142  =_xlfn.CEILING.MATH(D141,1)
+  Close-loop h - s!E142  =D142*E122
+  Close-loop h - s!C145  =G125
+  Close-loop h - s!G145  =(17*2+48+5)*5
+  Close-loop h - s!F148  =C148*E148
+  Close-loop h - s!E149  =C145*E122
+  Close-loop h - s!F149  =C149*E149
+  Close-loop h - s!E150  =E122*(G125-C145)
+  Close-loop h - s!F150  =C150*E150
+  Close-loop h - s!F151  =C151*E151
+  Close-loop h - s!E152  =400/50*E142
+  Close-loop h - s!F152  =C152*E152
+  Close-loop h - s!E153  =E142
+  Close-loop h - s!F153  =C153*E153
+  Close-loop h - s!E154  =G136*E122
+  Close-loop h - s!F154  =C154*E154
+  Close-loop h - s!E155  =E156*2
+  Close-loop h - s!F155  =C155*E155
+  Close-loop h - s!E156  =G145+3.28*E44*(E122-1)
+  Close-loop h - s!F156  =C156*E156
+  Close-loop h - s!F158  =SUM(F148:F156)
+
+  [Labelled numeric values]
+  Close-loop h - s!D24  label='qh'  value=-200000
+  Close-loop h - s!E24  label='W'  value=-200000
+  Close-loop h - s!D25  label='qm'  value=-90000
+  Close-loop h - s!E25  label='W'  value=-90000
+  Close-loop h - s!D26  label='qy'  value=-25000
+  Close-loop h - s!E26  label='W'  value=-25000
+  Close-loop h - s!D28  label='k'  value=2.07
+  Close-loop h - s!E28  label='W.m-1K-1'  value=2.07
+  Close-loop h - s!D29  label='α'  value=0.13
+  Close-loop h - s!E29  label='m2.day-1'  value=0.13
+  Close-loop h - s!D30  label='Tg'  value=15
+  Close-loop h - s!E30  label='°C'  value=15
+  Close-loop h - s!D32  label='Cp'  value=4200
+  Close-loop h - s!E32  label='J.kg-1.K-1'  value=4200
+  Close-loop h - s!D33  label='mfls'  value=0.05
+  Close-loop h - s!E33  label='kg.s-1.kW-1'  value=0.05
+  Close-loop h - s!D34  label='TinHP'  value=5
+  Close-loop h - s!E34  label='°C'  value=5
+  Close-loop h - s!D36  label='rbore'  value=0.0762
+  Close-loop h - s!E36  label='m'  value=0.0762
+  Close-loop h - s!D37  label='rpin'  value=0.01365
+  Close-loop h - s!E37  label='m'  value=0.01365
+  Close-loop h - s!D38  label='rpext'  value=0.0167
+  Close-loop h - s!E38  label='m'  value=0.0167
+  Close-loop h - s!D39  label='kgrout'  value=2.05
+  Close-loop h - s!E39  label='W.m-1.K-1'  value=2.05
+  Close-loop h - s!D40  label='kpipe'  value=0.42
+  Close-loop h - s!E40  label='W.m-1.K-1'  value=0.42
+  Close-loop h - s!D41  label='LU'  value=0.0511
+  Close-loop h - s!E41  label='m'  value=0.0511
+  Close-loop h - s!D42  label='hconv'  value=1000
+  Close-loop h - s!E42  label='W.m-2.K-1'  value=1000
+  Close-loop h - s!E44  label='-'  value=6.7
+  Close-loop h - s!E45  label='-'  value=32
+  Close-loop h - s!E46  label='-'  value=9
+  Close-loop h - s!K65  label='1m ='  value=3.28084
+  Close-loop h - s!C148  label='/once'  value=1000
+  Close-loop h - s!E148  label='/once'  value=1
+  Close-loop h - s!C149  label='/LF'  value=30
+  Close-loop h - s!C150  label='/LF'  value=100
+  Close-loop h - s!C151  label='/LF'  value=20
+  Close-loop h - s!E151  label='/LF'  value=0
+  Close-loop h - s!C152  label='/50lb bag'  value=10
+  Close-loop h - s!C153  label='/50lb bag'  value=20
+  Close-loop h - s!C154  label='/LF'  value=2
+  Close-loop h - s!C155  label='/LF'  value=1
+  Close-loop h - s!C156  label='/LF'  value=5
+
+--- Sheet: Close-loop h ---
+
+  [Formulas]
+  Close-loop h!H2  =TODAY()
+  Close-loop h!E49  =E98
+  Close-loop h!G49  =3.280833*E49
+  Close-loop h!D50  =D71
+  Close-loop h!E50  =E49/E$45
+  Close-loop h!G50  =3.280833*E50
+  Close-loop h!H52  =TODAY()
+  Close-loop h!D60  =1/(2*PI()*D$37*D$42)
+  Close-loop h!E60  =1/(2*PI()*E$37*E$42)
+  Close-loop h!D61  =LN(D$38/D$37)/(2*PI()*D$40)
+  Close-loop h!E61  =LN(E$38/E$37)/(2*PI()*E$40)
+  Close-loop h!D62  =1/(4*PI()*D$39)*(LN(D$36/D$38)+LN(D$36/D$41)+(D$39-D$28)/(D$39+D$28)*LN(D$36^4/(D$36^4-(D$41/2)^4)))
+  Close-loop h!E62  =1/(4*PI()*E$39)*(LN(E$36/E$38)+LN(E$36/E$41)+(E$39-E$28)/(E$39+E$28)*LN(E$36^4/(E$36^4-(E$41/2)^4)))
+  Close-loop h!D63  =D$62+(D$61+D$60)/2
+  Close-loop h!E63  =E$62+(E$61+E$60)/2
+  Close-loop h!D65  =1/D$28*(coefficients!$C$4+coefficients!$C$5*D$36+coefficients!$C$6*D$36^2+coefficients!$C$7*D$29+coefficients!$C$8*D$29^2+coefficients!$C$9*LN(D$29)+coefficients!$C$10*LN(D$29)^2+coefficients!$C$11*D$36*D$29+coefficients!$C$12*D$36*LN(D$29)+coefficients!$C$13*D$29*LN(D$29))
+  Close-loop h!E65  =1/E$28*(coefficients!$C$4+coefficients!$C$5*E$36+coefficients!$C$6*E$36^2+coefficients!$C$7*E$29+coefficients!$C$8*E$29^2+coefficients!$C$9*LN(E$29)+coefficients!$C$10*LN(E$29)^2+coefficients!$C$11*E$36*E$29+coefficients!$C$12*E$36*LN(E$29)+coefficients!$C$13*E$29*LN(E$29))
+  Close-loop h!D66  =1/D$28*(coefficients!$D$4+coefficients!$D$5*D$36+coefficients!$D$6*D$36^2+coefficients!$D$7*D$29+coefficients!$D$8*D$29^2+coefficients!$D$9*LN(D$29)+coefficients!$D$10*LN(D$29)^2+coefficients!$D$11*D$36*D$29+coefficients!$D$12*D$36*LN(D$29)+coefficients!$D$13*D$29*LN(D$29))
+  Close-loop h!E66  =1/E$28*(coefficients!$D$4+coefficients!$D$5*E$36+coefficients!$D$6*E$36^2+coefficients!$D$7*E$29+coefficients!$D$8*E$29^2+coefficients!$D$9*LN(E$29)+coefficients!$D$10*LN(E$29)^2+coefficients!$D$11*E$36*E$29+coefficients!$D$12*E$36*LN(E$29)+coefficients!$D$13*E$29*LN(E$29))
+  Close-loop h!D67  =1/D$28*(coefficients!$E$4+coefficients!$E$5*D$36+coefficients!$E$6*D$36^2+coefficients!$E$7*D$29+coefficients!$E$8*D$29^2+coefficients!$E$9*LN(D$29)+coefficients!$E$10*LN(D$29)^2+coefficients!$E$11*D$36*D$29+coefficients!$E$12*D$36*LN(D$29)+coefficients!$E$13*D$29*LN(D$29))
+  Close-loop h!E67  =1/E$28*(coefficients!$E$4+coefficients!$E$5*E$36+coefficients!$E$6*E$36^2+coefficients!$E$7*E$29+coefficients!$E$8*E$29^2+coefficients!$E$9*LN(E$29)+coefficients!$E$10*LN(E$29)^2+coefficients!$E$11*E$36*E$29+coefficients!$E$12*E$36*LN(E$29)+coefficients!$E$13*E$29*LN(E$29))
+  Close-loop h!D69  =D$34+D$24/(D$33*ABS(D$24)/1000*D$32)
+  Close-loop h!E69  =E$34+E$24/(E$33*ABS(E$24)/1000*E$32)
+  Close-loop h!D70  =(D$34+D$69)/2
+  Close-loop h!E70  =(E$34+E$69)/2
+  Close-loop h!D71  =(D$26*D$67+D$25*D$66+D$24*D$65+D$24*D$63)/(D$70-D$30)
+  Close-loop h!E71  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30)
+  Close-loop h!E75  =E$44/(E$71/E$45)
+  Close-loop h!E76  =LN(365.25*10/((E$71/E$45)^2/(9*E$29)))
+  Close-loop h!E77  =E$26/(2*PI()*E$28*E$71)*(coefficients!$H$4+coefficients!$H$5*E$75+coefficients!$H$6*E$75^2+coefficients!$H$7*E$75^3+coefficients!$H$8*E$76+coefficients!$H$9*E$76^2+coefficients!$H$10*E$76^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$75*E$76+coefficients!$H$18*E$75*E$76^2+coefficients!$H$19*E$75*E$45+coefficients!$H$20*E$75*E$45^2+coefficients!$H$21*E$75*E$46+coefficients!$H$22*E$75*E$46^2+coefficients!$H$23*E$75^2*E$76+coefficients!$H$24*E$75^2*E$76^2+coefficients!$H$25*E$75^2*E$45+coefficients!$H$26*E$75^2*E$45^2+coefficients!$H$27*E$75^2*E$46+coefficients!$H$28*E$75^2*E$46^2+coefficients!$H$29*E$76*E$45+coefficients!$H$30*E$76*E$45^2+coefficients!$H$31*E$76*E$46+coefficients!$H$32*E$76*E$46^2+coefficients!$H$33*E$76^2*E$45+coefficients!$H$34*E$76^2*E$45^2+coefficients!$H$35*E$76^2*E$46+coefficients!$H$36*E$76^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h!E78  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$77)
+  Close-loop h!E79  =IF(E$80<0.05,IF(E$81<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$80>0.1,IF(E$81<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$81<-2,"! ln(t10y/ts)<-2",IF(E$81>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h!E80  =E$44/(E$78/E$45)
+  Close-loop h!E81  =LN(365.25*10/((E$78/E$45)^2/(9*E$29)))
+  Close-loop h!E82  =E$26/(2*PI()*E$28*E$78)*(coefficients!$H$4+coefficients!$H$5*E$80+coefficients!$H$6*E$80^2+coefficients!$H$7*E$80^3+coefficients!$H$8*E$81+coefficients!$H$9*E$81^2+coefficients!$H$10*E$81^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$80*E$81+coefficients!$H$18*E$80*E$81^2+coefficients!$H$19*E$80*E$45+coefficients!$H$20*E$80*E$45^2+coefficients!$H$21*E$80*E$46+coefficients!$H$22*E$80*E$46^2+coefficients!$H$23*E$80^2*E$81+coefficients!$H$24*E$80^2*E$81^2+coefficients!$H$25*E$80^2*E$45+coefficients!$H$26*E$80^2*E$45^2+coefficients!$H$27*E$80^2*E$46+coefficients!$H$28*E$80^2*E$46^2+coefficients!$H$29*E$81*E$45+coefficients!$H$30*E$81*E$45^2+coefficients!$H$31*E$81*E$46+coefficients!$H$32*E$81*E$46^2+coefficients!$H$33*E$81^2*E$45+coefficients!$H$34*E$81^2*E$45^2+coefficients!$H$35*E$81^2*E$46+coefficients!$H$36*E$81^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h!E83  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$82)
+  Close-loop h!E84  =IF(E$85<0.05,IF(E$86<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$85>0.1,IF(E$86<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$86<-2,"! ln(t10y/ts)<-2",IF(E$86>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h!E85  =E$44/(E$83/E$45)
+  Close-loop h!E86  =LN(365.25*10/((E$83/E$45)^2/(9*E$29)))
+  Close-loop h!E87  =E$26/(2*PI()*E$28*E$83)*(coefficients!$H$4+coefficients!$H$5*E$85+coefficients!$H$6*E$85^2+coefficients!$H$7*E$85^3+coefficients!$H$8*E$86+coefficients!$H$9*E$86^2+coefficients!$H$10*E$86^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$85*E$86+coefficients!$H$18*E$85*E$86^2+coefficients!$H$19*E$85*E$45+coefficients!$H$20*E$85*E$45^2+coefficients!$H$21*E$85*E$46+coefficients!$H$22*E$85*E$46^2+coefficients!$H$23*E$85^2*E$86+coefficients!$H$24*E$85^2*E$86^2+coefficients!$H$25*E$85^2*E$45+coefficients!$H$26*E$85^2*E$45^2+coefficients!$H$27*E$85^2*E$46+coefficients!$H$28*E$85^2*E$46^2+coefficients!$H$29*E$86*E$45+coefficients!$H$30*E$86*E$45^2+coefficients!$H$31*E$86*E$46+coefficients!$H$32*E$86*E$46^2+coefficients!$H$33*E$86^2*E$45+coefficients!$H$34*E$86^2*E$45^2+coefficients!$H$35*E$86^2*E$46+coefficients!$H$36*E$86^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h!E88  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$87)
+  Close-loop h!E89  =IF(E$90<0.05,IF(E$91<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$90>0.1,IF(E$91<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$91<-2,"! ln(t10y/ts)<-2",IF(E$91>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h!E90  =E$44/(E$88/E$45)
+  Close-loop h!E91  =LN(365.25*10/((E$88/E$45)^2/(9*E$29)))
+  Close-loop h!E92  =E$26/(2*PI()*E$28*E$88)*(coefficients!$H$4+coefficients!$H$5*E$90+coefficients!$H$6*E$90^2+coefficients!$H$7*E$90^3+coefficients!$H$8*E$91+coefficients!$H$9*E$91^2+coefficients!$H$10*E$91^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$90*E$91+coefficients!$H$18*E$90*E$91^2+coefficients!$H$19*E$90*E$45+coefficients!$H$20*E$90*E$45^2+coefficients!$H$21*E$90*E$46+coefficients!$H$22*E$90*E$46^2+coefficients!$H$23*E$90^2*E$91+coefficients!$H$24*E$90^2*E$91^2+coefficients!$H$25*E$90^2*E$45+coefficients!$H$26*E$90^2*E$45^2+coefficients!$H$27*E$90^2*E$46+coefficients!$H$28*E$90^2*E$46^2+coefficients!$H$29*E$91*E$45+coefficients!$H$30*E$91*E$45^2+coefficients!$H$31*E$91*E$46+coefficients!$H$32*E$91*E$46^2+coefficients!$H$33*E$91^2*E$45+coefficients!$H$34*E$91^2*E$45^2+coefficients!$H$35*E$91^2*E$46+coefficients!$H$36*E$91^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h!E93  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$92)
+  Close-loop h!E94  =IF(E$95<0.05,IF(E$96<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$95>0.1,IF(E$96<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$96<-2,"! ln(t10y/ts)<-2",IF(E$96>3,"! ln(t10y/ts)>3",""))))
+  Close-loop h!E95  =E$44/(E$93/E$45)
+  Close-loop h!E96  =LN(365.25*10/((E$93/E$45)^2/(9*E$29)))
+  Close-loop h!E97  =E$26/(2*PI()*E$28*E$93)*(coefficients!$H$4+coefficients!$H$5*E$95+coefficients!$H$6*E$95^2+coefficients!$H$7*E$95^3+coefficients!$H$8*E$96+coefficients!$H$9*E$96^2+coefficients!$H$10*E$96^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$95*E$96+coefficients!$H$18*E$95*E$96^2+coefficients!$H$19*E$95*E$45+coefficients!$H$20*E$95*E$45^2+coefficients!$H$21*E$95*E$46+coefficients!$H$22*E$95*E$46^2+coefficients!$H$23*E$95^2*E$96+coefficients!$H$24*E$95^2*E$96^2+coefficients!$H$25*E$95^2*E$45+coefficients!$H$26*E$95^2*E$45^2+coefficients!$H$27*E$95^2*E$46+coefficients!$H$28*E$95^2*E$46^2+coefficients!$H$29*E$96*E$45+coefficients!$H$30*E$96*E$45^2+coefficients!$H$31*E$96*E$46+coefficients!$H$32*E$96*E$46^2+coefficients!$H$33*E$96^2*E$45+coefficients!$H$34*E$96^2*E$45^2+coefficients!$H$35*E$96^2*E$46+coefficients!$H$36*E$96^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop h!E98  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$97)
+  Close-loop h!H102  =TODAY()
+  Close-loop h!E122  =E45
+  Close-loop h!E124  =E50
+  Close-loop h!G124  =E124*3.28084
+  Close-loop h!G125  =_xlfn.CEILING.MATH(G124,10)
+  Close-loop h!D135  =D36
+  Close-loop h!E135  =E36
+  Close-loop h!D136  =E124
+  Close-loop h!E136  =D136*E122
+  Close-loop h!G136  =G125
+  Close-loop h!D137  =(D135)^2*PI()*D136
+  Close-loop h!E137  =D137*E122
+  Close-loop h!D138  =D38
+  Close-loop h!E138  =E38
+  Close-loop h!D139  =(D138/2)^2*PI()*D136*2
+  Close-loop h!E139  =D139*E122
+  Close-loop h!D140  =D137-D139
+  Close-loop h!E140  =E137-E139
+  Close-loop h!G140  =D140*1000
+  Close-loop h!D141  =G140/E130
+  Close-loop h!D142  =_xlfn.CEILING.MATH(D141,1)
+  Close-loop h!E142  =D142*E122
+  Close-loop h!C145  =G125
+  Close-loop h!F148  =C148*E148
+  Close-loop h!E149  =C145*E122
+  Close-loop h!F149  =C149*E149
+  Close-loop h!E150  =E122*(G125-C145)
+  Close-loop h!F150  =C150*E150
+  Close-loop h!F151  =C151*E151
+  Close-loop h!E152  =400/50*E142
+  Close-loop h!F152  =C152*E152
+  Close-loop h!E153  =E142
+  Close-loop h!F153  =C153*E153
+  Close-loop h!E154  =G136*E122
+  Close-loop h!F154  =C154*E154
+  Close-loop h!E155  =E156*2
+  Close-loop h!F155  =C155*E155
+  Close-loop h!E156  =G145+3.28*E44*(E122-1)
+  Close-loop h!F156  =C156*E156
+  Close-loop h!F158  =SUM(F148:F156)
+
+  [Labelled numeric values]
+  Close-loop h!D24  label='qh'  value=-200000
+  Close-loop h!E24  label='W'  value=-200000
+  Close-loop h!D25  label='qm'  value=-90000
+  Close-loop h!E25  label='W'  value=-90000
+  Close-loop h!D26  label='qy'  value=-25000
+  Close-loop h!E26  label='W'  value=-25000
+  Close-loop h!D28  label='k'  value=2.069212476781954
+  Close-loop h!E28  label='W.m-1K-1'  value=2.069212476781954
+  Close-loop h!D29  label='α'  value=0.13242959851404507
+  Close-loop h!E29  label='m2.day-1'  value=0.13242959851404507
+  Close-loop h!D30  label='Tg'  value=15
+  Close-loop h!E30  label='°C'  value=15
+  Close-loop h!D32  label='Cp'  value=4200
+  Close-loop h!E32  label='J.kg-1.K-1'  value=4200
+  Close-loop h!D33  label='mfls'  value=0.05
+  Close-loop h!E33  label='kg.s-1.kW-1'  value=0.05
+  Close-loop h!D34  label='TinHP'  value=5
+  Close-loop h!E34  label='°C'  value=5
+  Close-loop h!D36  label='rbore'  value=0.0762
+  Close-loop h!E36  label='m'  value=0.0762
+  Close-loop h!D37  label='rpin'  value=0.01365
+  Close-loop h!E37  label='m'  value=0.01365
+  Close-loop h!D38  label='rpext'  value=0.0167
+  Close-loop h!E38  label='m'  value=0.0167
+  Close-loop h!D39  label='kgrout'  value=2.05
+  Close-loop h!E39  label='W.m-1.K-1'  value=2.05
+  Close-loop h!D40  label='kpipe'  value=0.42
+  Close-loop h!E40  label='W.m-1.K-1'  value=0.42
+  Close-loop h!D41  label='LU'  value=0.0511
+  Close-loop h!E41  label='m'  value=0.0511
+  Close-loop h!D42  label='hconv'  value=1000
+  Close-loop h!E42  label='W.m-2.K-1'  value=1000
+  Close-loop h!E44  label='-'  value=6.7
+  Close-loop h!E45  label='-'  value=32
+  Close-loop h!E46  label='-'  value=9
+  Close-loop h!K65  label='1m ='  value=3.28084
+  Close-loop h!G145  label='ft'  value=20
+  Close-loop h!C148  label='/once'  value=1000
+  Close-loop h!E148  label='/once'  value=1
+  Close-loop h!C149  label='/LF'  value=30
+  Close-loop h!C150  label='/LF'  value=100
+  Close-loop h!C151  label='/LF'  value=20
+  Close-loop h!E151  label='/LF'  value=0
+  Close-loop h!C152  label='/50lb bag'  value=10
+  Close-loop h!C153  label='/50lb bag'  value=20
+  Close-loop h!C154  label='/LF'  value=2
+  Close-loop h!C155  label='/LF'  value=1
+  Close-loop h!C156  label='/LF'  value=5
+
+--- Sheet: Close-loop c ---
+
+  [Formulas]
+  Close-loop c!H2  =TODAY()
+  Close-loop c!E49  =E98
+  Close-loop c!G49  =3.280833*E49
+  Close-loop c!D50  =D71
+  Close-loop c!E50  =E49/E$45
+  Close-loop c!G50  =3.280833*E50
+  Close-loop c!H52  =TODAY()
+  Close-loop c!D60  =1/(2*PI()*D$37*D$42)
+  Close-loop c!E60  =1/(2*PI()*E$37*E$42)
+  Close-loop c!D61  =LN(D$38/D$37)/(2*PI()*D$40)
+  Close-loop c!E61  =LN(E$38/E$37)/(2*PI()*E$40)
+  Close-loop c!D62  =1/(4*PI()*D$39)*(LN(D$36/D$38)+LN(D$36/D$41)+(D$39-D$28)/(D$39+D$28)*LN(D$36^4/(D$36^4-(D$41/2)^4)))
+  Close-loop c!E62  =1/(4*PI()*E$39)*(LN(E$36/E$38)+LN(E$36/E$41)+(E$39-E$28)/(E$39+E$28)*LN(E$36^4/(E$36^4-(E$41/2)^4)))
+  Close-loop c!D63  =D$62+(D$61+D$60)/2
+  Close-loop c!E63  =E$62+(E$61+E$60)/2
+  Close-loop c!D65  =1/D$28*(coefficients!$C$4+coefficients!$C$5*D$36+coefficients!$C$6*D$36^2+coefficients!$C$7*D$29+coefficients!$C$8*D$29^2+coefficients!$C$9*LN(D$29)+coefficients!$C$10*LN(D$29)^2+coefficients!$C$11*D$36*D$29+coefficients!$C$12*D$36*LN(D$29)+coefficients!$C$13*D$29*LN(D$29))
+  Close-loop c!E65  =1/E$28*(coefficients!$C$4+coefficients!$C$5*E$36+coefficients!$C$6*E$36^2+coefficients!$C$7*E$29+coefficients!$C$8*E$29^2+coefficients!$C$9*LN(E$29)+coefficients!$C$10*LN(E$29)^2+coefficients!$C$11*E$36*E$29+coefficients!$C$12*E$36*LN(E$29)+coefficients!$C$13*E$29*LN(E$29))
+  Close-loop c!D66  =1/D$28*(coefficients!$D$4+coefficients!$D$5*D$36+coefficients!$D$6*D$36^2+coefficients!$D$7*D$29+coefficients!$D$8*D$29^2+coefficients!$D$9*LN(D$29)+coefficients!$D$10*LN(D$29)^2+coefficients!$D$11*D$36*D$29+coefficients!$D$12*D$36*LN(D$29)+coefficients!$D$13*D$29*LN(D$29))
+  Close-loop c!E66  =1/E$28*(coefficients!$D$4+coefficients!$D$5*E$36+coefficients!$D$6*E$36^2+coefficients!$D$7*E$29+coefficients!$D$8*E$29^2+coefficients!$D$9*LN(E$29)+coefficients!$D$10*LN(E$29)^2+coefficients!$D$11*E$36*E$29+coefficients!$D$12*E$36*LN(E$29)+coefficients!$D$13*E$29*LN(E$29))
+  Close-loop c!D67  =1/D$28*(coefficients!$E$4+coefficients!$E$5*D$36+coefficients!$E$6*D$36^2+coefficients!$E$7*D$29+coefficients!$E$8*D$29^2+coefficients!$E$9*LN(D$29)+coefficients!$E$10*LN(D$29)^2+coefficients!$E$11*D$36*D$29+coefficients!$E$12*D$36*LN(D$29)+coefficients!$E$13*D$29*LN(D$29))
+  Close-loop c!E67  =1/E$28*(coefficients!$E$4+coefficients!$E$5*E$36+coefficients!$E$6*E$36^2+coefficients!$E$7*E$29+coefficients!$E$8*E$29^2+coefficients!$E$9*LN(E$29)+coefficients!$E$10*LN(E$29)^2+coefficients!$E$11*E$36*E$29+coefficients!$E$12*E$36*LN(E$29)+coefficients!$E$13*E$29*LN(E$29))
+  Close-loop c!D69  =D$34+D$24/(D$33*ABS(D$24)/1000*D$32)
+  Close-loop c!E69  =E$34+E$24/(E$33*ABS(E$24)/1000*E$32)
+  Close-loop c!D70  =(D$34+D$69)/2
+  Close-loop c!E70  =(E$34+E$69)/2
+  Close-loop c!D71  =(D$26*D$67+D$25*D$66+D$24*D$65+D$24*D$63)/(D$70-D$30)
+  Close-loop c!E71  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30)
+  Close-loop c!E75  =E$44/(E$71/E$45)
+  Close-loop c!E76  =LN(365.25*10/((E$71/E$45)^2/(9*E$29)))
+  Close-loop c!E77  =E$26/(2*PI()*E$28*E$71)*(coefficients!$H$4+coefficients!$H$5*E$75+coefficients!$H$6*E$75^2+coefficients!$H$7*E$75^3+coefficients!$H$8*E$76+coefficients!$H$9*E$76^2+coefficients!$H$10*E$76^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$75*E$76+coefficients!$H$18*E$75*E$76^2+coefficients!$H$19*E$75*E$45+coefficients!$H$20*E$75*E$45^2+coefficients!$H$21*E$75*E$46+coefficients!$H$22*E$75*E$46^2+coefficients!$H$23*E$75^2*E$76+coefficients!$H$24*E$75^2*E$76^2+coefficients!$H$25*E$75^2*E$45+coefficients!$H$26*E$75^2*E$45^2+coefficients!$H$27*E$75^2*E$46+coefficients!$H$28*E$75^2*E$46^2+coefficients!$H$29*E$76*E$45+coefficients!$H$30*E$76*E$45^2+coefficients!$H$31*E$76*E$46+coefficients!$H$32*E$76*E$46^2+coefficients!$H$33*E$76^2*E$45+coefficients!$H$34*E$76^2*E$45^2+coefficients!$H$35*E$76^2*E$46+coefficients!$H$36*E$76^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop c!E78  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$77)
+  Close-loop c!E79  =IF(E$80<0.05,IF(E$81<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$80>0.1,IF(E$81<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$81>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$81<-2,"! ln(t10y/ts)<-2",IF(E$81>3,"! ln(t10y/ts)>3",""))))
+  Close-loop c!E80  =E$44/(E$78/E$45)
+  Close-loop c!E81  =LN(365.25*10/((E$78/E$45)^2/(9*E$29)))
+  Close-loop c!E82  =E$26/(2*PI()*E$28*E$78)*(coefficients!$H$4+coefficients!$H$5*E$80+coefficients!$H$6*E$80^2+coefficients!$H$7*E$80^3+coefficients!$H$8*E$81+coefficients!$H$9*E$81^2+coefficients!$H$10*E$81^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$80*E$81+coefficients!$H$18*E$80*E$81^2+coefficients!$H$19*E$80*E$45+coefficients!$H$20*E$80*E$45^2+coefficients!$H$21*E$80*E$46+coefficients!$H$22*E$80*E$46^2+coefficients!$H$23*E$80^2*E$81+coefficients!$H$24*E$80^2*E$81^2+coefficients!$H$25*E$80^2*E$45+coefficients!$H$26*E$80^2*E$45^2+coefficients!$H$27*E$80^2*E$46+coefficients!$H$28*E$80^2*E$46^2+coefficients!$H$29*E$81*E$45+coefficients!$H$30*E$81*E$45^2+coefficients!$H$31*E$81*E$46+coefficients!$H$32*E$81*E$46^2+coefficients!$H$33*E$81^2*E$45+coefficients!$H$34*E$81^2*E$45^2+coefficients!$H$35*E$81^2*E$46+coefficients!$H$36*E$81^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop c!E83  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$82)
+  Close-loop c!E84  =IF(E$85<0.05,IF(E$86<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$85>0.1,IF(E$86<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$86>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$86<-2,"! ln(t10y/ts)<-2",IF(E$86>3,"! ln(t10y/ts)>3",""))))
+  Close-loop c!E85  =E$44/(E$83/E$45)
+  Close-loop c!E86  =LN(365.25*10/((E$83/E$45)^2/(9*E$29)))
+  Close-loop c!E87  =E$26/(2*PI()*E$28*E$83)*(coefficients!$H$4+coefficients!$H$5*E$85+coefficients!$H$6*E$85^2+coefficients!$H$7*E$85^3+coefficients!$H$8*E$86+coefficients!$H$9*E$86^2+coefficients!$H$10*E$86^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$85*E$86+coefficients!$H$18*E$85*E$86^2+coefficients!$H$19*E$85*E$45+coefficients!$H$20*E$85*E$45^2+coefficients!$H$21*E$85*E$46+coefficients!$H$22*E$85*E$46^2+coefficients!$H$23*E$85^2*E$86+coefficients!$H$24*E$85^2*E$86^2+coefficients!$H$25*E$85^2*E$45+coefficients!$H$26*E$85^2*E$45^2+coefficients!$H$27*E$85^2*E$46+coefficients!$H$28*E$85^2*E$46^2+coefficients!$H$29*E$86*E$45+coefficients!$H$30*E$86*E$45^2+coefficients!$H$31*E$86*E$46+coefficients!$H$32*E$86*E$46^2+coefficients!$H$33*E$86^2*E$45+coefficients!$H$34*E$86^2*E$45^2+coefficients!$H$35*E$86^2*E$46+coefficients!$H$36*E$86^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop c!E88  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$87)
+  Close-loop c!E89  =IF(E$90<0.05,IF(E$91<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$90>0.1,IF(E$91<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$91>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$91<-2,"! ln(t10y/ts)<-2",IF(E$91>3,"! ln(t10y/ts)>3",""))))
+  Close-loop c!E90  =E$44/(E$88/E$45)
+  Close-loop c!E91  =LN(365.25*10/((E$88/E$45)^2/(9*E$29)))
+  Close-loop c!E92  =E$26/(2*PI()*E$28*E$88)*(coefficients!$H$4+coefficients!$H$5*E$90+coefficients!$H$6*E$90^2+coefficients!$H$7*E$90^3+coefficients!$H$8*E$91+coefficients!$H$9*E$91^2+coefficients!$H$10*E$91^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$90*E$91+coefficients!$H$18*E$90*E$91^2+coefficients!$H$19*E$90*E$45+coefficients!$H$20*E$90*E$45^2+coefficients!$H$21*E$90*E$46+coefficients!$H$22*E$90*E$46^2+coefficients!$H$23*E$90^2*E$91+coefficients!$H$24*E$90^2*E$91^2+coefficients!$H$25*E$90^2*E$45+coefficients!$H$26*E$90^2*E$45^2+coefficients!$H$27*E$90^2*E$46+coefficients!$H$28*E$90^2*E$46^2+coefficients!$H$29*E$91*E$45+coefficients!$H$30*E$91*E$45^2+coefficients!$H$31*E$91*E$46+coefficients!$H$32*E$91*E$46^2+coefficients!$H$33*E$91^2*E$45+coefficients!$H$34*E$91^2*E$45^2+coefficients!$H$35*E$91^2*E$46+coefficients!$H$36*E$91^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop c!E93  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$92)
+  Close-loop c!E94  =IF(E$95<0.05,IF(E$96<-2,"! B/H<0.05 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H<0.05 & ln(t10y/ts)>3","! B/H<0.05")),IF(E$95>0.1,IF(E$96<-2,"! B/H>0.1 & ln(t10y/ts)<-2",IF(E$96>3,"! B/H>0.1 & ln(t10y/ts)>3","! B/H>0.1")),IF(E$96<-2,"! ln(t10y/ts)<-2",IF(E$96>3,"! ln(t10y/ts)>3",""))))
+  Close-loop c!E95  =E$44/(E$93/E$45)
+  Close-loop c!E96  =LN(365.25*10/((E$93/E$45)^2/(9*E$29)))
+  Close-loop c!E97  =E$26/(2*PI()*E$28*E$93)*(coefficients!$H$4+coefficients!$H$5*E$95+coefficients!$H$6*E$95^2+coefficients!$H$7*E$95^3+coefficients!$H$8*E$96+coefficients!$H$9*E$96^2+coefficients!$H$10*E$96^3+coefficients!$H$11*E$45+coefficients!$H$12*E$45^2+coefficients!$H$13*E$45^3+coefficients!$H$14*E$46+coefficients!$H$15*E$46^2+coefficients!$H$16*E$46^3+coefficients!$H$17*E$95*E$96+coefficients!$H$18*E$95*E$96^2+coefficients!$H$19*E$95*E$45+coefficients!$H$20*E$95*E$45^2+coefficients!$H$21*E$95*E$46+coefficients!$H$22*E$95*E$46^2+coefficients!$H$23*E$95^2*E$96+coefficients!$H$24*E$95^2*E$96^2+coefficients!$H$25*E$95^2*E$45+coefficients!$H$26*E$95^2*E$45^2+coefficients!$H$27*E$95^2*E$46+coefficients!$H$28*E$95^2*E$46^2+coefficients!$H$29*E$96*E$45+coefficients!$H$30*E$96*E$45^2+coefficients!$H$31*E$96*E$46+coefficients!$H$32*E$96*E$46^2+coefficients!$H$33*E$96^2*E$45+coefficients!$H$34*E$96^2*E$45^2+coefficients!$H$35*E$96^2*E$46+coefficients!$H$36*E$96^2*E$46^2+coefficients!$H$37*E$45*E$46+coefficients!$H$38*E$45*E$46^2+coefficients!$H$39*E$45^2*E$46+coefficients!$H$40*E$45^2*E$46^2)
+  Close-loop c!E98  =(E$26*E$67+E$25*E$66+E$24*E$65+E$24*E$63)/(E$70-E$30-E$97)
+  Close-loop c!H102  =TODAY()
+  Close-loop c!E122  =E45
+  Close-loop c!E124  =E50
+  Close-loop c!G124  =E124*3.28084
+  Close-loop c!G125  =_xlfn.CEILING.MATH(G124,10)
+  Close-loop c!D135  =D36
+  Close-loop c!E135  =E36
+  Close-loop c!D136  =E124
+  Close-loop c!E136  =D136*E122
+  Close-loop c!G136  =G125
+  Close-loop c!D137  =(D135)^2*PI()*D136
+  Close-loop c!E137  =D137*E122
+  Close-loop c!D138  =D38
+  Close-loop c!E138  =E38
+  Close-loop c!D139  =(D138/2)^2*PI()*D136*2
+  Close-loop c!E139  =D139*E122
+  Close-loop c!D140  =D137-D139
+  Close-loop c!E140  =E137-E139
+  Close-loop c!G140  =D140*1000
+  Close-loop c!D141  =G140/E130
+  Close-loop c!D142  =_xlfn.CEILING.MATH(D141,1)
+  Close-loop c!E142  =D142*E122
+  Close-loop c!C145  =G125
+  Close-loop c!G145  =(17*2+48+5)*5
+  Close-loop c!F148  =C148*E148
+  Close-loop c!E149  =C145*E122
+  Close-loop c!F149  =C149*E149
+  Close-loop c!E150  =E122*(G125-C145)
+  Close-loop c!F150  =C150*E150
+  Close-loop c!F151  =C151*E151
+  Close-loop c!E152  =400/50*E142
+  Close-loop c!F152  =C152*E152
+  Close-loop c!E153  =E142
+  Close-loop c!F153  =C153*E153
+  Close-loop c!E154  =G136*E122
+  Close-loop c!F154  =C154*E154
+  Close-loop c!E155  =E156*2
+  Close-loop c!F155  =C155*E155
+  Close-loop c!E156  =G145+3.28*E44*(E122-1)
+  Close-loop c!F156  =C156*E156
+  Close-loop c!F158  =SUM(F148:F156)
+
+  [Labelled numeric values]
+  Close-loop c!D24  label='qh'  value=22500
+  Close-loop c!E24  label='W'  value=22500
+  Close-loop c!D25  label='qm'  value=100000
+  Close-loop c!E25  label='W'  value=100000
+  Close-loop c!D26  label='qy'  value=30000
+  Close-loop c!E26  label='W'  value=30000
+  Close-loop c!D28  label='k'  value=2.069212476781954
+  Close-loop c!E28  label='W.m-1K-1'  value=2.069212476781954
+  Close-loop c!D29  label='α'  value=0.13242959851404507
+  Close-loop c!E29  label='m2.day-1'  value=0.13242959851404507
+  Close-loop c!D30  label='Tg'  value=15
+  Close-loop c!E30  label='°C'  value=15
+  Close-loop c!D32  label='Cp'  value=4200
+  Close-loop c!E32  label='J.kg-1.K-1'  value=4200
+  Close-loop c!D33  label='mfls'  value=0.05
+  Close-loop c!E33  label='kg.s-1.kW-1'  value=0.05
+  Close-loop c!D34  label='TinHP'  value=40
+  Close-loop c!E34  label='°C'  value=40
+  Close-loop c!D36  label='rbore'  value=0.0762
+  Close-loop c!E36  label='m'  value=0.0762
+  Close-loop c!D37  label='rpin'  value=0.01365
+  Close-loop c!E37  label='m'  value=0.01365
+  Close-loop c!D38  label='rpext'  value=0.0167
+  Close-loop c!E38  label='m'  value=0.0167
+  Close-loop c!D39  label='kgrout'  value=2.05
+  Close-loop c!E39  label='W.m-1.K-1'  value=2.05
+  Close-loop c!D40  label='kpipe'  value=0.42
+  Close-loop c!E40  label='W.m-1.K-1'  value=0.42
+  Close-loop c!D41  label='LU'  value=0.0511
+  Close-loop c!E41  label='m'  value=0.0511
+  Close-loop c!D42  label='hconv'  value=1000
+  Close-loop c!E42  label='W.m-2.K-1'  value=1000
+  Close-loop c!E44  label='-'  value=6.1
+  Close-loop c!E45  label='-'  value=16
+  Close-loop c!E46  label='-'  value=9
+  Close-loop c!K65  label='1m ='  value=3.28084
+  Close-loop c!C148  label='/once'  value=1000
+  Close-loop c!E148  label='/once'  value=1
+  Close-loop c!C149  label='/LF'  value=30
+  Close-loop c!C150  label='/LF'  value=100
+  Close-loop c!C151  label='/LF'  value=20
+  Close-loop c!E151  label='/LF'  value=0
+  Close-loop c!C152  label='/50lb bag'  value=10
+  Close-loop c!C153  label='/50lb bag'  value=20
+  Close-loop c!C154  label='/LF'  value=2
+  Close-loop c!C155  label='/LF'  value=1
+  Close-loop c!C156  label='/LF'  value=5
+
+--- Sheet: Sheet2 ---
+
+  [Formulas]
+  (none)
+
+  [Labelled numeric values]
+  (none)
+
+--- Sheet: openloop ---
+
+  [Formulas]
+  openloop!G2  =TODAY()
+  openloop!U8  = (E56 * E57 * (E59 - E60)) / (229 * LN(E58 / E55))
+  openloop!W8  = (E56 * E57 * (E59 - E60)) / (0.00000265 * LN(E58 / E55))
+  openloop!U20  = (E56 * (E59^2 - E60^2)) / (458 * LN(E58 / E55))
+  openloop!W20  = (E56 * (E59^2 - E60^2)) / (0.00000531 * LN(E58 / E55))
+  openloop!U34  = 0.035 * E61 * E55 * 12 * SQRT(E56)
+  openloop!W34  = 24.91 * E61 * E55 * SQRT(E56)
+  openloop!E37  =E31+(E28/(E29*E30))
+  openloop!E38  =E28/(E32*E30*(E37-E33))
+  openloop!E39  =E38*60/E34*1000
+  openloop!E40  =E39*0.264172
+  openloop!G42  =TODAY()
+  openloop!U48  = (E56 * (2 * E57 * E59 - E57^2 - E60^2)) / (458 * LN(E58 / E55))
+  openloop!W48  = (E56 * (2 * E57 * E59 - E57^2 - E60^2)) / (0.00000531 * LN(E58 / E55))
+  openloop!J56  =$E$62+$E$59
+  openloop!K56  =$E$62+$E$59-E57
+  openloop!L56  =E57
+  openloop!M56  =E62+E59-E60
+  openloop!E58  =IF(C50="English", 3000 * (E59 - E60) * (E56 * 0.133681 / 86400 * 0.3048)^0.5,
+   IF(C50="SI", (3000 * 3.28084 * (E59 - E60) * (E56)^0.5)/3.28084, ""))
+  openloop!J58  =$E$62+$E$59
+  openloop!K58  =$E$62+$E$59-E60
+  openloop!L58  =E60
+  openloop!M58  =$E$62+$E$59-E60
+  openloop!J60  =$E$62+$E$59
+  openloop!K60  =$E$62+$E$59-E60
+  openloop!L60  =E60
+  openloop!M60  =$E$62+$E$59-E60
+  openloop!J62  =$E$62+1.5*E61
+  openloop!K62  =E62+0.5*E61
+  openloop!L62  =E61
+  openloop!M62  =E62+0.5*E61
+  openloop!F68  =D68
+  openloop!G68  =SUM(F68:F75)
+  openloop!F74  =1*D74
+
+  [Labelled numeric values]
+  openloop!E28  label='q_Thp'  value=100
+  openloop!E29  label='m_hp'  value=5
+  openloop!E30  label='c_p'  value=4.2
+  openloop!E31  label='T_hpo'  value=40
+  openloop!E32  label='ε'  value=0.8
+  openloop!E33  label='T_gw'  value=24
+  openloop!E34  label='ρ_w'  value=1000
+  openloop!Q54  label='Q'  value=1
+  openloop!S54  label='gpm'  value=3.786
+  openloop!E55  label='r_w'  value=0.25
+  openloop!Q55  label='K'  value=1
+  openloop!S55  label='gpd/ft2'  value=4.67e-07
+  openloop!E56  label='K'  value=1000
+  openloop!Q56  label='B'  value=1
+  openloop!S56  label='ft'  value=0.305
+  openloop!E57  label='B'  value=15
+  openloop!Q57  label='R_0'  value=1
+  openloop!S57  label='ft'  value=0.305
+  openloop!Q58  label='r_w'  value=1
+  openloop!S58  label='ft'  value=0.305
+  openloop!E59  label='H'  value=25
+  openloop!E60  label='h_w'  value=10
+  openloop!E61  label='l_w'  value=20
+  openloop!E62  label='D'  value=10
+  openloop!H66  label='identiy dry and wet areas in steady state, then dry is casing and wet is screening'  value=1
+  openloop!H67  label='Total Cost:'  value=2
+  openloop!D68  label='/ Project'  value=1000
+  openloop!D70  label='/ LF'  value=30
+  openloop!D72  label='/ LF'  value=20
+  openloop!D73  label='/ LF'  value=35
+  openloop!D74  label='/ each'  value=1000
+  openloop!D75  label='/ LF'  value=5
+
+--- Sheet: prelim ---
+
+  [Formulas]
+  prelim!H2  =TODAY()
+  prelim!P2  =TODAY()
+  prelim!M8  =1-M6/M7
+  prelim!M9  =0.1*M6/M8
+  prelim!M16  =(M13*M9)/(1+(M13-1)*M9)
+  prelim!N16  =(N13*N9)/(1+(N13-1)*N9)
+  prelim!O16  =(O13*O9)/(1+(O13-1)*O9)
+  prelim!M17  =M15^(1-M8)*0.6^(M8)
+  prelim!N17  =N15^(1-N8)*0.6^(N8)
+  prelim!O17  =O15^(1-O8)*0.6^(O8)
+  prelim!M18  =M11*10^(M12*M8)
+  prelim!N18  =N11*10^(N12*N8)
+  prelim!O18  =O11*10^(O12*O8)
+  prelim!M19  =(M17-M18)*M16+M18
+  prelim!N19  =(N17-N18)*N16+N18
+  prelim!O19  =(O17-O18)*O16+O18
+  prelim!H51  =TODAY()
+  prelim!D57  =M19*10/60+40/60*N19+10/60*O19
+  prelim!G57  =M19*10/60+ 40/60*O19+10/60*N19
+  prelim!D58  =D57/(1800*750)*3600*24
+  prelim!G58  =G57/(800*750)*3600*24
+
+  [Labelled numeric values]
+  prelim!M6  label='ρ_d'  value=1.7
+  prelim!M7  label='ρ_s'  value=2.7
+  prelim!N8  label='=1-M6/M7'  value=0.4
+  prelim!N9  label='=0.1*M6/M8'  value=1
+  prelim!M11  label='χ'  value=0.75
+  prelim!M12  label='η'  value=1.2
+  prelim!M13  label='κ'  value=3.55
+  prelim!M15  label='k_s'  value=4.5
+  prelim!O15  label='W/mK'  value=2.5
+  prelim!L30  label='qh'  value=-200000
+  prelim!L31  label='qm'  value=-90000
+  prelim!L32  label='qy'  value=-25000
+  prelim!L34  label='Cp'  value=4200
+  prelim!L35  label='mfls'  value=0.05
+  prelim!L36  label='TinHP'  value=5
+  prelim!L38  label='rbore'  value=0.0762
+  prelim!L39  label='rpin'  value=0.01365
+  prelim!L40  label='rpext'  value=0.0167
+  prelim!L41  label='kgrout'  value=2.05
+  prelim!L42  label='kpipe'  value=0.42
+  prelim!L43  label='LU'  value=0.0511
+  prelim!L44  label='hconv'  value=1000
+  prelim!L46  label='B'  value=6.7
+  prelim!L47  label='NB'  value=32
+  prelim!L48  label='A'  value=9
+  prelim!D59  label='Tg'  value=15
+  prelim!G59  label='°C'  value=15
+  prelim!D62  label='L'  value=2206.326178192672
+  prelim!G62  label='m'  value=3662.5428199546277
+  prelim!D63  label='ft'  value=7238.587734178399
+  prelim!G63  label='ft'  value=12016.1913476202
+  prelim!D64  label='H'  value=68.947693068521
+  prelim!G64  label='m'  value=114.45446312358212
+  prelim!D65  label='ft'  value=226.20586669307497
+  prelim!G65  label='ft'  value=375.5059796131313
+
+--- Sheet: coefficients ---
+
+  [Formulas]
+  (none)
+
+  [Labelled numeric values]
+  coefficients!C4  label='a0'  value=0.6619352
+  coefficients!H4  label='b0'  value=7.8189
+  coefficients!C5  label='a1'  value=-4.815693
+  coefficients!H5  label='b1'  value=-64.27
+  coefficients!C6  label='a2'  value=15.03571
+  coefficients!H6  label='b2'  value=153.87
+  coefficients!C7  label='a3'  value=-0.09879421000000001
+  coefficients!H7  label='b3'  value=-84.809
+  coefficients!C8  label='a4'  value=0.02917889
+  coefficients!H8  label='b4'  value=3.461
+  coefficients!C9  label='a5'  value=0.1138498
+  coefficients!H9  label='b5'  value=-0.9475300000000001
+  coefficients!C10  label='a6'  value=0.005610933
+  coefficients!H10  label='b6'  value=-0.060416
+  coefficients!C11  label='a7'  value=0.7796329
+  coefficients!H11  label='b7'  value=1.5631
+  coefficients!C12  label='a8'  value=-0.324388
+  coefficients!H12  label='b8'  value=-0.0089416
+  coefficients!C13  label='a9'  value=-0.018241010000000002
+  coefficients!H13  label='b9'  value=1.9061000000000003e-05
+  coefficients!H14  label='b10'  value=-2.289
+  coefficients!H15  label='b11'  value=0.10187
+  coefficients!H16  label='b12'  value=0.006568999999999999
+  coefficients!H17  label='b13'  value=-40.918
+  coefficients!H18  label='b14'  value=15.557
+  coefficients!H19  label='b15'  value=-19.107
+  coefficients!H20  label='b16'  value=0.10529000000000001
+  coefficients!H21  label='b17'  value=25.501
+  coefficients!H22  label='b18'  value=-2.1177
+  coefficients!H23  label='b19'  value=77.529
+  coefficients!H24  label='b20'  value=-50.454
+  coefficients!H25  label='b21'  value=76.352
+  coefficients!H26  label='b22'  value=-0.5371900000000001
+  coefficients!H27  label='b23'  value=-132
+  coefficients!H28  label='b24'  value=12.878
+  coefficients!H29  label='b25'  value=0.12697
+  coefficients!H30  label='b26'  value=-0.00040284
+  coefficients!H31  label='b27'  value=-0.07206499999999999
+  coefficients!H32  label='b28'  value=0.00095184
+  coefficients!H33  label='b29'  value=-0.024166999999999998
+  coefficients!H34  label='b30'  value=9.6811e-05
+  coefficients!H35  label='b31'  value=0.028317
+  coefficients!H36  label='b32'  value=-0.0010904999999999999
+  coefficients!H37  label='b33'  value=0.12207000000000001
+  coefficients!H38  label='b34'  value=-0.007104999999999999
+  coefficients!H39  label='b35'  value=-0.0011129
+  coefficients!H40  label='b36'  value=-0.00045566
+
+
+Done. Output also saved to: /Users/agao/Downloads/CEE299/geosite_advisor/data/reference/formulas_dump.txt

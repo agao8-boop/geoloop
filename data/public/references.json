@@ -1,0 +1,94 @@
+[
+  {
+    "category": "Borefield Sizing",
+    "entries": [
+      {
+        "id": "philippe2010",
+        "authors": "Philippe, M., Bernier, M., & Marchio, D.",
+        "year": 2010,
+        "title": "Sizing Calculation Spreadsheet: Vertical Geothermal Borefields",
+        "journal": "ASHRAE Journal",
+        "volume": "52(7)",
+        "pages": "20–28"
+      },
+      {
+        "id": "kavanaugh1995",
+        "authors": "Kavanaugh, S., & Rafferty, K.",
+        "year": 1995,
+        "title": "Ground-Source Heat Pumps: Design of Geothermal Systems for Commercial and Institutional Buildings",
+        "publisher": "ASHRAE"
+      },
+      {
+        "id": "ahmadfard2021",
+        "authors": "Ahmadfard, A., & Bernier, M.",
+        "year": 2021,
+        "title": "Sizing Vertical Ground Heat Exchangers",
+        "journal": "ASHRAE Journal",
+        "volume": "63(12)",
+        "pages": "24–36"
+      }
+    ]
+  },
+  {
+    "category": "Soil & Site Data",
+    "entries": [
+      {
+        "id": "cote2005",
+        "authors": "Côté, J., & Konrad, J.-M.",
+        "year": 2005,
+        "title": "A generalized thermal conductivity model for soils and construction materials",
+        "journal": "Canadian Geotechnical Journal",
+        "volume": "42(2)",
+        "pages": "443–458",
+        "doi": "10.1139/t04-106"
+      },
+      {
+        "id": "usgs_ssurgo",
+        "authors": "USDA Natural Resources Conservation Service",
+        "year": null,
+        "title": "Soil Survey Geographic Database (SSURGO)",
+        "url": "https://www.nrcs.usda.gov/resources/data-and-reports/ssurgo/"
+      },
+      {
+        "id": "usgs_geochemical",
+        "authors": "Smith, D.B., et al.",
+        "year": 2013,
+        "title": "Geochemical and Mineralogical Data for Soils of the Conterminous United States",
+        "publisher": "USGS Data Series 801"
+      }
+    ]
+  },
+  {
+    "category": "Building Energy Simulation",
+    "entries": [
+      {
+        "id": "energyplus",
+        "authors": "U.S. Department of Energy / NREL",
+        "year": null,
+        "title": "EnergyPlus Energy Simulation Software",
+        "url": "https://energyplus.net/"
+      },
+      {
+        "id": "doe_prototypes",
+        "authors": "Deru, M., et al.",
+        "year": 2011,
+        "title": "U.S. DOE Commercial Reference Building Models of the National Building Stock",
+        "publisher": "NREL/TP-5500-46861"
+      }
+    ]
+  },
+  {
+    "category": "Hybrid Geothermal Systems",
+    "entries": [
+      {
+        "id": "traxler2026",
+        "authors": "Traxler, D.",
+        "year": 2026,
+        "title": "Decarbonization With Hybrid Geothermal",
+        "journal": "ASHRAE Journal",
+        "volume": "June 2026",
+        "pages": "36–41"
+      }
+    ]
+  }
+]

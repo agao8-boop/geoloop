@@ -1,0 +1,60 @@
+# ============================================================
+# GeoSite Advisor — .gitignore
+#
+# SECURITY: This project separates developer (private) data
+# from public app code. Everything listed here stays off
+# GitHub and off the deployed server. See
+# docs/operations/two-track-system.md for the full policy.
+# ============================================================
+
+# ── DEVELOPER / RESEARCH DATA (your moat — never public) ────
+data/research/
+weekly_progress/
+docs/decisions/
+docs/references/
+docs/superpowers/
+notebooks/
+scripts/
+
+# ── SECRETS & ENVIRONMENT ────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# ── PYTHON ───────────────────────────────────────────────────
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── OS & EDITOR ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# ── WORKING DATA CACHES (developer only) ─────────────────────
+# These pre-date the two-track structure; treat as research data
+data/soil_cache/
+data/weather/
+data/idf_prototypes/
+
+# ── LARGE REFERENCE FILES ────────────────────────────────────
+# Raw Excel/PDF reference materials stay local only
+data/reference/*.xlsx
+data/reference/*.xls
+data/reference/*.pdf
+docs/references/*.pdf
