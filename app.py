@@ -3,6 +3,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, render_template, request, jsonify
+from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
@@ -92,12 +93,18 @@ def calculate_smart():
     Required body fields: zip_code, building_type, mode, NB, B, A
     Optional: T_in_HP, mfls, Cp, rbore, rpin, rpext, kgrout, kpipe, LU, hconv
     """
-    data = request.get_json(force=True)
+    try:
+        data = request.get_json(force=True)
+    except BadRequest:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
+
+    if data is None:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
 
     # --- validate required fields ---
     required = {"zip_code": str, "building_type": str, "mode": str,
                 "NB": int, "B": float, "A": float}
-    for field, cast in required.items():
+    for field, _ in required.items():
         if field not in data or str(data[field]).strip() == "":
             return jsonify({"error": "field", "field": field,
                             "message": f"'{field}' is required"}), 400

@@ -80,3 +80,9 @@ def test_missing_required_field_returns_400(client):
     assert resp.status_code == 400
     data = resp.get_json()
     assert data["error"] == "field"
+
+
+def test_non_json_body_returns_400(client):
+    resp = client.post("/calculate/smart", data="not json", content_type="text/plain")
+    assert resp.status_code == 400
+    assert resp.get_json()["error"] == "field"
