@@ -86,3 +86,49 @@ def test_non_json_body_returns_400(client):
     resp = client.post("/calculate/smart", data="not json", content_type="text/plain")
     assert resp.status_code == 400
     assert resp.get_json()["error"] == "field"
+
+
+@patch("geosite.s1_site.geocode.requests.get")
+def test_mode_sign_mismatch_returns_422(mock_get, client):
+    # Chicago 5A → small_office loads are heating-dominant (q_h < 0)
+    # Sending mode="cooling" should conflict → 422
+    mock_get.return_value.json.return_value = {
+        "result": {"geographies": {"Census Tracts": [{"GEOID": "17031010200"}]}}
+    }
+    mock_get.return_value.raise_for_status.return_value = None
+
+    resp = client.post(
+        "/calculate/smart",
+        data=json.dumps({
+            "zip_code": "60601",
+            "building_type": "small_office",
+            "mode": "cooling",  # conflicts with 5A heating-dominant loads
+            "NB": 16, "B": 6.0, "A": 1.0,
+        }),
+        content_type="application/json",
+    )
+    assert resp.status_code == 422
+    body = resp.get_json()
+    assert body["error"] == "field"
+    assert body["field"] == "mode"
+
+
+@patch("geosite.s1_site.geocode.requests.get")
+def test_census_api_network_error_returns_422(mock_get, client):
+    import requests as req_lib
+    mock_get.side_effect = req_lib.exceptions.ConnectionError("DNS failure")
+
+    resp = client.post(
+        "/calculate/smart",
+        data=json.dumps({
+            "zip_code": "60601",
+            "building_type": "small_office",
+            "mode": "heating",
+            "NB": 16, "B": 6.0, "A": 1.0,
+        }),
+        content_type="application/json",
+    )
+    assert resp.status_code == 422
+    body = resp.get_json()
+    assert body["error"] == "geocode"
+    assert "unavailable" in body["message"].lower()

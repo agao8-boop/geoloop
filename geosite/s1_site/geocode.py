@@ -23,8 +23,11 @@ def zip_to_geoid(zip_code: str) -> str:
     Raises ValueError if the ZIP code returns no census tracts.
     """
     url = _CENSUS_URL.format(zip=zip_code.strip())
-    resp = requests.get(url, timeout=10)
-    resp.raise_for_status()
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        raise ValueError(f"Census geocoding service unavailable: {exc}") from exc
 
     tracts = (
         resp.json()

@@ -148,6 +148,20 @@ def calculate_smart():
         return jsonify({"error": "field", "field": "building_type",
                         "message": str(exc)}), 400
 
+    # --- validate mode vs load sign ---
+    heating_load = loads.q_h < 0
+    if (mode == "heating" and not heating_load) or (mode == "cooling" and heating_load):
+        return jsonify({
+            "error": "field",
+            "field": "mode",
+            "message": (
+                f"mode='{mode}' conflicts with the load profile for '{building_type}' "
+                f"in climate zone '{site.climate_zone}'. "
+                f"The loads are {'heating' if heating_load else 'cooling'}-dominant "
+                f"(q_h={loads.q_h:.0f} W)."
+            ),
+        }), 422
+
     # --- resolve system parameters (user override or default) ---
     T_in_HP = float(data.get("T_in_HP", _T_IN_HP_DEFAULTS[mode]))
     params = {k: float(data.get(k, v)) for k, v in _ADVANCED_DEFAULTS.items()}
