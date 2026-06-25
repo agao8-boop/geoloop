@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>References — GeoSite Advisor</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">GeoSite Advisor</div>
+      <nav>
+        <ul class="stage-list">
+          <li class="stage-item active-dim">s1 <span class="stage-name">Site</span></li>
+          <li class="stage-item active-dim">s2 <span class="stage-name">Simulation</span></li>
+          <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
+          <li class="stage-item active-dim">s4 <span class="stage-name">Sizing</span></li>
+          <li class="stage-item disabled">s5 <span class="stage-name">Cost</span><span class="badge">soon</span></li>
+          <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
+          <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" class="sidebar-link">← Back to Tool</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <h1 class="page-title">References &amp; Acknowledgements</h1>
+      <p class="hint" style="margin-bottom:28px">
+        GeoSite Advisor is built on peer-reviewed methods and open public data sources.
+        Results are estimates intended for early feasibility assessment only.
+      </p>
+
+      {% for cat in categories %}
+      <div class="card" style="margin-bottom:16px">
+        <h2 class="card-title">{{ cat.category }}</h2>
+        {% for entry in cat.entries %}
+        <div class="ref-entry">
+          <div class="ref-authors">{{ entry.authors }}{% if entry.year %} ({{ entry.year }}){% endif %}</div>
+          <div class="ref-title">{{ entry.title }}</div>
+          <div class="ref-source">
+            {% if entry.journal %}{{ entry.journal }}{% if entry.volume %}, {{ entry.volume }}{% endif %}{% if entry.pages %}, {{ entry.pages }}{% endif %}{% endif %}
+            {% if entry.publisher %}{{ entry.publisher }}{% endif %}
+            {% if entry.doi %} · <a href="https://doi.org/{{ entry.doi }}" target="_blank">DOI</a>{% endif %}
+            {% if entry.url %} · <a href="{{ entry.url }}" target="_blank">Link</a>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </main>
+  </div>
+</body>
+</html>

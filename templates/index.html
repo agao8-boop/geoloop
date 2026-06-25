@@ -14,233 +14,404 @@
       <div class="sidebar-title">GeoSite Advisor</div>
       <nav>
         <ul class="stage-list">
-          <li class="stage-item disabled">s1 <span class="stage-name">Site</span><span class="badge">soon</span></li>
-          <li class="stage-item disabled">s2 <span class="stage-name">Simulation</span><span class="badge">soon</span></li>
-          <li class="stage-item disabled">s3 <span class="stage-name">Loads</span><span class="badge">soon</span></li>
+          <li class="stage-item active-dim">s1 <span class="stage-name">Site</span></li>
+          <li class="stage-item active-dim">s2 <span class="stage-name">Simulation</span></li>
+          <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
           <li class="stage-item active"><a href="#">s4 <span class="stage-name">Sizing</span></a></li>
           <li class="stage-item disabled">s5 <span class="stage-name">Cost</span><span class="badge">soon</span></li>
           <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
           <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
         </ul>
       </nav>
+      <div class="sidebar-footer">
+        <a href="/references" class="sidebar-link">References</a>
+      </div>
     </aside>
 
     <!-- ── Main ── -->
     <main class="main">
-      <h1 class="page-title">Borefield Sizing — Stage 4</h1>
+      <h1 class="page-title">Borefield Sizing</h1>
 
-      <!-- Tabs -->
-      <div class="tab-strip">
-        <button class="tab-btn active" data-tab="basic">Basic</button>
-        <button class="tab-btn" data-tab="advanced">Advanced</button>
+      <!-- ── MODE TOGGLE ── -->
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-smart" data-mode="smart">
+          Smart Mode <span class="mode-badge">s1–s4</span>
+        </button>
+        <button class="mode-btn" id="btn-manual" data-mode="manual">
+          Manual Mode <span class="mode-badge">s4 only</span>
+        </button>
       </div>
 
-      <form id="sizing-form" novalidate>
+      <!-- ════════════════════════════════════════════
+           SMART MODE  (s1 → s2 → s3 → s4)
+           ════════════════════════════════════════════ -->
+      <section id="panel-smart">
 
-        <!-- ── Basic Tab ── -->
-        <div id="tab-basic" class="tab-panel">
-
-          <!-- Ground Loads -->
-          <div class="card">
-            <h2 class="card-title">Ground Loads</h2>
-            <p class="hint">Negative = heat extraction (heating mode). Positive = heat injection (cooling mode).</p>
-            <div class="field">
-              <label for="q_h">Peak hourly load</label>
-              <div class="input-row">
-                <input type="number" id="q_h" name="q_h" value="12000">
-                <span class="unit">W</span>
-              </div>
-              <span class="field-error" data-for="q_h"></span>
+        <!-- s1: Site -->
+        <div class="stage-header">
+          <span class="stage-pill">s1</span>
+          <span class="stage-label">Site &amp; Soil</span>
+          <span class="stage-note">Location is looked up automatically — no soil data entry required</span>
+        </div>
+        <div class="card">
+          <div class="field">
+            <label for="zip_code">ZIP Code</label>
+            <div class="input-row">
+              <input type="text" id="zip_code" name="zip_code"
+                     placeholder="e.g. 60601" maxlength="5" pattern="\d{5}">
             </div>
-            <div class="field">
-              <label for="q_m">Peak monthly load</label>
-              <div class="input-row">
-                <input type="number" id="q_m" name="q_m" value="6000">
-                <span class="unit">W</span>
-              </div>
-              <span class="field-error" data-for="q_m"></span>
-            </div>
-            <div class="field">
-              <label for="q_y">Annual average load</label>
-              <div class="input-row">
-                <input type="number" id="q_y" name="q_y" value="1500">
-                <span class="unit">W</span>
-              </div>
-              <span class="field-error" data-for="q_y"></span>
-            </div>
-          </div>
-
-          <!-- Ground Properties -->
-          <div class="card">
-            <h2 class="card-title">Ground Properties</h2>
-            <div class="field">
-              <label for="k">Thermal conductivity</label>
-              <div class="input-row">
-                <input type="number" id="k" name="k" step="0.01" value="2.0">
-                <span class="unit">W/m·K</span>
-              </div>
-              <span class="field-error" data-for="k"></span>
-            </div>
-            <div class="field">
-              <label for="alpha">Thermal diffusivity <em>(0.025 – 0.2)</em></label>
-              <div class="input-row">
-                <input type="number" id="alpha" name="alpha" step="0.001" value="0.086">
-                <span class="unit">m²/day</span>
-              </div>
-              <span class="field-error" data-for="alpha"></span>
-            </div>
-            <div class="field">
-              <label for="T_g">Undisturbed ground temp</label>
-              <div class="input-row">
-                <input type="number" id="T_g" name="T_g" step="0.1" value="15">
-                <span class="unit">°C</span>
-              </div>
-              <span class="field-error" data-for="T_g"></span>
-            </div>
-          </div>
-
-          <!-- Borefield -->
-          <div class="card">
-            <h2 class="card-title">Borefield</h2>
-            <div class="field">
-              <label for="B">Borehole spacing</label>
-              <div class="input-row">
-                <input type="number" id="B" name="B" step="0.1" value="6.1">
-                <span class="unit">m</span>
-              </div>
-              <span class="field-error" data-for="B"></span>
-            </div>
-            <div class="field">
-              <label for="NB">Number of boreholes</label>
-              <div class="input-row">
-                <input type="number" id="NB" name="NB" step="1" min="1" value="5">
-                <span class="unit">—</span>
-              </div>
-              <span class="field-error" data-for="NB"></span>
-            </div>
-            <div class="field">
-              <label for="A">Aspect ratio <em>(≥ 1)</em></label>
-              <div class="input-row">
-                <input type="number" id="A" name="A" step="0.1" min="1" value="1.0">
-                <span class="unit">—</span>
-              </div>
-              <span class="field-error" data-for="A"></span>
-            </div>
-            <div class="field">
-              <label for="T_in_HP">HP inlet temperature</label>
-              <div class="input-row">
-                <input type="number" id="T_in_HP" name="T_in_HP" step="0.1" value="40.2">
-                <span class="unit">°C</span>
-              </div>
-              <span class="field-error" data-for="T_in_HP"></span>
-            </div>
-            <div class="field">
-              <label for="mfls">Flow rate per kW</label>
-              <div class="input-row">
-                <input type="number" id="mfls" name="mfls" step="0.001" value="0.05">
-                <span class="unit">kg/s·kW</span>
-              </div>
-              <span class="field-error" data-for="mfls"></span>
-            </div>
-          </div>
-
-        </div><!-- /tab-basic -->
-
-        <!-- ── Advanced Tab ── -->
-        <div id="tab-advanced" class="tab-panel hidden">
-          <div class="card">
-            <h2 class="card-title">Borehole &amp; Pipe Details</h2>
-            <div class="field">
-              <label for="rbore">Borehole radius <em>(0.05 – 0.1)</em></label>
-              <div class="input-row">
-                <input type="number" id="rbore" name="rbore" step="0.001" value="0.06">
-                <span class="unit">m</span>
-              </div>
-              <span class="field-error" data-for="rbore"></span>
-            </div>
-            <div class="field">
-              <label for="rpin">Pipe inner radius</label>
-              <div class="input-row">
-                <input type="number" id="rpin" name="rpin" step="0.00001" value="0.01365">
-                <span class="unit">m</span>
-              </div>
-              <span class="field-error" data-for="rpin"></span>
-            </div>
-            <div class="field">
-              <label for="rpext">Pipe outer radius</label>
-              <div class="input-row">
-                <input type="number" id="rpext" name="rpext" step="0.00001" value="0.0167">
-                <span class="unit">m</span>
-              </div>
-              <span class="field-error" data-for="rpext"></span>
-            </div>
-            <div class="field">
-              <label for="kgrout">Grout conductivity</label>
-              <div class="input-row">
-                <input type="number" id="kgrout" name="kgrout" step="0.01" value="1.5">
-                <span class="unit">W/m·K</span>
-              </div>
-              <span class="field-error" data-for="kgrout"></span>
-            </div>
-            <div class="field">
-              <label for="kpipe">Pipe conductivity</label>
-              <div class="input-row">
-                <input type="number" id="kpipe" name="kpipe" step="0.01" value="0.42">
-                <span class="unit">W/m·K</span>
-              </div>
-              <span class="field-error" data-for="kpipe"></span>
-            </div>
-            <div class="field">
-              <label for="LU">U-tube spacing</label>
-              <div class="input-row">
-                <input type="number" id="LU" name="LU" step="0.0001" value="0.0511">
-                <span class="unit">m</span>
-              </div>
-              <span class="field-error" data-for="LU"></span>
-            </div>
-            <div class="field">
-              <label for="hconv">Convection coefficient</label>
-              <div class="input-row">
-                <input type="number" id="hconv" name="hconv" step="1" value="1000">
-                <span class="unit">W/m²·K</span>
-              </div>
-              <span class="field-error" data-for="hconv"></span>
-            </div>
-            <div class="field">
-              <label for="Cp">Fluid heat capacity</label>
-              <div class="input-row">
-                <input type="number" id="Cp" name="Cp" step="1" value="4200">
-                <span class="unit">J/kg·K</span>
-              </div>
-              <span class="field-error" data-for="Cp"></span>
-            </div>
-          </div>
-        </div><!-- /tab-advanced -->
-
-        <!-- Calculate -->
-        <div id="calc-error" class="calc-error hidden"></div>
-        <button type="button" id="calc-btn">Calculate</button>
-
-      </form>
-
-      <!-- Result Panel -->
-      <div id="result-panel" class="result-panel hidden">
-        <h2 class="result-title">Results</h2>
-        <div class="result-grid">
-          <div class="result-item">
-            <span class="result-label">Total borefield length L</span>
-            <span class="result-value"><span id="res-L">—</span> m</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Borehole depth H</span>
-            <span class="result-value"><span id="res-H">—</span> m</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Number of boreholes</span>
-            <span class="result-value"><span id="res-NB">—</span></span>
+            <span class="field-error" data-for="zip_code"></span>
           </div>
         </div>
-      </div>
+
+        <!-- s2: Building -->
+        <div class="stage-header">
+          <span class="stage-pill">s2</span>
+          <span class="stage-label">Building</span>
+          <span class="stage-note">Matches DOE Commercial Prototype Building Models (ASHRAE 90.1-2019)</span>
+        </div>
+        <div class="card">
+          <div class="field">
+            <label for="building_type">Building Type</label>
+            <div class="input-row">
+              <select id="building_type" name="building_type">
+                <option value="">— select —</option>
+                <option value="small_office">Small Office (~511 m²)</option>
+                <option value="medium_office">Medium Office (~4,982 m²)</option>
+                <option value="large_office">Large Office (~46,320 m²)</option>
+                <option value="standalone_retail">Stand-alone Retail (~2,294 m²)</option>
+                <option value="primary_school">Primary School (~6,871 m²)</option>
+                <option value="secondary_school">Secondary School (~19,592 m²)</option>
+                <option value="hospital">Hospital (~22,422 m²)</option>
+                <option value="outpatient_healthcare">Outpatient Healthcare (~3,804 m²)</option>
+                <option value="small_hotel">Small Hotel (~4,014 m²)</option>
+                <option value="large_hotel">Large Hotel (~11,345 m²)</option>
+                <option value="warehouse">Warehouse (~4,835 m²)</option>
+                <option value="midrise_apartment">Mid-rise Apartment (~3,135 m²)</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="building_type"></span>
+          </div>
+          <div class="field">
+            <label for="mode">Dominant Mode</label>
+            <div class="input-row">
+              <select id="mode" name="mode">
+                <option value="heating">Heating (cold climate)</option>
+                <option value="cooling">Cooling (warm climate)</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="mode"></span>
+          </div>
+        </div>
+
+        <!-- s4: Borefield geometry (still user input) -->
+        <div class="stage-header">
+          <span class="stage-pill">s4</span>
+          <span class="stage-label">Borefield Geometry</span>
+        </div>
+        <div class="card">
+          <div class="field">
+            <label for="s_NB">Number of boreholes</label>
+            <div class="input-row">
+              <input type="number" id="s_NB" name="s_NB" min="1" value="16">
+              <span class="unit">—</span>
+            </div>
+            <span class="field-error" data-for="s_NB"></span>
+          </div>
+          <div class="field">
+            <label for="s_B">Borehole spacing</label>
+            <div class="input-row">
+              <input type="number" id="s_B" name="s_B" step="0.1" value="6.0">
+              <span class="unit">m</span>
+            </div>
+            <span class="field-error" data-for="s_B"></span>
+          </div>
+          <div class="field">
+            <label for="s_A">Aspect ratio <em>(≥ 1)</em></label>
+            <div class="input-row">
+              <input type="number" id="s_A" name="s_A" step="0.1" min="1" value="1.0">
+              <span class="unit">—</span>
+            </div>
+            <span class="field-error" data-for="s_A"></span>
+          </div>
+        </div>
+
+        <!-- Advanced overrides (collapsed) -->
+        <details class="advanced-details">
+          <summary>Advanced overrides <span class="hint-inline">(uses DOE prototype defaults if not set)</span></summary>
+          <div class="card" style="margin-top:12px">
+            <div class="field">
+              <label for="s_T_in_HP">HP inlet temperature</label>
+              <div class="input-row">
+                <input type="number" id="s_T_in_HP" name="s_T_in_HP" step="0.1" placeholder="5.0 (heating) / 40.2 (cooling)">
+                <span class="unit">°C</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_mfls">Flow rate per kW</label>
+              <div class="input-row">
+                <input type="number" id="s_mfls" name="s_mfls" step="0.001" placeholder="0.05">
+                <span class="unit">kg/s·kW</span>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div id="smart-error" class="calc-error hidden"></div>
+
+        <button type="button" id="smart-btn" class="calc-btn">
+          Calculate Borefield Size
+        </button>
+
+        <!-- s1-s3 derived values (shown after calculation) -->
+        <div id="pipeline-panel" class="pipeline-panel hidden">
+          <div class="pipeline-step">
+            <div class="pipeline-label">s1 — Site Data</div>
+            <div class="pipeline-values" id="pipeline-s1">—</div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-label">s2–s3 — Ground Loads</div>
+            <div class="pipeline-values" id="pipeline-s2">—</div>
+          </div>
+        </div>
+
+        <!-- Smart results -->
+        <div id="smart-result" class="result-panel hidden">
+          <h2 class="result-title">Sizing Result</h2>
+          <div class="result-grid">
+            <div class="result-item">
+              <span class="result-label">Total borefield length L</span>
+              <span class="result-value"><span id="sres-L">—</span> m</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Borehole depth H</span>
+              <span class="result-value"><span id="sres-H">—</span> m</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Number of boreholes</span>
+              <span class="result-value"><span id="sres-NB">—</span></span>
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /panel-smart -->
+
+      <!-- ════════════════════════════════════════════
+           MANUAL MODE  (s4 only — existing form)
+           ════════════════════════════════════════════ -->
+      <section id="panel-manual" class="hidden">
+        <p class="hint" style="margin-bottom:20px">
+          Enter all inputs directly. Use this when you have site investigation data
+          or want to test specific parameter combinations.
+        </p>
+
+        <!-- Tabs -->
+        <div class="tab-strip">
+          <button class="tab-btn active" data-tab="basic">Basic</button>
+          <button class="tab-btn" data-tab="advanced">Advanced</button>
+        </div>
+
+        <form id="sizing-form" novalidate>
+
+          <!-- ── Basic Tab ── -->
+          <div id="tab-basic" class="tab-panel">
+            <div class="card">
+              <h2 class="card-title">Ground Loads</h2>
+              <p class="hint">Negative = heat extraction (heating). Positive = heat injection (cooling).</p>
+              <div class="field">
+                <label for="q_h">Peak hourly load</label>
+                <div class="input-row">
+                  <input type="number" id="q_h" name="q_h" value="12000">
+                  <span class="unit">W</span>
+                </div>
+                <span class="field-error" data-for="q_h"></span>
+              </div>
+              <div class="field">
+                <label for="q_m">Peak monthly load</label>
+                <div class="input-row">
+                  <input type="number" id="q_m" name="q_m" value="6000">
+                  <span class="unit">W</span>
+                </div>
+                <span class="field-error" data-for="q_m"></span>
+              </div>
+              <div class="field">
+                <label for="q_y">Annual average load</label>
+                <div class="input-row">
+                  <input type="number" id="q_y" name="q_y" value="1500">
+                  <span class="unit">W</span>
+                </div>
+                <span class="field-error" data-for="q_y"></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2 class="card-title">Ground Properties</h2>
+              <div class="field">
+                <label for="k">Thermal conductivity</label>
+                <div class="input-row">
+                  <input type="number" id="k" name="k" step="0.01" value="2.0">
+                  <span class="unit">W/m·K</span>
+                </div>
+                <span class="field-error" data-for="k"></span>
+              </div>
+              <div class="field">
+                <label for="alpha">Thermal diffusivity <em>(0.025 – 0.2)</em></label>
+                <div class="input-row">
+                  <input type="number" id="alpha" name="alpha" step="0.001" value="0.086">
+                  <span class="unit">m²/day</span>
+                </div>
+                <span class="field-error" data-for="alpha"></span>
+              </div>
+              <div class="field">
+                <label for="T_g">Undisturbed ground temp</label>
+                <div class="input-row">
+                  <input type="number" id="T_g" name="T_g" step="0.1" value="15">
+                  <span class="unit">°C</span>
+                </div>
+                <span class="field-error" data-for="T_g"></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2 class="card-title">Borefield</h2>
+              <div class="field">
+                <label for="B">Borehole spacing</label>
+                <div class="input-row">
+                  <input type="number" id="B" name="B" step="0.1" value="6.1">
+                  <span class="unit">m</span>
+                </div>
+                <span class="field-error" data-for="B"></span>
+              </div>
+              <div class="field">
+                <label for="NB">Number of boreholes</label>
+                <div class="input-row">
+                  <input type="number" id="NB" name="NB" step="1" min="1" value="5">
+                  <span class="unit">—</span>
+                </div>
+                <span class="field-error" data-for="NB"></span>
+              </div>
+              <div class="field">
+                <label for="A">Aspect ratio <em>(≥ 1)</em></label>
+                <div class="input-row">
+                  <input type="number" id="A" name="A" step="0.1" min="1" value="1.0">
+                  <span class="unit">—</span>
+                </div>
+                <span class="field-error" data-for="A"></span>
+              </div>
+              <div class="field">
+                <label for="T_in_HP">HP inlet temperature</label>
+                <div class="input-row">
+                  <input type="number" id="T_in_HP" name="T_in_HP" step="0.1" value="40.2">
+                  <span class="unit">°C</span>
+                </div>
+                <span class="field-error" data-for="T_in_HP"></span>
+              </div>
+              <div class="field">
+                <label for="mfls">Flow rate per kW</label>
+                <div class="input-row">
+                  <input type="number" id="mfls" name="mfls" step="0.001" value="0.05">
+                  <span class="unit">kg/s·kW</span>
+                </div>
+                <span class="field-error" data-for="mfls"></span>
+              </div>
+            </div>
+          </div><!-- /tab-basic -->
+
+          <!-- ── Advanced Tab ── -->
+          <div id="tab-advanced" class="tab-panel hidden">
+            <div class="card">
+              <h2 class="card-title">Borehole &amp; Pipe Details</h2>
+              <div class="field">
+                <label for="rbore">Borehole radius <em>(0.05 – 0.1)</em></label>
+                <div class="input-row">
+                  <input type="number" id="rbore" name="rbore" step="0.001" value="0.06">
+                  <span class="unit">m</span>
+                </div>
+                <span class="field-error" data-for="rbore"></span>
+              </div>
+              <div class="field">
+                <label for="rpin">Pipe inner radius</label>
+                <div class="input-row">
+                  <input type="number" id="rpin" name="rpin" step="0.00001" value="0.01365">
+                  <span class="unit">m</span>
+                </div>
+                <span class="field-error" data-for="rpin"></span>
+              </div>
+              <div class="field">
+                <label for="rpext">Pipe outer radius</label>
+                <div class="input-row">
+                  <input type="number" id="rpext" name="rpext" step="0.00001" value="0.0167">
+                  <span class="unit">m</span>
+                </div>
+                <span class="field-error" data-for="rpext"></span>
+              </div>
+              <div class="field">
+                <label for="kgrout">Grout conductivity</label>
+                <div class="input-row">
+                  <input type="number" id="kgrout" name="kgrout" step="0.01" value="1.5">
+                  <span class="unit">W/m·K</span>
+                </div>
+                <span class="field-error" data-for="kgrout"></span>
+              </div>
+              <div class="field">
+                <label for="kpipe">Pipe conductivity</label>
+                <div class="input-row">
+                  <input type="number" id="kpipe" name="kpipe" step="0.01" value="0.42">
+                  <span class="unit">W/m·K</span>
+                </div>
+                <span class="field-error" data-for="kpipe"></span>
+              </div>
+              <div class="field">
+                <label for="LU">U-tube spacing</label>
+                <div class="input-row">
+                  <input type="number" id="LU" name="LU" step="0.0001" value="0.0511">
+                  <span class="unit">m</span>
+                </div>
+                <span class="field-error" data-for="LU"></span>
+              </div>
+              <div class="field">
+                <label for="hconv">Convection coefficient</label>
+                <div class="input-row">
+                  <input type="number" id="hconv" name="hconv" step="1" value="1000">
+                  <span class="unit">W/m²·K</span>
+                </div>
+                <span class="field-error" data-for="hconv"></span>
+              </div>
+              <div class="field">
+                <label for="Cp">Fluid heat capacity</label>
+                <div class="input-row">
+                  <input type="number" id="Cp" name="Cp" step="1" value="4200">
+                  <span class="unit">J/kg·K</span>
+                </div>
+                <span class="field-error" data-for="Cp"></span>
+              </div>
+            </div>
+          </div><!-- /tab-advanced -->
+
+          <div id="calc-error" class="calc-error hidden"></div>
+          <button type="button" id="calc-btn" class="calc-btn">Calculate</button>
+
+        </form>
+
+        <div id="result-panel" class="result-panel hidden">
+          <h2 class="result-title">Results</h2>
+          <div class="result-grid">
+            <div class="result-item">
+              <span class="result-label">Total borefield length L</span>
+              <span class="result-value"><span id="res-L">—</span> m</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Borehole depth H</span>
+              <span class="result-value"><span id="res-H">—</span> m</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Number of boreholes</span>
+              <span class="result-value"><span id="res-NB">—</span></span>
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /panel-manual -->
 
     </main>
   </div>

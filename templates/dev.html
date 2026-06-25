@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Dashboard — GeoSite Advisor</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    /* ── Dev-specific overrides ── */
+    .dev-banner {
+      background: #111827; color: #6ee7b7;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 8px 24px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .main { max-width: 900px; }
+
+    /* ── Section chrome ── */
+    .wf-section { margin-bottom: 36px; }
+    .wf-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .wf-header .stage-pill { font-size: 12px; padding: 3px 10px; }
+    .wf-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .wf-subtitle { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+    /* ── Pipeline trace runner ── */
+    .trace-row {
+      display: flex; gap: 10px; align-items: flex-end;
+      flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .trace-field { display: flex; flex-direction: column; gap: 4px; }
+    .trace-field label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .trace-field input, .trace-field select {
+      padding: 7px 10px; border: 1px solid var(--border);
+      border-radius: 5px; font-size: 13px; color: var(--text);
+      background: #fff;
+    }
+    .trace-run-btn {
+      padding: 8px 20px; background: var(--accent); color: #fff;
+      border: none; border-radius: 5px; font-size: 13px;
+      font-weight: 700; cursor: pointer; align-self: flex-end;
+    }
+    .trace-run-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    /* ── Step cards ── */
+    .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .step-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 7px; padding: 14px 16px;
+    }
+    .step-card.full-width { grid-column: 1 / -1; }
+    .step-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .step-empty { font-size: 12px; color: #d1d5db; font-style: italic; }
+    .kv-list { font-size: 12px; line-height: 2; }
+    .kv-list .k { color: var(--text-muted); min-width: 140px; display: inline-block; }
+    .kv-list .v { font-family: "SF Mono","Fira Code",monospace; color: var(--text); font-weight: 600; }
+    .eq-block {
+      font-family: "SF Mono","Fira Code",monospace; font-size: 11px;
+      background: #f8f9fa; border: 1px solid var(--border);
+      border-radius: 5px; padding: 10px 12px; line-height: 1.8;
+      color: #374151; white-space: pre;
+    }
+    .flag-ok   { color: #10b981; font-weight: 700; }
+    .flag-warn { color: #f59e0b; font-weight: 700; }
+    .flag-err  { color: #ef4444; font-weight: 700; }
+
+    /* ── Data files table ── */
+    .files-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .files-table th {
+      text-align: left; padding: 6px 10px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);
+      border-bottom: 2px solid var(--border);
+    }
+    .files-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .files-table tr:last-child td { border-bottom: none; }
+    .col-schema { font-family: "SF Mono","Fira Code",monospace; font-size: 11px; color: #374151; line-height: 1.7; }
+    .badge-fixture { background: #fef3c7; color: #92400e; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+    .badge-real    { background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+
+    /* ── Map ── */
+    #coverage-map { height: 340px; border-radius: 7px; border: 1px solid var(--border); }
+
+    /* ── Two-track reference ── */
+    .tt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .tt-table th {
+      text-align: left; padding: 7px 10px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);
+      border-bottom: 2px solid var(--border); background: #f9fafb;
+    }
+    .tt-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    .tt-table td:nth-child(2) { color: var(--text-muted); font-style: italic; }
+    .tt-table td:nth-child(3) { font-family: "SF Mono","Fira Code",monospace; font-size: 11px; color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="dev-banner">⚙ Developer Mode — not visible to public users &nbsp;|&nbsp; <a href="/" style="color:#6ee7b7">← User Tool</a> &nbsp;|&nbsp; <a href="/doc/workflow" style="color:#6ee7b7">Workflow Doc</a></div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">GeoSite Advisor<br>
+        <span style="font-size:11px;font-weight:400;color:#6ee7b7">Developer Dashboard</span>
+      </div>
+      <nav>
+        <ul class="stage-list">
+          <li class="stage-item active-dim">s1 <span class="stage-name">Site</span></li>
+          <li class="stage-item active-dim">s2 <span class="stage-name">Simulation</span></li>
+          <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
+          <li class="stage-item active-dim">s4 <span class="stage-name">Sizing</span></li>
+          <li class="stage-item disabled">s5 <span class="stage-name">Cost</span><span class="badge">soon</span></li>
+          <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
+          <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" class="sidebar-link">← User tool</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <h1 class="page-title">Developer Pipeline Dashboard</h1>
+
+      <!-- ══════════════════════════════════════════
+           SECTION 1 — PIPELINE TRACE RUNNER
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="stage-pill">s1 → s4</span>
+          <span class="wf-title">Full Pipeline Trace</span>
+          <span class="wf-subtitle">Shows every intermediate value hidden from users</span>
+        </div>
+
+        <div class="trace-row">
+          <div class="trace-field">
+            <label>ZIP Code</label>
+            <input type="text" id="t-zip" value="60601" style="width:80px">
+          </div>
+          <div class="trace-field">
+            <label>Building Type</label>
+            <select id="t-bldg">
+              <option value="small_office">Small Office</option>
+              <option value="medium_office">Medium Office</option>
+              <option value="large_office">Large Office</option>
+              <option value="standalone_retail">Stand-alone Retail</option>
+              <option value="primary_school">Primary School</option>
+              <option value="secondary_school">Secondary School</option>
+              <option value="hospital">Hospital</option>
+              <option value="outpatient_healthcare">Outpatient Healthcare</option>
+              <option value="small_hotel">Small Hotel</option>
+              <option value="large_hotel">Large Hotel</option>
+              <option value="warehouse">Warehouse</option>
+              <option value="midrise_apartment">Mid-rise Apartment</option>
+            </select>
+          </div>
+          <div class="trace-field">
+            <label>Mode</label>
+            <select id="t-mode">
+              <option value="heating">Heating</option>
+              <option value="cooling">Cooling</option>
+            </select>
+          </div>
+          <div class="trace-field"><label>NB</label><input type="number" id="t-nb" value="16" style="width:55px"></div>
+          <div class="trace-field"><label>B (m)</label><input type="number" id="t-b" value="6.0" step="0.1" style="width:65px"></div>
+          <div class="trace-field"><label>A</label><input type="number" id="t-a" value="1.0" step="0.1" style="width:55px"></div>
+          <button class="trace-run-btn" id="t-run">Run Trace</button>
+        </div>
+
+        <!-- s1a: Geocoding -->
+        <div class="wf-section">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#6366f1">s1a</span>
+            <span class="wf-title" style="font-size:13px">Geocoding — ZIP → Census Tract</span>
+          </div>
+          <div class="step-grid">
+            <div class="step-card">
+              <div class="step-label">Input</div>
+              <div class="kv-list" id="s1a-in"><span class="step-empty">run a trace</span></div>
+            </div>
+            <div class="step-card">
+              <div class="step-label">How it works</div>
+              <div class="eq-block">Step 1: zip → (lat, lon)
+  api.zippopotam.us/us/{zip}
+
+Step 2: (lat, lon) → GEOID
+  geocoding.geo.census.gov/geocoder/
+  geographies/coordinates
+  benchmark=Public_AR_Current
+  layers=Census+Tracts</div>
+            </div>
+            <div class="step-card full-width">
+              <div class="step-label">Output</div>
+              <div class="kv-list" id="s1a-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- s1b: Soil Lookup -->
+        <div class="wf-section">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#6366f1">s1b</span>
+            <span class="wf-title" style="font-size:13px">Soil Lookup — GEOID → k, α, T_g</span>
+          </div>
+          <div class="step-grid">
+            <div class="step-card">
+              <div class="step-label">Input</div>
+              <div class="kv-list" id="s1b-in"><span class="step-empty">run a trace</span></div>
+            </div>
+            <div class="step-card">
+              <div class="step-label">How it works (pre-computed)</div>
+              <div class="eq-block">Côté-Konrad (2005):
+  n   = 1 − ρ_d / 2.65
+  k_s = 7.7^q × 2.0^(1−q)
+  k_sat = k_s^(1−n) × 0.6^n
+  k_dry = χ × 10^(−η×n)
+  k_e  = (κ·S_r)/(1+(κ−1)·S_r)
+  k    = (k_sat−k_dry)·k_e + k_dry
+  α    = k/(ρ_d·750)×86400 [m²/day]
+Data: USGS SSURGO + DS-801</div>
+            </div>
+            <div class="step-card full-width">
+              <div class="step-label">Output</div>
+              <div class="kv-list" id="s1b-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- s2: Building Loads -->
+        <div class="wf-section">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#f59e0b">s2</span>
+            <span class="wf-title" style="font-size:13px">Building Loads — Building Type × Climate → q_h, q_m, q_y</span>
+          </div>
+          <div class="step-grid">
+            <div class="step-card">
+              <div class="step-label">Input</div>
+              <div class="kv-list" id="s2-in"><span class="step-empty">run a trace</span></div>
+            </div>
+            <div class="step-card">
+              <div class="step-label">How it works (pre-computed)</div>
+              <div class="eq-block">EnergyPlus (developer pipeline):
+  1. DOE prototype IDF × climate zone
+  2. Add ZoneHVAC:IdealLoadsAirSystem
+  3. Run 8760h simulation
+  4. Extract Zone Sensible Heating/
+     Cooling Rate (hourly)
+  5. Aggregate to 3 pulses (s3_loads):
+     ground[h] = q_cool[h] − q_heat[h]
+     q_h = peak hour ground load
+     q_m = peak month avg
+     q_y = annual average</div>
+            </div>
+            <div class="step-card full-width">
+              <div class="step-label">Output — Three-Pulse Ground Loads</div>
+              <div class="kv-list" id="s2-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- s4: Sizing -->
+        <div class="wf-section">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#10b981">s4</span>
+            <span class="wf-title" style="font-size:13px">Borefield Sizing — Philippe et al. (2010)</span>
+          </div>
+          <div class="step-grid">
+            <div class="step-card">
+              <div class="step-label">Inputs consumed</div>
+              <div class="kv-list" id="s4-in"><span class="step-empty">run a trace</span></div>
+            </div>
+            <div class="step-card">
+              <div class="step-label">Equations applied</div>
+              <div class="eq-block">Rb = R_grout + (R_conv+R_pipe)/2
+R_6h = g(α,rbore,A_F6H)/k
+R_1m = g(α,rbore,A_F1M)/k
+R_10y= g(α,rbore,A_F10Y)/k
+Tm   = T_in_HP + q_h/(ṁ·Cp)
+L₀   = (q_y·R_10y+q_m·R_1m
+         +q_h·R_6h+q_h·Rb)
+        /(Tm − T_g)
+Iterate: Tp → L until |ΔL|&lt;1m</div>
+            </div>
+            <div class="step-card full-width">
+              <div class="step-label">Output</div>
+              <div class="kv-list" id="s4-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /pipeline trace -->
+
+      <!-- ══════════════════════════════════════════
+           SECTION 2 — DATA FILES OVERVIEW
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="wf-title">Public Data Files</span>
+          <span class="wf-subtitle">data/public/ — served by Flask, never exposes research internals</span>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="files-table">
+            <thead>
+              <tr>
+                <th style="width:200px">File</th>
+                <th>Schema (columns)</th>
+                <th style="width:80px">Rows</th>
+                <th style="width:90px">Status</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600">thermal_by_tract.csv</td>
+                <td class="col-schema">geoid (str 11)<br>k_wmpk (float)<br>alpha_m2day (float)<br>T_g_C (float)<br>data_available (bool)</td>
+                <td>3</td>
+                <td><span class="badge-fixture">FIXTURE</span></td>
+                <td style="font-size:12px">GEOID → soil thermal properties. NaN rows = no SSURGO coverage. Run <code>scripts/compute_thermal.py</code> for national data.</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">climate_by_tract.csv</td>
+                <td class="col-schema">geoid (str 11)<br>climate_zone (str)</td>
+                <td>3</td>
+                <td><span class="badge-fixture">FIXTURE</span></td>
+                <td style="font-size:12px">GEOID → ASHRAE climate zone. Used to select DOE prototype building variant.</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">prototype_loads.json</td>
+                <td class="col-schema">building_type (key)<br> → climate_zone (key)<br> → {q_h, q_m, q_y} (float W)</td>
+                <td>12 types × 3 zones</td>
+                <td><span class="badge-fixture">FIXTURE</span></td>
+                <td style="font-size:12px">Pre-computed ASHRAE three-pulse ground loads. Values are engineering estimates; real values from EnergyPlus after <code>scripts/precompute_loads.py</code>.</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">references.json</td>
+                <td class="col-schema">category (str)<br>entries[] → {authors, year, title, journal, doi, url}</td>
+                <td>4 categories</td>
+                <td><span class="badge-real">REAL</span></td>
+                <td style="font-size:12px">User-facing citation list served at /references. No methodology detail.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px">
+          When <code>scripts/export_public.py</code> needs to be re-run, a note is added to
+          <code>docs/operations/maintenance.md</code>.
+        </p>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           SECTION 3 — SUBSURFACE COVERAGE MAP
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="wf-title">Subsurface Data Coverage Map</span>
+          <span class="wf-subtitle">Green = soil data available · Gray = no SSURGO data (blank on public tool)</span>
+        </div>
+        <div id="coverage-map"></div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">
+          Showing <strong>3 fixture census tracts</strong>. After running <code>scripts/compute_thermal.py</code> nationally,
+          this map will show all ~74,000 US census tracts colored by computed k value.
+          Tracts with no SSURGO coverage appear blank — this gap pattern is a primary research deliverable.
+        </p>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           SECTION 4 — TWO-TRACK REFERENCE
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="wf-title">Two-Track System Reference</span>
+          <span class="wf-subtitle">What users see vs. what you keep</span>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="tt-table">
+            <thead>
+              <tr>
+                <th style="width:160px">Data point</th>
+                <th style="width:220px">User sees</th>
+                <th>Developer keeps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Location</strong></td>
+                <td>ZIP code input only</td>
+                <td>census_tract_GEOID, lat, lon, zippopotam response</td>
+              </tr>
+              <tr>
+                <td><strong>Soil</strong></td>
+                <td>Nothing — auto-derived</td>
+                <td>k [W/m·K], α [m²/day], T_g [°C], soil_class, ρ_d, S_r, SSURGO map unit key, data_available flag</td>
+              </tr>
+              <tr>
+                <td><strong>Building loads</strong></td>
+                <td>Nothing — auto-derived</td>
+                <td>q_h, q_m, q_y [W], building_type key, climate_zone, load source (fixture vs EnergyPlus run)</td>
+              </tr>
+              <tr>
+                <td><strong>Sizing result</strong></td>
+                <td>L (m), H (m), NB</td>
+                <td>Same + Rb, R_6h, R_1m, R_10y, Tm, L₀, Tp, all 10 borehole/pipe parameters</td>
+              </tr>
+              <tr>
+                <td><strong>References</strong></td>
+                <td>Clean citation list at /references</td>
+                <td>Full methodology notes with equations: docs/references/citations.md, docs/workflow.md</td>
+              </tr>
+              <tr>
+                <td><strong>Coverage</strong></td>
+                <td>"No data for this location" (if missing)</td>
+                <td>Full subsurface coverage map showing which census tracts have SSURGO data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+  // ── Coverage map ──────────────────────────────────────────────────────
+  const map = L.map('coverage-map').setView([38.5, -96], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Fixture census tract centroids
+  const fixtures = [
+    { geoid: '17031320101', label: 'Chicago, IL (60601)', lat: 41.8858, lon: -87.6181, k: 1.50, zone: '5A' },
+    { geoid: '06037700600', label: 'Los Angeles, CA (90210)', lat: 34.0901, lon: -118.4065, k: 1.20, zone: '3B' },
+    { geoid: '48201230200', label: 'Houston, TX (77001)', lat: 29.7532, lon: -95.3677, k: 1.80, zone: '2A' },
+  ];
+
+  fixtures.forEach(f => {
+    const circle = L.circleMarker([f.lat, f.lon], {
+      radius: 10,
+      fillColor: '#10b981',
+      color: '#065f46',
+      weight: 2,
+      fillOpacity: 0.8,
+    }).addTo(map);
+    circle.bindPopup(
+      `<strong>${f.label}</strong><br>` +
+      `GEOID: ${f.geoid}<br>` +
+      `k = ${f.k} W/m·K · Zone ${f.zone}<br>` +
+      `<span style="color:#10b981;font-weight:700">✓ SSURGO data available (fixture)</span>`
+    );
+  });
+
+  // ── Pipeline trace ────────────────────────────────────────────────────
+  function kv(k, v, flag) {
+    const cls = flag === 'ok' ? 'flag-ok' : flag === 'warn' ? 'flag-warn' : '';
+    return `<span class="k">${k}</span><span class="v ${cls}">${v}</span><br>`;
+  }
+
+  document.getElementById('t-run').addEventListener('click', async () => {
+    const btn = document.getElementById('t-run');
+    btn.disabled = true; btn.textContent = 'Running…';
+
+    const body = {
+      zip_code:      document.getElementById('t-zip').value.trim(),
+      building_type: document.getElementById('t-bldg').value,
+      mode:          document.getElementById('t-mode').value,
+      NB:            parseFloat(document.getElementById('t-nb').value),
+      B:             parseFloat(document.getElementById('t-b').value),
+      A:             parseFloat(document.getElementById('t-a').value),
+    };
+
+    // Populate s1a immediately with what we sent
+    document.getElementById('s1a-in').innerHTML =
+      kv('zip_code', body.zip_code) +
+      kv('api', 'zippopotam.us → lat/lon → Census coordinates');
+
+    let resp, result;
+    try {
+      resp   = await fetch('/calculate/smart', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      result = await resp.json();
+    } catch(e) {
+      alert('Network error: ' + e.message);
+      btn.disabled=false; btn.textContent='Run Trace';
+      return;
+    }
+
+    if (!resp.ok) {
+      document.getElementById('s1a-out').innerHTML = `<span class="flag-err">ERROR ${resp.status}: ${result.message||result.error}</span>`;
+      btn.disabled=false; btn.textContent='Run Trace';
+      return;
+    }
+
+    const s = result.site, l = result.loads;
+
+    // s1a output
+    document.getElementById('s1a-out').innerHTML =
+      kv('census_tract_GEOID', '(resolved by geocoder)') +
+      kv('lat / lon', '(from zippopotam.us centroid)') +
+      kv('status', '✓ Geocoding successful', 'ok');
+
+    // s1b input/output
+    document.getElementById('s1b-in').innerHTML =
+      kv('GEOID', '→ lookup thermal_by_tract.csv') +
+      kv('data_available', s.data_available ? '✓ True' : '✗ False — no SSURGO data', s.data_available ? 'ok' : 'err');
+
+    document.getElementById('s1b-out').innerHTML =
+      kv('k  (thermal conductivity)', `${s.k} W/m·K`, 'ok') +
+      kv('α  (thermal diffusivity)',  `${s.alpha} m²/day`, 'ok') +
+      kv('T_g (ground temperature)',  `${s.T_g} °C`, 'ok') +
+      kv('climate_zone',              s.climate_zone, 'ok') +
+      kv('source',                    'data/public/thermal_by_tract.csv (fixture)') +
+      kv('note',                      'k, α derived via Côté-Konrad (2005) from SSURGO + USGS DS-801');
+
+    // s2 input/output
+    document.getElementById('s2-in').innerHTML =
+      kv('building_type', body.building_type) +
+      kv('climate_zone',  s.climate_zone) +
+      kv('source',        'data/public/prototype_loads.json (fixture)');
+
+    const signNote = l.q_h < 0 ? 'heating-dominant (negative)' : 'cooling-dominant (positive)';
+    document.getElementById('s2-out').innerHTML =
+      kv('q_h  (peak hourly load)',    `${l.q_h.toLocaleString()} W  [${signNote}]`, 'ok') +
+      kv('q_m  (peak monthly avg)',    `${l.q_m.toLocaleString()} W`, 'ok') +
+      kv('q_y  (annual avg)',          `${l.q_y.toLocaleString()} W`, 'ok') +
+      kv('sign convention',            'negative = heat extraction, positive = heat injection') +
+      kv('ref',                        'Philippe et al. (2010), ASHRAE Journal 52(7)');
+
+    // s4 input/output
+    document.getElementById('s4-in').innerHTML =
+      kv('k, α, T_g',  `${s.k} W/m·K, ${s.alpha} m²/day, ${s.T_g}°C  (from s1)`) +
+      kv('q_h, q_m, q_y', `${l.q_h.toLocaleString()}, ${l.q_m.toLocaleString()}, ${l.q_y.toLocaleString()} W  (from s2)`) +
+      kv('NB, B, A',   `${result.NB}, ${body.B} m, ${body.A}`) +
+      kv('T_in_HP',    body.mode==='heating' ? '5.0 °C (heating default)' : '40.2 °C (cooling default)') +
+      kv('defaults',   'rbore=0.06m, kgrout=1.5 W/m·K, mfls=0.05 kg/s·kW, Cp=4200 J/kg·K …');
+
+    document.getElementById('s4-out').innerHTML =
+      kv('L  (total borefield length)', `${result.L.toLocaleString()} m`, 'ok') +
+      kv('H  (depth per borehole)',     `${result.H.toLocaleString()} m`, 'ok') +
+      kv('NB (number of boreholes)',    `${result.NB}`, 'ok') +
+      kv('method', 'Three-pulse sizing with iterative Tp correction, tol=1.0 m') +
+      kv('ref', 'Philippe et al. (2010) · Kavanaugh & Rafferty (1995)');
+
+    btn.disabled=false; btn.textContent='Run Trace';
+  });
+  </script>
+</body>
+</html>

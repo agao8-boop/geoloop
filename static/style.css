@@ -56,6 +56,20 @@ body {
   letter-spacing: 0.02em;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-link {
+  font-size: 12px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  opacity: 0.7;
+}
+.sidebar-link:hover { opacity: 1; }
+
 .stage-list {
   list-style: none;
   padding: 12px 0;
@@ -75,6 +89,12 @@ body {
   background: rgba(46, 125, 94, 0.25);
   color: var(--sidebar-active-text);
   font-weight: 600;
+}
+
+/* s1-s3: built but auto-derived (no sidebar link needed) */
+.stage-item.active-dim {
+  color: rgba(176, 190, 197, 0.75);
+  font-weight: 500;
 }
 
 .stage-item.active a {
@@ -236,8 +256,151 @@ body {
   min-height: 16px;
 }
 
+/* ── Mode toggle ── */
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mode-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.mode-badge {
+  font-size: 11px;
+  background: rgba(46, 125, 94, 0.1);
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.mode-btn:not(.active) .mode-badge {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+/* ── Stage headers ── */
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 10px;
+}
+
+.stage-pill {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.stage-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stage-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+  font-style: italic;
+}
+
+/* ── Select inputs ── */
+.input-row select {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 14px;
+  color: var(--text);
+  background: #fff;
+  max-width: 320px;
+}
+
+.input-row select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ── Advanced details ── */
+.advanced-details {
+  margin-bottom: 4px;
+}
+
+.advanced-details summary {
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 0;
+  user-select: none;
+}
+
+.advanced-details summary:hover { color: var(--text); }
+
+.hint-inline {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ── Pipeline panel (s1-s3 trace shown after smart calc) ── */
+.pipeline-panel {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.pipeline-step {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 14px 16px;
+}
+
+.pipeline-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.pipeline-values {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
 /* ── Calculate button ── */
-#calc-btn {
+.calc-btn {
   display: block;
   width: 100%;
   padding: 12px;
@@ -253,8 +416,9 @@ body {
   transition: background 0.15s;
 }
 
-#calc-btn:hover { background: #256b50; }
-#calc-btn:active { background: #1d5540; }
+#calc-btn:hover, .calc-btn:hover { background: #256b50; }
+#calc-btn:active, .calc-btn:active { background: #1d5540; }
+.calc-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
 /* ── Calc-level error banner ── */
 .calc-error {
@@ -318,3 +482,14 @@ body {
   font-weight: 700;
   color: #065f46;
 }
+
+/* ── References page ── */
+.ref-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ref-entry:last-child { border-bottom: none; }
+.ref-authors { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+.ref-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.ref-source { font-size: 12px; color: var(--text-muted); }
+.ref-source a { color: var(--accent); }
