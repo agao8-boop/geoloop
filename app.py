@@ -4,6 +4,7 @@ import json
 import pathlib
 sys.path.insert(0, os.path.dirname(__file__))
 
+
 from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
@@ -211,50 +212,3 @@ def references():
 def developer():
     """Developer-only pipeline dashboard — not linked from the public UI."""
     return render_template("dev.html")
-
-
-@app.route("/doc/workflow")
-def workflow_doc():
-    """Serve the master workflow markdown as readable HTML (developer only)."""
-    import subprocess
-    wf = pathlib.Path(__file__).parent / "docs" / "workflow.md"
-    content = wf.read_text()
-    # Simple markdown → HTML via basic transforms (no new package needed)
-    import re, html
-    lines = content.split('\n')
-    body_html = []
-    in_code = False
-    for line in lines:
-        if line.startswith('```'):
-            if not in_code:
-                body_html.append('<pre class="eq-block">')
-                in_code = True
-            else:
-                body_html.append('</pre>')
-                in_code = False
-        elif in_code:
-            body_html.append(html.escape(line))
-        elif line.startswith('### '):
-            body_html.append(f'<h3 style="margin:20px 0 8px;font-size:14px;color:#1a202c">{html.escape(line[4:])}</h3>')
-        elif line.startswith('## '):
-            body_html.append(f'<h2 style="margin:28px 0 10px;font-size:16px;font-weight:700;color:#1a202c;border-bottom:2px solid #dde1e7;padding-bottom:6px">{html.escape(line[3:])}</h2>')
-        elif line.startswith('# '):
-            body_html.append(f'<h1 style="font-size:22px;font-weight:700;margin-bottom:8px">{html.escape(line[2:])}</h1>')
-        elif line.startswith('> '):
-            body_html.append(f'<blockquote style="border-left:3px solid #2e7d5e;padding:8px 16px;margin:12px 0;color:#6b7280;font-style:italic;background:#f0faf5">{html.escape(line[2:])}</blockquote>')
-        elif line.startswith('| '):
-            body_html.append(f'<p style="font-family:monospace;font-size:12px;white-space:pre">{html.escape(line)}</p>')
-        elif line.strip() == '---':
-            body_html.append('<hr style="border:none;border-top:1px solid #dde1e7;margin:20px 0">')
-        elif line.strip():
-            body_html.append(f'<p style="margin:6px 0;font-size:13px;line-height:1.7;color:#374151">{html.escape(line)}</p>')
-        else:
-            body_html.append('<br>')
-    html_content = '\n'.join(body_html)
-    return f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Workflow — GeoSite Advisor</title>
-    <style>body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:820px;margin:0 auto;padding:40px 32px 80px;background:#f4f6f8;color:#1a202c}}
-    .eq-block{{background:#1e2a38;color:#b0bec5;padding:16px;border-radius:6px;font-size:12px;line-height:1.8;overflow-x:auto;white-space:pre;margin:12px 0}}
-    a{{color:#2e7d5e}}</style></head><body>
-    <p style="font-size:12px;color:#6b7280;margin-bottom:24px"><a href="/dev">← Developer Dashboard</a></p>
-    {html_content}
-    </body></html>'''
