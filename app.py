@@ -11,6 +11,7 @@ from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
 from geosite.models import SiteData, LoadPulses
+from geosite.s5_cost import estimate_cost
 
 app = Flask(__name__)
 
@@ -448,6 +449,99 @@ def openloop_wells_api():
                     "data_available":     row.get("data_available", "False") == "True",
                 }
     return jsonify(data)
+
+
+@app.route("/api/cost", methods=["POST"])
+def cost_api():
+    """Estimate borefield installation cost given sizing output.
+
+    Required body fields: L (meters), NB (int), B (meters), state (2-letter abbrev or null)
+    Optional: rock_class (SGMC rock class name), distance_to_house_ft (float, default 100)
+    """
+    try:
+        data = request.get_json(force=True)
+    except BadRequest:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
+
+    if data is None:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
+
+    for field in ("L", "NB", "B"):
+        if field not in data or str(data[field]).strip() == "":
+            return jsonify({"error": "field", "field": field,
+                            "message": f"'{field}' is required"}), 400
+
+    try:
+        L_m = float(data["L"])
+        NB = int(data["NB"])
+        B_m = float(data["B"])
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": "field", "message": str(exc)}), 400
+
+    state = data.get("state") or None
+    rock_class = data.get("rock_class") or None
+    distance_to_house_ft = float(data.get("distance_to_house_ft", 100.0))
+
+    try:
+        result = estimate_cost(
+            L_m=L_m, NB=NB, B_m=B_m, state=state,
+            rock_class_name=rock_class,
+            distance_to_house_ft=distance_to_house_ft,
+        )
+    except Exception as exc:
+        return jsonify({"error": "calculation", "message": str(exc)}), 500
+
+    def _cr(cr):
+        return {
+            "total_usd": round(cr.total_usd, 2),
+            "cost_per_ft": round(cr.cost_per_ft, 2),
+            "L_ft": round(cr.L_ft, 1),
+            "NB": cr.NB,
+            "breakdown": [
+                {**item, "cost_usd": round(item["cost_usd"], 2)}
+                for item in cr.breakdown
+            ],
+            "region_used": cr.region_used,
+            "rock_frac": cr.rock_frac,
+            "scenario": cr.scenario,
+        }
+
+    return jsonify({
+        "best":  _cr(result["best"]),
+        "base":  _cr(result["base"]),
+        "worst": _cr(result["worst"]),
+        "headline_per_ft": round(result["headline_per_ft"], 2),
+        "region_used": result["region_used"],
+    })
+
+
+@app.route("/api/cost/map")
+def cost_map_api():
+    """Return per-state base-scenario $/ft for Leaflet choropleth.
+
+    Uses a representative project: NB=16, B=6.0m, L=1200m (small office baseline).
+    """
+    _REP_L_M = 1200.0
+    _REP_NB = 16
+    _REP_B_M = 6.0
+
+    all_states = [
+        "AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID",
+        "IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO",
+        "MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA",
+        "RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
+    ]
+    out = {}
+    for state in all_states:
+        res = estimate_cost(L_m=_REP_L_M, NB=_REP_NB, B_m=_REP_B_M, state=state)
+        out[state] = {
+            "best_per_ft":  round(res["best"].cost_per_ft, 2),
+            "base_per_ft":  round(res["base"].cost_per_ft, 2),
+            "worst_per_ft": round(res["worst"].cost_per_ft, 2),
+            "region_used":  res["region_used"],
+        }
+
+    return jsonify({"states": out})
 
 
 @app.route("/dev")
