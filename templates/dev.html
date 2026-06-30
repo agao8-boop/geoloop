@@ -174,7 +174,7 @@
           <li class="stage-item active-dim">s2 <span class="stage-name">Simulation</span></li>
           <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
           <li class="stage-item active-dim">s4 <span class="stage-name">Sizing</span></li>
-          <li class="stage-item disabled">s5 <span class="stage-name">Cost</span><span class="badge">soon</span></li>
+          <li class="stage-item active-dim">s5 <span class="stage-name">Cost</span></li>
           <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
           <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
         </ul>
@@ -225,10 +225,22 @@
             </select>
           </div>
           <div class="trace-field">
-            <label>Mode</label>
-            <select id="t-mode">
-              <option value="heating">Heating</option>
-              <option value="cooling">Cooling</option>
+            <label>Floor Area</label>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" id="t-area" placeholder="default" step="1" style="width:75px">
+              <span style="font-size:11px;color:#9ca3af">m²</span>
+            </div>
+          </div>
+          <div class="trace-field">
+            <label>Year Built</label>
+            <input type="number" id="t-year" placeholder="2020" min="0" max="2025" style="width:65px">
+          </div>
+          <div class="trace-field">
+            <label>Soil Confidence</label>
+            <select id="t-conf">
+              <option value="low">Conservative</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
             </select>
           </div>
           <div class="trace-field"><label>NB</label><input type="number" id="t-nb" value="16" style="width:55px"></div>
@@ -357,6 +369,34 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
             </div>
           </div>
         </div>
+        <!-- s5: Cost Estimation -->
+        <div class="wf-section">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#8b5cf6">s5</span>
+            <span class="wf-title" style="font-size:13px">Cost Estimation — Regional Drilling Rates</span>
+          </div>
+          <div class="step-grid">
+            <div class="step-card">
+              <div class="step-label">Inputs</div>
+              <div class="kv-list" id="s5-in"><span class="step-empty">run a trace</span></div>
+            </div>
+            <div class="step-card">
+              <div class="step-label">How it works</div>
+              <div class="eq-block">Lookup: state → Census division → US
+Scenarios:
+  best:  rock_frac = 0.00 (all soil)
+  base:  rock_frac = 0.30 (30% rock)
+  worst: rock_frac = 0.70 (70% rock)
+9 line items × regional rates → total_usd
+headline = total_usd / L_ft</div>
+            </div>
+            <div class="step-card full-width">
+              <div class="step-label">Output — Cost Scenarios &amp; Line Items</div>
+              <div id="s5-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /pipeline trace -->
 
       <!-- ══════════════════════════════════════════
@@ -1097,14 +1137,18 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
     const btn = document.getElementById('t-run');
     btn.disabled = true; btn.textContent = 'Running…';
 
+    const areaVal = document.getElementById('t-area').value.trim();
+    const yearVal = document.getElementById('t-year').value.trim();
     const body = {
-      zip_code:      document.getElementById('t-zip').value.trim(),
-      building_type: document.getElementById('t-bldg').value,
-      mode:          document.getElementById('t-mode').value,
-      NB:            parseFloat(document.getElementById('t-nb').value),
-      B:             parseFloat(document.getElementById('t-b').value),
-      A:             parseFloat(document.getElementById('t-a').value),
+      zip_code:        document.getElementById('t-zip').value.trim(),
+      building_type:   document.getElementById('t-bldg').value,
+      soil_confidence: document.getElementById('t-conf').value,
+      NB:              parseFloat(document.getElementById('t-nb').value),
+      B:               parseFloat(document.getElementById('t-b').value),
+      A:               parseFloat(document.getElementById('t-a').value),
     };
+    if (areaVal) body.floor_area_m2 = parseFloat(areaVal);
+    if (yearVal) body.year_built = parseInt(yearVal);
 
     // Populate s1a immediately with what we sent
     document.getElementById('s1a-in').innerHTML =
@@ -1141,34 +1185,43 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
       kv('data_available', s.data_available ? '✓ True' : '✗ False — no SSURGO data', s.data_available ? 'ok' : 'err');
 
     document.getElementById('s1b-out').innerHTML =
-      kv('k  (thermal conductivity)', `${s.k} W/m·K`, 'ok') +
-      kv('α  (thermal diffusivity)',  `${s.alpha} m²/day`, 'ok') +
-      kv('T_g (ground temperature)',  `${s.T_g} °C`, 'ok') +
-      kv('climate_zone',              s.climate_zone, 'ok') +
-      kv('source',                    'data/public/thermal_by_tract.csv (fixture)') +
-      kv('note',                      'k, α derived via Côté-Konrad (2005) from SSURGO + USGS DS-801');
+      kv('k  (raw thermal conductivity)',     `${s.k} W/m·K`) +
+      kv('k_effective  (after confidence)',   `${s.k_effective} W/m·K  [${s.soil_confidence} confidence]`, 'ok') +
+      kv('α  (thermal diffusivity)',          `${s.alpha} m²/day`, 'ok') +
+      kv('T_g (ground temperature)',          `${s.T_g} °C`, 'ok') +
+      kv('climate_zone',                     s.climate_zone, 'ok') +
+      kv('state_abbrev',                     s.state_abbrev || '(not resolved)', s.state_abbrev ? 'ok' : 'warn') +
+      kv('source',                           'data/public/deep_thermal_by_county.csv') +
+      kv('note',                             'k via SMU IDW (Blackwell & Richards 2004) or SGMC/C&H 1995 fallback');
 
     // s2 input/output
+    const floorNote = l.floor_area_m2 ? `${l.floor_area_m2} m² (scaled)` : 'DOE prototype default';
+    const yearNote  = l.year_built === 0 ? 'new construction (factor 1.00)' : `${l.year_built} (factor ${l.year_factor ? l.year_factor.toFixed(2) : '?'})`;
     document.getElementById('s2-in').innerHTML =
-      kv('building_type', body.building_type) +
-      kv('climate_zone',  s.climate_zone) +
-      kv('source',        'data/public/prototype_loads.json (fixture)');
+      kv('building_type',  body.building_type) +
+      kv('climate_zone',   s.climate_zone) +
+      kv('floor_area_m2',  floorNote) +
+      kv('year_built',     yearNote) +
+      kv('source',         'data/public/prototype_loads.json (EnergyPlus pre-computed)');
 
-    const signNote = l.q_h < 0 ? 'heating-dominant (negative)' : 'cooling-dominant (positive)';
+    const autoMode  = l.mode;
+    const signNote  = autoMode === 'cooling' ? 'cooling-dominant (heat injection to ground)' : 'heating-dominant (heat extraction from ground)';
     document.getElementById('s2-out').innerHTML =
-      kv('q_h  (peak hourly load)',    `${l.q_h.toLocaleString()} W  [${signNote}]`, 'ok') +
-      kv('q_m  (peak monthly avg)',    `${l.q_m.toLocaleString()} W`, 'ok') +
-      kv('q_y  (annual avg)',          `${l.q_y.toLocaleString()} W`, 'ok') +
-      kv('sign convention',            'negative = heat extraction, positive = heat injection') +
-      kv('ref',                        'Philippe et al. (2010), ASHRAE Journal 52(7)');
+      kv('auto-detected mode',        `${autoMode}  [${signNote}]`, 'ok') +
+      kv('q_h  (peak hourly load)',   `${l.q_h.toLocaleString()} W`, 'ok') +
+      kv('q_m  (peak monthly avg)',   `${l.q_m.toLocaleString()} W`, 'ok') +
+      kv('q_y  (annual avg)',         `${l.q_y.toLocaleString()} W`, 'ok') +
+      kv('sign convention',           'positive = cooling (heat injection), negative = heating (heat extraction)') +
+      kv('ref',                       'Philippe et al. (2010), ASHRAE Journal 52(7)');
 
     // s4 input/output
+    const modeDefault = autoMode === 'heating' ? '5.0 °C (heating default)' : '40.2 °C (cooling default)';
     document.getElementById('s4-in').innerHTML =
-      kv('k, α, T_g',  `${s.k} W/m·K, ${s.alpha} m²/day, ${s.T_g}°C  (from s1)`) +
-      kv('q_h, q_m, q_y', `${l.q_h.toLocaleString()}, ${l.q_m.toLocaleString()}, ${l.q_y.toLocaleString()} W  (from s2)`) +
-      kv('NB, B, A',   `${result.NB}, ${body.B} m, ${body.A}`) +
-      kv('T_in_HP',    body.mode==='heating' ? '5.0 °C (heating default)' : '40.2 °C (cooling default)') +
-      kv('defaults',   'rbore=0.06m, kgrout=1.5 W/m·K, mfls=0.05 kg/s·kW, Cp=4200 J/kg·K …');
+      kv('k_effective, α, T_g',  `${s.k_effective} W/m·K, ${s.alpha} m²/day, ${s.T_g}°C  (from s1)`) +
+      kv('q_h, q_m, q_y',        `${l.q_h.toLocaleString()}, ${l.q_m.toLocaleString()}, ${l.q_y.toLocaleString()} W  (from s2)`) +
+      kv('NB, B, A',             `${result.NB}, ${body.B} m, ${body.A}`) +
+      kv('T_in_HP',              modeDefault) +
+      kv('defaults',             'rbore=0.06m, kgrout=1.5 W/m·K, mfls=0.05 kg/s·kW, Cp=4200 J/kg·K …');
 
     document.getElementById('s4-out').innerHTML =
       kv('L  (total borefield length)', `${result.L.toLocaleString()} m`, 'ok') +
@@ -1176,6 +1229,49 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
       kv('NB (number of boreholes)',    `${result.NB}`, 'ok') +
       kv('method', 'Three-pulse sizing with iterative Tp correction, tol=1.0 m') +
       kv('ref', 'Philippe et al. (2010) · Kavanaugh & Rafferty (1995)');
+
+    // s5: Cost Estimation
+    document.getElementById('s5-in').innerHTML =
+      kv('L  (m)',    result.L) +
+      kv('NB',       result.NB) +
+      kv('B  (m)',   body.B) +
+      kv('state',    s.state_abbrev || '(unknown — US defaults used)');
+
+    let costResp, cost;
+    try {
+      costResp = await fetch('/api/cost', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ L: result.L, NB: result.NB, B: body.B, state: s.state_abbrev || null }),
+      });
+      cost = await costResp.json();
+    } catch(e) {
+      document.getElementById('s5-out').innerHTML = `<span class="flag-err">Cost API error: ${e.message}</span>`;
+      btn.disabled=false; btn.textContent='Run Trace';
+      return;
+    }
+
+    const fmt$ = v => '$' + parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    let s5html = kv('region_used', cost.region_used, 'ok');
+    ['best','base','worst'].forEach(sc => {
+      const r = cost[sc];
+      s5html += kv(sc + ' — cost',
+        `$${parseFloat(r.cost_per_ft).toFixed(2)}/ft  (total: ${fmt$(r.total_usd)},  rock_frac=${r.rock_frac})`,
+        sc === 'base' ? 'ok' : '');
+    });
+    // full line-item breakdown (auto-expanded in dev)
+    s5html += '<details open style="margin-top:10px"><summary style="font-size:11px;font-weight:700;color:var(--accent);cursor:pointer;margin-bottom:6px">Line-item breakdown (base case)</summary>';
+    s5html += '<table class="files-table" style="margin-top:6px"><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Subtotal</th></tr></thead><tbody>';
+    cost.base.breakdown.forEach(item => {
+      s5html += `<tr><td>${item.name}</td>` +
+        `<td style="font-family:monospace">${parseFloat(item.qty).toLocaleString(undefined,{maximumFractionDigits:1})}</td>` +
+        `<td style="color:#6b7280">${item.unit}</td>` +
+        `<td>$${item.rate}</td>` +
+        `<td style="font-weight:600">${fmt$(item.cost_usd)}</td></tr>`;
+    });
+    s5html += `<tr style="background:#f9fafb;font-weight:700"><td colspan="4">Total</td><td>${fmt$(cost.base.total_usd)}</td></tr>`;
+    s5html += '</tbody></table></details>';
+    document.getElementById('s5-out').innerHTML = s5html;
 
     btn.disabled=false; btn.textContent='Run Trace';
   });
