@@ -6,21 +6,29 @@ from geosite.models import LoadPulses
 FIXTURE_JSON = pathlib.Path(__file__).parent.parent / "data/public/prototype_loads.json"
 
 
-def test_small_office_zone_5a_heating_dominant():
+def test_small_office_zone_5a_cooling_dominant():
+    # Small office (511 m²) in Buffalo (5A) is cooling-dominant: internal gains
+    # (people + equipment + lights) exceed the heating demand even in a cold climate.
     lp = lookup_prototype_loads("small_office", "5A", loads_json=FIXTURE_JSON)
     assert isinstance(lp, LoadPulses)
+    assert lp.q_h > 0       # cooling dominant — positive
+    assert lp.q_m > 0
+    assert lp.q_y > 0
+    assert lp.q_h == pytest.approx(17625.0)
+    assert lp.q_m == pytest.approx(3873.0)
+    assert lp.q_y == pytest.approx(522.0)
+
+
+def test_small_office_zone_6a_heating_dominant():
+    # Zone 6A (Rochester, MN) is cold enough that small office tips to heating-dominant.
+    lp = lookup_prototype_loads("small_office", "6A", loads_json=FIXTURE_JSON)
     assert lp.q_h < 0       # heating dominant — negative
-    assert lp.q_m < 0
-    assert lp.q_y < 0
-    assert lp.q_h == pytest.approx(-78500.0)
-    assert lp.q_m == pytest.approx(-32000.0)
-    assert lp.q_y == pytest.approx(-3800.0)
 
 
 def test_small_office_zone_3b_cooling_dominant():
     lp = lookup_prototype_loads("small_office", "3B", loads_json=FIXTURE_JSON)
     assert lp.q_h > 0       # cooling dominant — positive
-    assert lp.q_h == pytest.approx(45000.0)
+    assert lp.q_h == pytest.approx(25925.0)
 
 
 def test_unknown_building_type_raises():

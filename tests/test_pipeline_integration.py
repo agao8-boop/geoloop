@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
 from app import app
 
@@ -11,14 +11,28 @@ def client():
         yield c
 
 
-# Mock geocode so we don't hit the Census API in tests
+def _make_geocode_mocks(geoid: str) -> list[MagicMock]:
+    """Return [zip_resp, tract_resp] for the two-step geocode.
+
+    Step 1: zippopotam.us → {"places": [{"latitude": ..., "longitude": ...}]}
+    Step 2: Census geocoder → {"result": {"geographies": {"Census Tracts": [{"GEOID": geoid}]}}}
+    """
+    zip_resp = MagicMock()
+    zip_resp.json.return_value = {"places": [{"latitude": "41.88", "longitude": "-87.63"}]}
+    zip_resp.raise_for_status.return_value = None
+
+    tract_resp = MagicMock()
+    tract_resp.json.return_value = {
+        "result": {"geographies": {"Census Tracts": [{"GEOID": geoid}]}}
+    }
+    tract_resp.raise_for_status.return_value = None
+
+    return [zip_resp, tract_resp]
+
+
 @patch("geosite.s1_site.geocode.requests.get")
 def test_full_pipeline_chicago_small_office(mock_get, client):
-    # Make geocoder return Chicago census tract from Task 1 fixture
-    mock_get.return_value.json.return_value = {
-        "result": {"geographies": {"Census Tracts": [{"GEOID": "17031010200"}]}}
-    }
-    mock_get.return_value.raise_for_status.return_value = None
+    mock_get.side_effect = _make_geocode_mocks("17031320101")
 
     resp = client.post(
         "/calculate/smart",
@@ -33,25 +47,26 @@ def test_full_pipeline_chicago_small_office(mock_get, client):
         content_type="application/json",
     )
 
-    assert resp.status_code == 200
+    assert resp.status_code == 200, resp.get_json()
     data = resp.get_json()
 
     assert "L" in data
     assert "H" in data
     assert data["NB"] == 16
     assert data["L"] > 0
-    assert data["site"]["k"] == pytest.approx(1.50)
+    # k from deep_thermal_by_county.csv for Cook County, IL (FIPS 17031):
+    # SMU IDW from 10 nearby quality A+B measurements — Blackwell & Richards (2004)
+    assert data["site"]["k"] == pytest.approx(3.997, rel=0.01)
     assert data["site"]["climate_zone"] == "5A"
-    assert data["loads"]["q_h"] == pytest.approx(-78500.0)
+    # Small office in 5A (Buffalo) is cooling-dominant — internal gains dominate
+    assert data["loads"]["q_h"] == pytest.approx(17625.0)
+    assert data["loads"]["mode"] == "cooling"
 
 
 @patch("geosite.s1_site.geocode.requests.get")
 def test_no_soil_data_returns_error(mock_get, client):
-    # Return a GEOID that is not in the fixture CSV
-    mock_get.return_value.json.return_value = {
-        "result": {"geographies": {"Census Tracts": [{"GEOID": "99999999999"}]}}
-    }
-    mock_get.return_value.raise_for_status.return_value = None
+    # GEOID with county FIPS 99999 — not in any CSV
+    mock_get.side_effect = _make_geocode_mocks("99999999999")
 
     resp = client.post(
         "/calculate/smart",
@@ -89,28 +104,24 @@ def test_non_json_body_returns_400(client):
 
 
 @patch("geosite.s1_site.geocode.requests.get")
-def test_mode_sign_mismatch_returns_422(mock_get, client):
-    # Chicago 5A → small_office loads are heating-dominant (q_h < 0)
-    # Sending mode="cooling" should conflict → 422
-    mock_get.return_value.json.return_value = {
-        "result": {"geographies": {"Census Tracts": [{"GEOID": "17031010200"}]}}
-    }
-    mock_get.return_value.raise_for_status.return_value = None
+def test_pipeline_auto_detects_cooling_mode_for_5a(mock_get, client):
+    # Chicago 5A → small_office is cooling-dominant (internal gains dominate)
+    # Pipeline ignores any caller-supplied mode and auto-detects from load sign.
+    mock_get.side_effect = _make_geocode_mocks("17031320101")
 
     resp = client.post(
         "/calculate/smart",
         data=json.dumps({
             "zip_code": "60601",
             "building_type": "small_office",
-            "mode": "cooling",  # conflicts with 5A heating-dominant loads
             "NB": 16, "B": 6.0, "A": 1.0,
         }),
         content_type="application/json",
     )
-    assert resp.status_code == 422
+    assert resp.status_code == 200
     body = resp.get_json()
-    assert body["error"] == "field"
-    assert body["field"] == "mode"
+    assert body["loads"]["mode"] == "cooling"
+    assert body["loads"]["q_h"] > 0
 
 
 @patch("geosite.s1_site.geocode.requests.get")
