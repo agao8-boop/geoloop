@@ -30,44 +30,53 @@ No new Flask blueprint — cost endpoint lives in `app.py` alongside existing ro
 
 ## 3. The 9 Line Items
 
-These mirror the reference spreadsheet exactly (both "Close-loop h - s" best and "Close-loop h - c" worst tabs).
+These mirror the reference spreadsheet exactly (both "Close-loop h - s" best and "Close-loop h - c" worst tabs). All formulas verified against spreadsheet cell values.
 
 | # | Item | Quantity formula | Default rate | Unit |
 |---|---|---|---|---|
 | 1 | Mobilization | 1 flat | $1,000 | /project |
-| 2 | Drilling — soil | `L_ft × soil_frac` | $30 | /LF |
-| 3 | Drilling — rock | `L_ft × rock_frac` | $100 | /LF |
-| 4 | Well casing | `L_ft` | $20 | /LF |
-| 5 | Sand (bentonite bags) | `annulus_vol_ft3 × sand_fill_frac / bag_vol_ft3` | $10 | /50lb bag |
-| 6 | Grout (CETCO High TC bags) | `annulus_vol_ft3 × grout_fill_frac / bag_vol_ft3` | $20 | /50lb bag |
-| 7 | U-tube HDPE pipe | `L_ft × 2` (two legs per borehole) | $2 | /LF |
-| 8 | Horizontal header pipe | `NB × B_ft` | $1 | /LF |
-| 9 | Horizontal trench | same as header LF | $5 | /LF |
+| 2 | Drilling — soil | `NB × H_rounded_ft × (1 - rock_frac)` | $30 | /LF |
+| 3 | Drilling — rock | `NB × H_rounded_ft × rock_frac` | $100 | /LF |
+| 4 | Well casing | 0 (default) | $20 | /LF |
+| 5 | Sand (bentonite bags) | `grout_bags_total × 8` | $10 | /50lb bag |
+| 6 | Grout (CETCO High TC bags) | `ceil(grout_vol_L_per_borehole / 161) × NB` | $20 | /50lb bag |
+| 7 | U-tube HDPE pipe | `NB × H_rounded_ft` (both legs, $2/LF covers both) | $2 | /LF |
+| 8 | Horizontal header pipe | `2 × horiz_trench_ft` | $1 | /LF |
+| 9 | Horizontal trench | `(NB - 1) × B_ft + distance_to_house_ft` | $5 | /LF |
 
-**Derived quantities:**
-- `L_ft = L_meters × 3.28084`
-- `B_ft = B_meters × 3.28084`
-- `H_ft = H_meters × 3.28084` (depth per borehole = L / NB)
-- `annulus_vol_ft3 = π × (r_bore_ft² - r_pipe_ext_ft²) × H_ft × NB`
-  - `r_bore = 0.06 m` (default), `r_pipe_ext = 0.0167 m` (default, outer radius of U-tube)
-  - `sand_bag_vol_ft3 = 0.80` (50 lb bag of dry bentonite sand at loose fill density ~62 lb/ft³)
-  - `grout_bag_vol_ft3 = 0.50` (50 lb bag of CETCO High TC at mixed density ~100 lb/ft³)
-- `soil_frac + rock_frac = 1.0`
-- `sand_fill_frac + grout_fill_frac = 1.0`
+**Derived quantities (all verified against spreadsheet):**
+- `H_exact_m = L_m / NB` (exact depth per borehole from sizing output)
+- `H_rounded_ft = ceil(H_exact_m × 3.28084 / 10) × 10` (round up to nearest 10 ft)
+- `B_ft = B_m × 3.28084`
+- `distance_to_house_ft = 100` (default; user-overridable)
+- `horiz_trench_ft = (NB - 1) × B_ft + distance_to_house_ft`
+- `horiz_pipe_ft = 2 × horiz_trench_ft`
+- `grout_vol_m3_per_borehole = π × H_exact_m × (r_bore² - r_pext²/2)` (spreadsheet formula using r_pext = 0.0167 m, r_bore = 0.0762 m)
+- `grout_vol_L_per_borehole = grout_vol_m3_per_borehole × 1000`
+- `grout_bags_per_borehole = ceil(grout_vol_L_per_borehole / 161)` (161 L yield per CETCO batch)
+- `grout_bags_total = grout_bags_per_borehole × NB`
+- `sand_bags_total = grout_bags_per_borehole × 8 × NB` (8 × 50lb sand bags per CETCO batch = 180 kg ÷ 22.68 kg/bag → 7.94 → 8)
+- Well casing defaults to 0 LF (spreadsheet also shows 0 for both sand/clay scenarios — only needed for unstable formations)
+
+**Note:** The CETCO grout mix formula is fixed regardless of formation type. Sand (item 5) is the bentonite aggregate that goes INTO the grout mix, not a separate fill layer. The grout_vol formula (`r_bore² - r_pext²/2`) is derived from the spreadsheet and differs from standard physics (which would use `r_bore² - 2×r_pext²`); use the spreadsheet formula to reproduce exact results.
 
 ---
 
 ## 4. Scenario Modeling
 
-Three passes, returning all three so the UI can display a range:
+Scenarios vary `rock_frac` only — this is the only parameter s5 controls. The borefield size (L, NB, H) is fixed from s4. All grout/sand quantities are geometry-driven (same across scenarios). The cost difference between scenarios comes entirely from the rock drilling split.
 
-| Scenario | soil_frac | rock_frac | sand_fill_frac | grout_fill_frac | Interpretation |
-|---|---|---|---|---|---|
-| best | 0.80 | 0.20 | 0.80 | 0.20 | Mostly sand, shallow water table |
-| base | 0.60 | 0.40 | 0.50 | 0.50 | Mixed formation |
-| worst | 0.20 | 0.80 | 0.20 | 0.80 | Mostly clay/rock, grouted to surface |
+| Scenario | rock_frac | Interpretation |
+|---|---|---|
+| best | 0.0 | All soft soil/clay, no bedrock encountered |
+| base | 0.30 | Typical — 30% of borehole depth in rock |
+| worst | 0.70 | Mostly hard rock (granite, basalt) |
 
-If the site's `rock_class_name` (from SGMC via deep thermal) is available, `rock_frac` is set from a lookup table (igneous/metamorphic → 0.90, sedimentary → 0.40, etc.) and the scenario range narrows around that value. If not available, use the three defaults above.
+If the site's `rock_class_name` (from SGMC via deep thermal) is available, `rock_frac` is set from a lookup:
+- igneous or metamorphic → rock_frac = 0.90
+- sedimentary → rock_frac = 0.40  
+- unconsolidated → rock_frac = 0.05
+- unknown/null → use the three scenario defaults above
 
 ---
 
@@ -230,14 +239,16 @@ ZIP → s1 → state_abbrev, rock_class_name (from deep_thermal_by_county.csv)
 
 ## 11. Validation Against Reference Spreadsheet
 
-The spreadsheet gives two anchor points for regression tests:
+Exact values extracted from spreadsheet cells (openpyxl, data_only=True):
 
-| Tab | Formation | Boreholes | Depth | Total LF | Total cost | $/ft |
-|---|---|---|---|---|---|---|
-| Close-loop h - s (best) | 80% sand | 32 | 230 ft | 7,360 LF | $269,934 | ~$36.7 |
-| Close-loop h - c (worst) | 80% clay | 32 | 380 ft | 12,160 LF | $439,534 | ~$36.2 |
+| Tab | NB | H_exact_m | H_rounded_ft | Drill LF | Sand bags | Grout bags | Horiz trench ft | Total cost | $/ft |
+|---|---|---|---|---|---|---|---|---|---|
+| Close-loop h - s (best, 0% rock) | 32 | 68.9477 | 230 | 7,360 | 2,048 | 256 | 1,116.26 | $269,933.79 | $36.69 |
+| Close-loop h - c (worst, 0% rock) | 32 | 114.4545 | 380 | 12,160 | 3,328 | 416 | 1,116.26 | $439,533.79 | $36.60 |
 
-The estimator must reproduce these within ±2% when supplied with identical inputs and national default rates.
+Common inputs: B = 6.7 m = 21.98 ft, distance_to_house = 435 ft, r_bore = 0.0762 m, r_pext = 0.0167 m, rock_frac = 0 (all soil), well_casing = 0.
+
+The estimator must reproduce total cost within ±0.5% when supplied with these identical inputs and national default rates.
 
 ---
 
