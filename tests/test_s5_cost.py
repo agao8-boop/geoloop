@@ -159,3 +159,42 @@ def test_get_rates_always_has_all_nine_keys():
     for state in ["CA", "WI", "ZZ", None, "TX", "NY"]:
         rates = get_rates(state)
         assert rate_keys.issubset(rates.keys()), f"Missing keys for {state}"
+
+
+# Task 4: estimator tests
+from geosite.s5_cost.estimator import estimate_cost
+
+
+def test_estimate_cost_returns_three_scenarios():
+    result = estimate_cost(L_m=2206.33, NB=32, B_m=6.7, state="IL")
+    assert "best" in result
+    assert "base" in result
+    assert "worst" in result
+    assert "headline_per_ft" in result
+    assert "region_used" in result
+
+
+def test_best_cheaper_than_worst():
+    result = estimate_cost(L_m=2206.33, NB=32, B_m=6.7, state="IL")
+    assert result["best"].total_usd < result["worst"].total_usd
+
+
+def test_cost_per_ft_formula():
+    result = estimate_cost(L_m=2206.33, NB=32, B_m=6.7, state="US")
+    base = result["base"]
+    L_ft = 2206.33 * 3.28084
+    assert base.cost_per_ft == pytest.approx(base.total_usd / L_ft, rel=0.001)
+
+
+def test_headline_per_ft_is_base_scenario():
+    result = estimate_cost(L_m=2206.33, NB=32, B_m=6.7, state="IL")
+    assert result["headline_per_ft"] == pytest.approx(result["base"].cost_per_ft)
+
+
+def test_rock_class_igneous_sets_high_rock_frac():
+    result_rock = estimate_cost(L_m=2206.33, NB=32, B_m=6.7, state="US",
+                                rock_class_name="Igneous")
+    result_none = estimate_cost(L_m=2206.33, NB=32, B_m=6.7, state="US",
+                                rock_class_name=None)
+    # Igneous means more rock drilling → more expensive
+    assert result_rock["base"].total_usd > result_none["base"].total_usd
