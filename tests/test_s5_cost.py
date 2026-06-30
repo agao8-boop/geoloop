@@ -122,3 +122,40 @@ def test_well_casing_is_zero_by_default():
     d = _items_as_dict(items)
     assert d["well_casing"]["qty"] == 0
     assert d["well_casing"]["cost_usd"] == 0
+
+
+# Regional rates tests
+from geosite.s5_cost.regional_rates import get_rates, get_region_used
+
+
+def test_known_state_returns_state_rates():
+    rates = get_rates("CA")
+    assert rates["drilling_soil"] == 45  # CA-specific rate
+
+
+def test_state_without_specific_entry_falls_back_to_division():
+    # WI is in ENC_div, no WI-specific entry
+    rates = get_rates("WI")
+    assert rates["drilling_soil"] == 28  # ENC_div rate
+    assert get_region_used("WI") == "ENC_div"
+
+
+def test_state_in_unknown_division_falls_back_to_us():
+    # Pass a fake state abbreviation not in any division
+    rates = get_rates("ZZ")
+    assert rates["drilling_soil"] == 30  # US default
+    assert get_region_used("ZZ") == "US"
+
+
+def test_none_state_returns_us_default():
+    rates = get_rates(None)
+    assert rates["drilling_soil"] == 30
+    assert get_region_used(None) == "US"
+
+
+def test_get_rates_always_has_all_nine_keys():
+    rate_keys = {"drilling_soil", "drilling_rock", "well_casing", "sand_bag",
+                 "grout_bag", "utube_pipe", "horiz_pipe", "horiz_trench", "mobilization"}
+    for state in ["CA", "WI", "ZZ", None, "TX", "NY"]:
+        rates = get_rates(state)
+        assert rate_keys.issubset(rates.keys()), f"Missing keys for {state}"
