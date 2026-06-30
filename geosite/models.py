@@ -12,6 +12,7 @@ class SiteData:
     T_g: float           # undisturbed ground temperature [°C]
     climate_zone: str    # ASHRAE climate zone, e.g. "5A"
     data_available: bool # False when no SSURGO data exists for this tract
+    state_abbrev: str = ""  # 2-letter state abbreviation from deep_thermal_by_county.csv
 
 
 @dataclass
