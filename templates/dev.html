@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
   <style>
     /* ── Dev-specific overrides ── */
     .dev-banner {
@@ -86,7 +87,52 @@
     .badge-real    { background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
 
     /* ── Map ── */
-    #coverage-map { height: 340px; border-radius: 7px; border: 1px solid var(--border); }
+    #coverage-map  { height: 340px; border-radius: 7px; border: 1px solid var(--border); }
+    #thermal-map   { height: 520px; border-radius: 7px; border: 1px solid var(--border); }
+    #openloop-map  { height: 520px; border-radius: 7px; border: 1px solid var(--border); }
+    #deep-map      { height: 520px; border-radius: 7px; border: 1px solid var(--border); }
+    #smuhf-map     { height: 560px; border-radius: 7px; border: 1px solid var(--border); }
+
+    /* ── Map legend ── */
+    .map-legend {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px; font-size: 11px; color: var(--text-muted);
+    }
+    .legend-bar {
+      width: 180px; height: 14px; border-radius: 3px; flex-shrink: 0;
+      background: linear-gradient(to right, #2166ac, #f7f7f7, #b2182b);
+      border: 1px solid #ddd;
+    }
+    .legend-label { white-space: nowrap; }
+    .legend-nodata {
+      display: flex; align-items: center; gap: 5px; margin-left: 16px;
+    }
+    .legend-nodata-box {
+      width: 14px; height: 14px; background: #f0f0f0;
+      border: 1px solid #bbb; border-radius: 2px; flex-shrink: 0;
+    }
+
+    /* ── County popup ── */
+    .cpop { font-size: 12px; min-width: 270px; max-width: 320px; }
+    .cpop-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #111; line-height: 1.3; }
+    .cpop-row {
+      display: flex; justify-content: space-between;
+      padding: 3px 0; border-bottom: 1px solid #f3f4f6; gap: 8px;
+    }
+    .cpop-row:last-child { border-bottom: none; }
+    .cpk { color: #6b7280; flex-shrink: 0; }
+    .cpv { font-weight: 600; font-family: "SF Mono","Fira Code",monospace; color: #111; text-align: right; }
+    .cpop-row.hl .cpk { color: #374151; font-weight: 700; }
+    .cpop-row.hl .cpv { color: #b91c1c; font-size: 13px; }
+    .cpop-toggle {
+      margin-top: 8px; font-size: 11px; color: #6366f1;
+      background: none; border: none; cursor: pointer;
+      padding: 0; text-decoration: underline; display: block;
+    }
+    .cpop-ext { margin-top: 8px; border-top: 1px dashed #e5e7eb; padding-top: 6px; }
+    .cpop-section { font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #9ca3af; margin: 6px 0 3px; }
+    .cpop-nodata { color: #9ca3af; font-style: italic; font-size: 12px; margin-top: 4px; }
 
     /* ── Two-track reference ── */
     .tt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -125,6 +171,11 @@
     </aside>
 
     <main class="main">
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:4px;white-space:nowrap">Developer Mode</span>
+        <span style="font-size:12px;color:#7f1d1d">Internal research dashboard — not for end users. Shows raw pipeline data, intermediate equations, and unfiltered model outputs. Access via <code style="background:#fde8e8;padding:1px 4px;border-radius:3px">/dev</code>.</span>
+        <a href="/" style="margin-left:auto;font-size:12px;color:#991b1b;text-decoration:none;white-space:nowrap">← User tool</a>
+      </div>
       <h1 class="page-title">Developer Pipeline Dashboard</h1>
 
       <!-- ══════════════════════════════════════════
@@ -352,19 +403,140 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
       </div>
 
       <!-- ══════════════════════════════════════════
-           SECTION 3 — SUBSURFACE COVERAGE MAP
+           SECTION 3 — HORIZONTAL LOOP SHALLOW THERMAL MAP
            ══════════════════════════════════════════ -->
       <div class="wf-section">
         <div class="wf-header">
-          <span class="wf-title">Subsurface Data Coverage Map</span>
-          <span class="wf-subtitle">Green = soil data available · Gray = no SSURGO data (blank on public tool)</span>
+          <span class="stage-pill" style="background:#8b5cf6">Horizontal</span>
+          <span class="wf-title">Shallow Soil Thermal Conductivity — Horizontal Closed-Loop Reference</span>
+          <span class="wf-subtitle">SSURGO 0–200 cm · NOT for vertical borehole sizing</span>
         </div>
-        <div id="coverage-map"></div>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">
-          Showing <strong>3 fixture census tracts</strong>. After running <code>scripts/compute_thermal.py</code> nationally,
-          this map will show all ~74,000 US census tracts colored by computed k value.
-          Tracts with no SSURGO coverage appear blank — this gap pattern is a primary research deliverable.
+        <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;font-size:12px;color:#92400e;margin-bottom:12px">
+          ⚠ <strong>Scope:</strong> SSURGO surveys cover only 0–200 cm (2 m) of soil.
+          This data is retained for <strong>horizontal closed-loop</strong> system screening.
+          Vertical borehole sizing (30–150 m) requires a separate deep-subsurface dataset — see Week 2 research questions.
+        </div>
+        <div id="thermal-map"></div>
+        <div class="map-legend">
+          <span class="legend-label">Poor (k = 0.8)</span>
+          <div class="legend-bar"></div>
+          <span class="legend-label">Excellent (k = 2.0 W/m·K)</span>
+          <div class="legend-nodata">
+            <div class="legend-nodata-box"></div>
+            <span>No SSURGO data</span>
+          </div>
+        </div>
+        <p id="thermal-map-status" style="font-size:12px;color:var(--text-muted);margin-top:8px">
+          Loading county boundaries and thermal data…
         </p>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           SECTION 3b — OPEN-LOOP GROUNDWATER WELLS
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="wf-title">Groundwater Wells — Open-Loop System Reference</span>
+          <span class="wf-subtitle">USGS Water Quality Portal · county-level aggregation</span>
+        </div>
+        <div class="card">
+          <span class="badge" style="background:#dbeafe;color:#1e40af;margin-bottom:12px;display:inline-block">Open-Loop</span>
+          <div style="background:#fefce8;border:1px solid #fde047;border-radius:6px;padding:10px 14px;font-size:12px;color:#713f12;margin-bottom:14px">
+            ⚠ <strong>Scope:</strong> Open-loop systems pump groundwater directly through a heat exchanger.
+            This map shows available groundwater well count, mean temperature T<sub>gw</sub> [°C], and depth by county.
+            T<sub>gw</sub> feeds directly into the open-loop heat pump sizing equation:
+            Q<sub>thermal</sub> = ṁ × Cp × (T<sub>leaving</sub> − T<sub>gw</sub>).
+            Aquifer yield and water quality must be confirmed by local hydrogeological assessment.
+          </div>
+          <div id="openloop-map"></div>
+          <div class="map-legend">
+            <div class="legend-bar" style="background:linear-gradient(to right,#2c7bb6,#ffffbf,#d7191c)"></div>
+            <span class="legend-label">Cold T<sub>gw</sub> (5°C)</span>
+            <span class="legend-label" style="margin-left:auto">Warm T<sub>gw</sub> (20°C)</span>
+            <div class="legend-nodata" style="margin-left:16px">
+              <div class="legend-nodata-box"></div><span>No data</span>
+            </div>
+          </div>
+          <p id="openloop-map-status" style="font-size:12px;color:var(--text-muted);margin-top:8px">Loading…</p>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           SECTION 3c — DEEP BOREHOLE THERMAL MAP
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="stage-pill" style="background:#0369a1">Vertical</span>
+          <span class="wf-title">Deep Borehole Thermal Properties — Vertical Closed-Loop</span>
+          <span class="wf-subtitle">k, α, T<sub>g</sub> at 100 m borehole depth · county-level · SMU IDW + SGMC/C&amp;H 1995</span>
+        </div>
+        <div class="card">
+          <span class="badge" style="background:#dbeafe;color:#1e40af;margin-bottom:4px;display:inline-block">Track A — SMU IDW</span>
+          <span class="badge" style="background:#fef9c3;color:#854d0e;margin-bottom:4px;margin-left:6px;display:inline-block">Track B — SGMC Rock Class</span>
+          <span class="badge" style="background:#f1f5f9;color:#475569;margin-bottom:12px;margin-left:6px;display:inline-block">3,221 counties · 0 defaults</span>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 14px;font-size:12px;color:#1e3a5f;margin-bottom:14px;line-height:1.6">
+            <strong>Two-track geostatistical pipeline</strong> (replaces invalid bootstrap ML model).
+            <strong>Track A (80.3%):</strong> Inverse Distance Weighting over 4,567 quality A+B borehole k measurements
+            (Blackwell &amp; Richards 2004). Radius 200 km, power=2, min 3 points.
+            <strong>Track B (19.7%):</strong> SGMC bedrock geology (Horton 2017, via Macrostrat API) → Clauser &amp; Huenges (1995)
+            median k per rock class. <strong>Outline color</strong> = blue border → SMU IDW (measured), orange border → SGMC rock class lookup.
+            Click any county to inspect the source data.
+          </div>
+          <div id="deep-map"></div>
+          <div class="map-legend" style="flex-wrap:wrap;gap:6px 14px">
+            <div class="legend-bar" style="background:linear-gradient(to right,#2166ac,#f7f7f7,#b2182b)"></div>
+            <span class="legend-label">k = 0.5 W/m·K (poor — alluvial)</span>
+            <span class="legend-label" style="margin-left:auto">k = 4.0 W/m·K (excellent — granite)</span>
+            <div style="display:flex;gap:14px;margin-top:4px;font-size:11px;color:var(--text-muted);width:100%">
+              <span><span style="display:inline-block;width:20px;height:10px;border:2px solid #1e40af;background:transparent;border-radius:1px;vertical-align:middle"></span> SMU IDW (measured)</span>
+              <span><span style="display:inline-block;width:20px;height:10px;border:2px solid #d97706;background:transparent;border-radius:1px;vertical-align:middle"></span> SGMC rock class</span>
+              <div class="legend-nodata" style="margin-left:0">
+                <div class="legend-nodata-box"></div><span>No data</span>
+              </div>
+            </div>
+          </div>
+          <p id="deep-map-status" style="font-size:12px;color:var(--text-muted);margin-top:8px">Loading…</p>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           SECTION 3d — SMU HEAT FLOW DATA COVERAGE
+           ══════════════════════════════════════════ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="wf-title">SMU Heat Flow Database — Measured k Coverage &amp; Vertical GHP Suitability</span>
+          <span class="wf-subtitle">GDR OpenEI submission 1704 · Blackwell &amp; Richards (2004) · Quality A+B equilibrium wells only</span>
+        </div>
+        <div class="card">
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 14px;font-size:12px;color:#1e3a5f;margin-bottom:14px;line-height:1.6">
+            <strong>What this map shows:</strong> Each dot is a well where thermal conductivity k [W/m·K] was <em>directly measured</em>
+            from drill cuttings or core samples (quality A = equilibrium log &gt;100 m; quality B = &gt;50 m with corrections).
+            Color encodes <strong>k</strong> — the single most influential ground parameter in the Philippe et al. (2010) sizing equation,
+            because borehole length L&nbsp;∝&nbsp;1/k.
+            <span style="display:inline-block;margin-top:4px"><strong>Gaps = no measurements</strong> → those counties rely on geological formation lookup tables (ASHRAE Ch. 17) or IDW interpolation and carry high uncertainty.</span>
+          </div>
+          <div id="smuhf-map"></div>
+          <div class="map-legend" style="flex-wrap:wrap;gap:6px 14px;margin-top:10px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px">
+              <div style="width:100px;height:12px;border-radius:3px;background:linear-gradient(to right,#d73027,#fc8d59,#fee08b,#d9ef8b,#66bd63,#1a9850)"></div>
+              <span style="color:var(--text-muted)">k low (poor)</span>
+              <span style="margin-left:auto;color:var(--text-muted)">k high (excellent)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)">
+              <div style="width:10px;height:10px;border-radius:50%;background:#d73027;border:1px solid #999"></div>&lt;0.8
+              <div style="width:10px;height:10px;border-radius:50%;background:#fc8d59;border:1px solid #999;margin-left:6px"></div>0.8–1.3
+              <div style="width:10px;height:10px;border-radius:50%;background:#fee08b;border:1px solid #999;margin-left:6px"></div>1.3–1.8
+              <div style="width:10px;height:10px;border-radius:50%;background:#d9ef8b;border:1px solid #999;margin-left:6px"></div>1.8–2.5
+              <div style="width:10px;height:10px;border-radius:50%;background:#66bd63;border:1px solid #999;margin-left:6px"></div>2.5–3.2
+              <div style="width:10px;height:10px;border-radius:50%;background:#1a9850;border:1px solid #999;margin-left:6px"></div>&gt;3.2 W/m·K
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)">
+              <div style="width:10px;height:10px;border-radius:50%;background:#94a3b8;border:1px solid #999"></div>Quality B (medium)
+              <div style="width:10px;height:10px;border-radius:50%;background:#1e40af;border:2px solid #1e40af;margin-left:6px"></div>Quality A (high)
+            </div>
+          </div>
+          <p id="smuhf-status" style="font-size:12px;color:var(--text-muted);margin-top:8px">Loading…</p>
+        </div>
       </div>
 
       <!-- ══════════════════════════════════════════
@@ -420,39 +592,486 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
         </div>
       </div>
 
+      <!-- ══════════════════════════════════════════
+           SECTION 5 — REGIONAL DRILLING COST MAP
+           ══════════════════════════════════════════ -->
+      <!-- ══ Section 5: Drilling Cost Map ══ -->
+      <div class="wf-section">
+        <div class="wf-header">
+          <span class="stage-pill">s5</span>
+          <span class="wf-title">Regional Drilling Cost</span>
+          <span class="wf-subtitle">Base scenario $/ft by state (NB=16, B=6m, L=1200m representative project)</span>
+        </div>
+
+        <div id="cost-map" style="height:420px;border-radius:8px;border:1px solid var(--border);"></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">
+          Sources: NREL GeoVision 2019, IGSHPA 2020, RSMeans 2024. Click any state for scenario range.
+        </div>
+
+        <!-- Rate table -->
+        <div style="margin-top:20px;">
+          <div class="step-label">State Rate Table</div>
+          <table class="files-table" id="cost-rate-table">
+            <thead>
+              <tr>
+                <th>State</th><th>Region used</th>
+                <th>Best $/ft</th><th>Base $/ft</th><th>Worst $/ft</th>
+              </tr>
+            </thead>
+            <tbody id="cost-rate-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </main>
   </div>
 
   <script>
-  // ── Coverage map ──────────────────────────────────────────────────────
-  const map = L.map('coverage-map').setView([38.5, -96], 4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+  // ── County Thermal Conductivity Choropleth ────────────────────────────
+  (function () {
+    const tmap = L.map('thermal-map', { preferCanvas: true }).setView([38, -96], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 12
+    }).addTo(tmap);
 
-  // Fixture census tract centroids
-  const fixtures = [
-    { geoid: '17031320101', label: 'Chicago, IL (60601)', lat: 41.8858, lon: -87.6181, k: 1.50, zone: '5A' },
-    { geoid: '06037700600', label: 'Los Angeles, CA (90210)', lat: 34.0901, lon: -118.4065, k: 1.20, zone: '3B' },
-    { geoid: '48201230200', label: 'Houston, TX (77001)', lat: 29.7532, lon: -95.3677, k: 1.80, zone: '2A' },
-  ];
+    // Color scale: blue (poor) → white → red (excellent), domain [0.8, 2.0]
+    function kToColor(k) {
+      const t = Math.max(0, Math.min(1, (parseFloat(k) - 0.8) / (2.0 - 0.8)));
+      if (t < 0.5) {
+        const s = t * 2;
+        return 'rgb(' + Math.round(33 + s*214) + ',' + Math.round(102 + s*145) + ',' + Math.round(172 + s*75) + ')';
+      }
+      const s = (t - 0.5) * 2;
+      return 'rgb(' + Math.round(247 - s*69) + ',' + Math.round(247 - s*223) + ',' + Math.round(247 - s*204) + ')';
+    }
 
-  fixtures.forEach(f => {
-    const circle = L.circleMarker([f.lat, f.lon], {
-      radius: 10,
-      fillColor: '#10b981',
-      color: '#065f46',
-      weight: 2,
-      fillOpacity: 0.8,
-    }).addTo(map);
-    circle.bindPopup(
-      `<strong>${f.label}</strong><br>` +
-      `GEOID: ${f.geoid}<br>` +
-      `k = ${f.k} W/m·K · Zone ${f.zone}<br>` +
-      `<span style="color:#10b981;font-weight:700">✓ SSURGO data available (fixture)</span>`
-    );
-  });
+    function styleCounty(feat, lookup) {
+      const fips = String(feat.id).padStart(5, '0');
+      const d = lookup[fips];
+      if (!d || !d.data_available || !d.k_wmpk) {
+        return { fillColor: '#f0f0f0', weight: 0.4, color: '#ccc', fillOpacity: 0.95 };
+      }
+      return { fillColor: kToColor(d.k_wmpk), weight: 0.4, color: '#666', fillOpacity: 0.85 };
+    }
+
+    function esc(s) {
+      return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '—';
+    }
+
+    function row(label, val, hl) {
+      return '<div class="cpop-row' + (hl ? ' hl' : '') + '"><span class="cpk">' +
+        esc(label) + ',</span><span class="cpv">' + esc(val) + '</span></div>';
+    }
+
+    function buildPopup(fips, d) {
+      if (!d) return '<div class="cpop"><b>' + fips + '</b><br><span class="cpop-nodata">Not in dataset</span></div>';
+
+      const title = '<div class="cpop-title">' + esc(d.county_name) + '</div>';
+
+      if (!d.data_available) {
+        return '<div class="cpop">' + title +
+          row('County FIPS', fips) + row('State', d.state_abbrev) +
+          '<div class="cpop-nodata" style="margin-top:6px">No SSURGO soil data — county appears white on map</div></div>';
+      }
+
+      const main =
+        row('County FIPS', fips) +
+        row('Soil Class', d.soil_class) +
+        row('Quartz Fraction (q)', d.q_quartz) +
+        row('Porosity (n)', d.n_porosity) +
+        row('Thermal Conductivity (k)', d.k_wmpk + ' W/m·K', true) +
+        row('Saturation Degree (Sᵣ)', d.S_r_used);
+
+      const ext =
+        '<div class="cpop-section">Thermal Properties</div>' +
+        row('Thermal Diffusivity (α)', d.alpha_m2day + ' m²/day') +
+        row('Ground Temperature (T_g)', d.T_g_C + ' °C') +
+        row('k saturated (k_sat)', d.k_sat + ' W/m·K') +
+        row('k dry (k_dry)', d.k_dry + ' W/m·K') +
+        row('k solid particles (k_s)', d.k_s + ' W/m·K') +
+        row('Kersten number (k_e)', d.k_e) +
+        '<div class="cpop-section">Soil Composition</div>' +
+        row('Sand', d.sand_pct + '%') +
+        row('Silt', d.silt_pct + '%') +
+        row('Clay', d.clay_pct + '%') +
+        row('Organic Matter', d.om_pct + '%') +
+        row('Bulk Density (ρ_d)', d.rho_d_g_cm3 + ' g/cm³') +
+        row('Horizon count', d.horizon_count);
+
+      const btnId = 'cpbtn-' + fips;
+      const extId = 'cpext-' + fips;
+
+      return '<div class="cpop">' + title +
+        '<div class="cpop-main">' + main + '</div>' +
+        '<button id="' + btnId + '" class="cpop-toggle" onclick="' +
+          'var e=document.getElementById(\'' + extId + '\');' +
+          'var h=e.style.display===\'none\';' +
+          'e.style.display=h?\'block\':\'none\';' +
+          'document.getElementById(\'' + btnId + '\').textContent=h?\'▲ Hide details\':\'▼ Show all data\';' +
+        '">▼ Show all data</button>' +
+        '<div id="' + extId + '" class="cpop-ext" style="display:none">' + ext + '</div>' +
+        '</div>';
+    }
+
+    const statusEl = document.getElementById('thermal-map-status');
+
+    Promise.all([
+      fetch('/api/county_thermal').then(r => r.json()),
+      fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(r => r.json())
+    ]).then(function(results) {
+      const lookup = results[0];
+      const us     = results[1];
+
+      L.geoJSON(topojson.feature(us, us.objects.counties), {
+        style: function(feat) { return styleCounty(feat, lookup); },
+        onEachFeature: function(feat, layer) {
+          const fips = String(feat.id).padStart(5, '0');
+          layer.on('click', function(e) {
+            L.popup({ maxWidth: 360, autoPan: true })
+              .setLatLng(e.latlng)
+              .setContent(buildPopup(fips, lookup[fips]))
+              .openOn(tmap);
+          });
+          layer.on('mouseover', function() {
+            layer.setStyle({ weight: 1.5, color: '#333' });
+          });
+          layer.on('mouseout', function() {
+            layer.setStyle({ weight: 0.4, color: '#666' });
+          });
+        }
+      }).addTo(tmap);
+
+      const total   = Object.keys(lookup).length;
+      const hasData = Object.values(lookup).filter(function(d) { return d.data_available; }).length;
+      const noData  = total - hasData;
+      statusEl.innerHTML =
+        '<strong>' + hasData.toLocaleString() + '</strong> counties with SSURGO soil data · ' +
+        '<strong>' + noData + '</strong> no data (white) · click any county to inspect';
+    }).catch(function(err) {
+      statusEl.textContent = 'Error loading map data: ' + err.message;
+    });
+  })();
+
+  // ── Deep Borehole Thermal Choropleth ─────────────────────────────────
+  (function () {
+    const dmap = L.map('deep-map', { preferCanvas: true }).setView([38, -96], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CartoDB', subdomains: 'abcd', maxZoom: 19
+    }).addTo(dmap);
+
+    const ROCK_LABELS = {
+      alluvial_glacial:    'Alluvial/Glacial',
+      clay_shale:          'Clay/Shale',
+      limestone_carbonate: 'Limestone/Carbonate',
+      sandstone:           'Sandstone',
+      granite_felsic:      'Granite/Felsic',
+      basalt_mafic:        'Basalt/Mafic',
+      metamorphic:         'Metamorphic',
+      coal_organic:        'Coal/Organic',
+      water_ice:           'Water/Ice',
+      undifferentiated:    'Undifferentiated',
+    };
+
+    // blue (low k) → white → red (high k), domain [0.5, 4.0]
+    function kColor(k) {
+      const t = Math.max(0, Math.min(1, (parseFloat(k) - 0.5) / (4.0 - 0.5)));
+      if (t < 0.5) {
+        const s = t * 2;
+        return 'rgb(' + Math.round(33 + s*214) + ',' + Math.round(102 + s*145) + ',' + Math.round(172 + s*75) + ')';
+      }
+      const s = (t - 0.5) * 2;
+      return 'rgb(' + Math.round(247 - s*69) + ',' + Math.round(247 - s*223) + ',' + Math.round(247 - s*204) + ')';
+    }
+
+    function styleFeat(feat, lookup) {
+      const fips = String(feat.id).padStart(5, '0');
+      const d    = lookup[fips];
+      if (!d || !d.k_wmpk) {
+        return { fillColor: '#f0f0f0', fillOpacity: 0.4, weight: 0.3, color: '#ccc', opacity: 0.6 };
+      }
+      const isSGMC = d.k_method === 'SGMC_CH1995';
+      return {
+        fillColor:   kColor(d.k_wmpk),
+        fillOpacity: 0.82,
+        weight: 1.2,
+        color:   isSGMC ? '#d97706' : '#1e40af',
+        opacity: isSGMC ? 0.7 : 0.45,
+      };
+    }
+
+    function fmt(v, dec, unit) {
+      if (v == null || v === '') return '—';
+      return parseFloat(v).toFixed(dec) + (unit ? ' ' + unit : '');
+    }
+    function rows(pairs) {
+      return pairs.map(function(p) {
+        return '<div class="cpop-row' + (p[2] ? ' hl' : '') + '"><span class="cpk">' + p[0] + '</span><span class="cpv">' + p[1] + '</span></div>';
+      }).join('');
+    }
+
+    function buildPopup(fips, d) {
+      if (!d || !d.k_wmpk) {
+        return '<div class="cpop"><div class="cpop-title">' + fips + '</div><p class="cpop-nodata">Not in dataset</p></div>';
+      }
+      const title = '<div class="cpop-title">' + (d.county_name || fips) + (d.state_abbrev ? ', ' + d.state_abbrev : '') + '</div>';
+
+      const methodBadge = d.k_method === 'SMU_IDW'
+        ? '<span style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px">SMU IDW</span>'
+        : '<span style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px">SGMC/C&H 1995</span>';
+
+      const kSuitability = parseFloat(d.k_wmpk);
+      const suit = kSuitability < 1.3 ? 'Poor' : kSuitability < 2.0 ? 'Moderate' : kSuitability < 2.8 ? 'Good' : 'Excellent';
+      const suitColor = kSuitability < 1.3 ? '#dc2626' : kSuitability < 2.0 ? '#d97706' : kSuitability < 2.8 ? '#16a34a' : '#0369a1';
+
+      const mainRows = rows([
+        ['FIPS', fips, false],
+        ['k (thermal conductivity)', fmt(d.k_wmpk, 3, 'W/m·K'), true],
+        ['T_g at 100 m depth', fmt(d.T_g_C, 2, '°C'), true],
+        ['α (thermal diffusivity)', fmt(d.alpha_m2day, 5, 'm²/day'), false],
+      ]);
+
+      const methodDetail = d.k_method === 'SMU_IDW'
+        ? rows([['SMU points within 200 km', d.n_smu_pts_200km || '—', false]])
+        : rows([['Rock class (SGMC)', ROCK_LABELS[d.rock_class_name] || d.rock_class_name || '—', false]]);
+
+      const extRows = rows([
+        ['k method', d.k_method || '—', false],
+        ['T_g method', d.T_g_method || '—', false],
+        ['Source (k)', d.k_method === 'SMU_IDW' ? 'Blackwell & Richards (2004) IDW' : 'Clauser & Huenges (1995) median', false],
+        ['Source (T_g)', 'Banks (2008) surface+grad×depth', false],
+      ]);
+
+      const btnId = 'dpb-' + fips; const extId = 'dpx-' + fips;
+      return '<div class="cpop">' + title +
+        '<div style="margin-bottom:6px">' + methodBadge +
+        '&nbsp;<span style="font-size:11px;color:' + suitColor + ';font-weight:700">' + suit + ' for vertical GHP</span></div>' +
+        mainRows + methodDetail +
+        '<button class="cpop-toggle" id="' + btnId + '" onclick="' +
+        'var h=document.getElementById(\'' + extId + '\');' +
+        'var show=h.style.display===\'none\';h.style.display=show?\'block\':\'none\';' +
+        'this.textContent=show?\'▲ Hide\':\'▼ Source &amp; method\';' +
+        '">▼ Source &amp; method</button>' +
+        '<div id="' + extId + '" class="cpop-ext" style="display:none">' + extRows + '</div></div>';
+    }
+
+    const deepStatus = document.getElementById('deep-map-status');
+    let geoLayer;
+
+    Promise.all([
+      fetch('/api/deep_thermal').then(r => r.json()),
+      fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(r => r.json())
+    ]).then(function(results) {
+      const meta   = results[0];
+      const lookup = meta.counties;
+      const us     = results[1];
+
+      geoLayer = L.geoJSON(topojson.feature(us, us.objects.counties), {
+        style: function(feat) { return styleFeat(feat, lookup); },
+        onEachFeature: function(feat, layer) {
+          const fips = String(feat.id).padStart(5, '0');
+          layer.on('click', function(e) {
+            L.popup({ maxWidth: 380, autoPan: true })
+              .setLatLng(e.latlng)
+              .setContent(buildPopup(fips, lookup[fips]))
+              .openOn(dmap);
+          });
+          layer.on('mouseover', function() {
+            const d = lookup[String(feat.id).padStart(5,'0')];
+            const isSGMC = d && d.k_method === 'SGMC_CH1995';
+            layer.setStyle({ weight: 2.5, color: isSGMC ? '#b45309' : '#1e3a8a' });
+          });
+          layer.on('mouseout', function() {
+            geoLayer.resetStyle(layer);
+          });
+        }
+      }).addTo(dmap);
+
+      const total  = meta.total;
+      const idwN   = Object.values(lookup).filter(function(d) { return d.k_method === 'SMU_IDW'; }).length;
+      const sgmcN  = Object.values(lookup).filter(function(d) { return d.k_method === 'SGMC_CH1995'; }).length;
+      deepStatus.innerHTML =
+        '<strong>' + total.toLocaleString() + '</strong> counties · ' +
+        '<strong style="color:#1e40af">' + idwN.toLocaleString() + '</strong> SMU IDW (blue border) · ' +
+        '<strong style="color:#d97706">' + sgmcN.toLocaleString() + '</strong> SGMC rock class (orange border) · ' +
+        'Color: k [W/m·K] blue=low → red=high · click to inspect';
+    }).catch(function(err) {
+      deepStatus.textContent = 'Error loading deep thermal data: ' + err.message;
+    });
+  })();
+
+  // ── Open-Loop Groundwater Wells Choropleth ────────────────────────────
+  (function () {
+    const omap = L.map('openloop-map', { preferCanvas: true }).setView([38, -96], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CartoDB', subdomains: 'abcd', maxZoom: 19
+    }).addTo(omap);
+
+    function tempToColor(tStr) {
+      if (!tStr) return '#f0f0f0';
+      const t = Math.max(0, Math.min(1, (parseFloat(tStr) - 5) / (20 - 5)));
+      if (t < 0.5) {
+        const s = t * 2;
+        return 'rgb(' + Math.round(44 + s*211) + ',' + Math.round(123 + s*132) + ',' + Math.round(182 + s*43) + ')';
+      }
+      const s = (t - 0.5) * 2;
+      return 'rgb(' + Math.round(255 - s*40) + ',' + Math.round(255 - s*46) + ',' + Math.round(191 - s*180) + ')';
+    }
+
+    function styleWell(feat, lookup) {
+      const fips = String(feat.id).padStart(5, '0');
+      const d    = lookup[fips];
+      return {
+        fillColor:   d && d.data_available ? tempToColor(d.gw_temp_mean_c) : '#f0f0f0',
+        fillOpacity: d && d.data_available ? 0.82 : 0.35,
+        weight: 0.4, color: '#666', opacity: 0.6,
+      };
+    }
+
+    function buildWellPopup(fips, d) {
+      if (!d) return '<div class="cpop"><div class="cpop-title">' + fips + '</div><p style="color:#666;font-size:11px">Not in dataset</p></div>';
+      const fmt = function(v, unit) { return v != null ? parseFloat(v).toFixed(1) + (unit ? ' ' + unit : '') : '—'; };
+      const rows = function(pairs) {
+        return pairs.map(function(p) {
+          return '<div class="cpop-row' + (p[2] ? ' hl' : '') + '"><span class="cpk">' + p[0] + '</span><span class="cpv">' + p[1] + '</span></div>';
+        }).join('');
+      };
+      const main = rows([
+        ['FIPS', fips, false],
+        ['County', (d.county_name || '—') + (d.state_abbrev ? ', ' + d.state_abbrev : ''), false],
+        ['GW Temp (mean)', fmt(d.gw_temp_mean_c, '°C'), true],
+        ['GW Temp (range)', fmt(d.gw_temp_min_c) + ' – ' + fmt(d.gw_temp_max_c, '°C'), false],
+        ['Well count', d.well_count || '—', false],
+      ]);
+      const ext = rows([
+        ['Wells w/ temp data', d.temp_well_count || '—', false],
+        ['Depth (mean)', fmt(d.well_depth_mean_ft, 'ft'), false],
+        ['Depth (median)', fmt(d.well_depth_median_ft, 'ft'), false],
+        ['Dominant aquifer', d.dominant_aquifer || '—', false],
+      ]);
+      const btnId = 'owb-' + fips; const extId = 'owx-' + fips;
+      return '<div class="cpop"><div class="cpop-title">Open-Loop Well Data</div>' + main +
+        '<button class="cpop-toggle" id="' + btnId + '" onclick="' +
+        'var h=document.getElementById(\'' + extId + '\');' +
+        'var show=h.style.display===\'none\';h.style.display=show?\'block\':\'none\';' +
+        'document.getElementById(\'' + btnId + '\').textContent=show?\'▲ Hide details\':\'▼ More info\';' +
+        '">▼ More info</button>' +
+        '<div id="' + extId + '" class="cpop-ext" style="display:none">' + ext + '</div></div>';
+    }
+
+    const olStatus = document.getElementById('openloop-map-status');
+
+    Promise.all([
+      fetch('/api/openloop_wells').then(r => r.json()),
+      fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(r => r.json())
+    ]).then(function(results) {
+      const lookup = results[0];
+      const us     = results[1];
+
+      L.geoJSON(topojson.feature(us, us.objects.counties), {
+        style: function(feat) { return styleWell(feat, lookup); },
+        onEachFeature: function(feat, layer) {
+          const fips = String(feat.id).padStart(5, '0');
+          layer.on('click', function(e) {
+            L.popup({ maxWidth: 360, autoPan: true })
+              .setLatLng(e.latlng)
+              .setContent(buildWellPopup(fips, lookup[fips]))
+              .openOn(omap);
+          });
+          layer.on('mouseover', function() { layer.setStyle({ weight: 1.5, color: '#333' }); });
+          layer.on('mouseout',  function() { layer.setStyle({ weight: 0.4, color: '#666' }); });
+        }
+      }).addTo(omap);
+
+      const total   = Object.keys(lookup).length;
+      const hasData = Object.values(lookup).filter(function(d) { return d.data_available; }).length;
+      olStatus.innerHTML =
+        '<strong>' + hasData.toLocaleString() + '</strong> counties with WQP well data · ' +
+        '<strong>' + (total - hasData) + '</strong> no data · click any county to inspect · ' +
+        'Color: groundwater temperature (blue=cold, red=warm)';
+    }).catch(function(err) {
+      olStatus.textContent = 'Error loading open-loop data: ' + err.message;
+    });
+  })();
+
+  // ── SMU Heat Flow coverage map ────────────────────────────────────────
+  (function () {
+    var smumap = L.map('smuhf-map', { preferCanvas: true }).setView([40, -98], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors © <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 18
+    }).addTo(smumap);
+
+    // k [W/m·K] → suitability color (red=poor, green=excellent)
+    // Breakpoints match published k ranges from Clauser & Huenges 1995 / ASHRAE Ch.17
+    function kToColor(k) {
+      if (k === null || k === undefined) return '#94a3b8';
+      if (k < 0.8)  return '#d73027';   // very poor — near coal (~0.3)
+      if (k < 1.3)  return '#fc8d59';   // poor
+      if (k < 1.8)  return '#fee08b';   // moderate — saturated clay/shale range
+      if (k < 2.5)  return '#d9ef8b';   // good — sandstone/limestone range
+      if (k < 3.2)  return '#66bd63';   // very good — crystalline rock range
+      return '#1a9850';                  // excellent — granite / high-k metamorphic
+    }
+
+    var statusEl = document.getElementById('smuhf-status');
+
+    fetch('/api/smuhf/points').then(function(r) { return r.json(); }).then(function(data) {
+      var pts = data.points || [];
+      var countA = 0, countB = 0;
+
+      pts.forEach(function(p) {
+        var isA = p.quality === 'A';
+        if (isA) countA++; else countB++;
+
+        var marker = L.circleMarker([p.lat, p.lon], {
+          radius: isA ? 6 : 4,
+          fillColor: kToColor(p.k),
+          color: isA ? '#1e40af' : '#64748b',
+          weight: isA ? 1.5 : 0.8,
+          fillOpacity: 0.82,
+          opacity: 1
+        });
+
+        var gradStr = p.grad !== null ? p.grad.toFixed(1) + ' °C/km' : 'not available';
+        var tgStr   = p.T_g_150 !== null ? p.T_g_150.toFixed(1) + ' °C' : 'not available';
+        var kClass  = p.k < 0.8 ? 'Very poor' : p.k < 1.3 ? 'Poor' : p.k < 1.8 ? 'Moderate' : p.k < 2.5 ? 'Good' : p.k < 3.2 ? 'Very good' : 'Excellent';
+        var litStr  = p.lit ? ('<br><span style="color:#64748b">Lithology: ' + p.lit + '</span>') : '';
+        var tectStr = p.tect ? ('<br><span style="color:#64748b">Tectonic: ' + p.tect + '</span>') : '';
+
+        marker.bindPopup(
+          '<div style="font-size:12px;min-width:210px">' +
+          '<div style="font-weight:700;margin-bottom:4px">' + (p.county || '—') + ', ' + p.state + '</div>' +
+          '<div style="background:' + kToColor(p.k) + ';color:#fff;padding:3px 8px;border-radius:4px;display:inline-block;font-weight:700;margin-bottom:6px">' +
+            'k = ' + p.k.toFixed(2) + ' W/m·K — ' + kClass +
+          '</div>' +
+          '<div style="font-size:11px;line-height:1.8">' +
+          'Quality: <strong>' + p.quality + '</strong> (SMU equilibrium log)<br>' +
+          'Geothermal gradient: <strong>' + gradStr + '</strong><br>' +
+          'Est. T<sub>g</sub> at 150 m: <strong>' + tgStr + '</strong>' +
+          litStr + tectStr +
+          '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;margin-top:5px">Source: SMU Geothermal Lab / GDR OpenEI (2024)</div>' +
+          '</div>'
+        );
+        marker.addTo(smumap);
+      });
+
+      // Coverage summary by region
+      var noDataStates = ['CT', 'HI', 'KY', 'OH', 'WI'];
+      var sparseStates = ['DC', 'DE', 'ME', 'MN', 'VT', 'WV'];
+
+      statusEl.innerHTML =
+        '<strong>' + pts.length.toLocaleString() + '</strong> measured k points (quality A+B equilibrium wells) · ' +
+        '<strong style="color:#1a9850">' + countA + '</strong> quality A · ' +
+        '<strong style="color:#475569">' + countB + '</strong> quality B · ' +
+        '<span style="color:#dc2626">No coverage: ' + noDataStates.join(', ') + '</span> · ' +
+        '<span style="color:#d97706">Sparse (&lt;5 pts): ' + sparseStates.join(', ') + '</span> · ' +
+        'Click any dot for details';
+    }).catch(function(err) {
+      statusEl.textContent = 'Error loading SMU HF data: ' + err.message;
+    });
+  })();
 
   // ── Pipeline trace ────────────────────────────────────────────────────
   function kv(k, v, flag) {
@@ -546,6 +1165,75 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
 
     btn.disabled=false; btn.textContent='Run Trace';
   });
+
+  // ── Section 5: Cost choropleth ──────────────────────────────────────
+  (function () {
+    const costMap = L.map('cost-map').setView([38, -96], 4);
+
+    // Fetch cost map data and US states GeoJSON in parallel
+    Promise.all([
+      fetch('/api/cost/map').then(r => r.json()),
+      fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(r => r.json()),
+    ]).then(([costData, usAtlas]) => {
+      const states = topojson.feature(usAtlas, usAtlas.objects.states);
+
+      // FIPS → state abbrev lookup
+      const fipsToAbbrev = {
+        "01":"AL","02":"AK","04":"AZ","05":"AR","06":"CA","08":"CO","09":"CT",
+        "10":"DE","11":"DC","12":"FL","13":"GA","15":"HI","16":"ID","17":"IL",
+        "18":"IN","19":"IA","20":"KS","21":"KY","22":"LA","23":"ME","24":"MD",
+        "25":"MA","26":"MI","27":"MN","28":"MS","29":"MO","30":"MT","31":"NE",
+        "32":"NV","33":"NH","34":"NJ","35":"NM","36":"NY","37":"NC","38":"ND",
+        "39":"OH","40":"OK","41":"OR","42":"PA","44":"RI","45":"SC","46":"SD",
+        "47":"TN","48":"TX","49":"UT","50":"VT","51":"VA","53":"WA","54":"WV",
+        "55":"WI","56":"WY",
+      };
+
+      // Color scale: 5 quantile buckets $25–$65/ft
+      const breaks = [25, 32, 38, 44, 52, 65];
+      const colors = ['#d1fae5','#6ee7b7','#34d399','#10b981','#059669'];
+
+      function getColor(val) {
+        for (let i = 0; i < breaks.length - 1; i++) {
+          if (val < breaks[i + 1]) return colors[i];
+        }
+        return colors[colors.length - 1];
+      }
+
+      L.geoJSON(states, {
+        style(feature) {
+          const abbrev = fipsToAbbrev[feature.id];
+          const val = costData.states[abbrev] ? costData.states[abbrev].base_per_ft : null;
+          return {
+            fillColor: val ? getColor(val) : '#e5e7eb',
+            weight: 1, color: '#9ca3af',
+            fillOpacity: val ? 0.8 : 0.3,
+          };
+        },
+        onEachFeature(feature, layer) {
+          const abbrev = fipsToAbbrev[feature.id];
+          const d = costData.states[abbrev];
+          if (d) {
+            layer.bindTooltip(
+              `<strong>${abbrev}</strong> (${d.region_used})<br>` +
+              `Best: $${d.best_per_ft}/ft<br>` +
+              `Base: $${d.base_per_ft}/ft<br>` +
+              `Worst: $${d.worst_per_ft}/ft`,
+              {sticky: true}
+            );
+          }
+        },
+      }).addTo(costMap);
+
+      // Populate rate table
+      const tbody = document.getElementById('cost-rate-tbody');
+      Object.entries(costData.states).sort().forEach(([st, d]) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `<td>${st}</td><td>${d.region_used}</td>
+          <td>$${d.best_per_ft}</td><td>$${d.base_per_ft}</td><td>$${d.worst_per_ft}</td>`;
+      });
+    });
+  })();
   </script>
 </body>
 </html>
