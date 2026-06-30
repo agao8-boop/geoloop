@@ -478,6 +478,9 @@ def cost_api():
     except (ValueError, TypeError) as exc:
         return jsonify({"error": "field", "message": str(exc)}), 400
 
+    if L_m <= 0 or NB < 1 or B_m <= 0:
+        return jsonify({"error": "field", "message": "L, NB, B must be positive"}), 400
+
     state = data.get("state") or None
     rock_class = data.get("rock_class") or None
     distance_to_house_ft = float(data.get("distance_to_house_ft", 100.0))
