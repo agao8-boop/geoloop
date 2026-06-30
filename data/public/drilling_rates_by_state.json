@@ -1,0 +1,152 @@
+{
+  "US": {
+    "drilling_soil": 30, "drilling_rock": 100, "well_casing": 20,
+    "sand_bag": 10, "grout_bag": 20, "utube_pipe": 2,
+    "horiz_pipe": 1, "horiz_trench": 5, "mobilization": 1000,
+    "source": "390geothermal_calc.xlsx baseline", "year": 2024
+  },
+  "NE_div": {
+    "drilling_soil": 38, "drilling_rock": 115, "well_casing": 22,
+    "sand_bag": 11, "grout_bag": 21, "utube_pipe": 2.2,
+    "horiz_pipe": 1.2, "horiz_trench": 6, "mobilization": 1200,
+    "source": "NREL GeoVision 2019 Northeast region avg", "year": 2019
+  },
+  "MA_div": {
+    "drilling_soil": 40, "drilling_rock": 120, "well_casing": 24,
+    "sand_bag": 11, "grout_bag": 22, "utube_pipe": 2.3,
+    "horiz_pipe": 1.3, "horiz_trench": 6, "mobilization": 1300,
+    "source": "NREL GeoVision 2019 Northeast region avg", "year": 2019
+  },
+  "ENC_div": {
+    "drilling_soil": 28, "drilling_rock": 95, "well_casing": 18,
+    "sand_bag": 10, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 5, "mobilization": 1000,
+    "source": "NREL GeoVision 2019 North Central region avg", "year": 2019
+  },
+  "WNC_div": {
+    "drilling_soil": 26, "drilling_rock": 90, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 18, "utube_pipe": 1.8,
+    "horiz_pipe": 0.9, "horiz_trench": 4, "mobilization": 900,
+    "source": "NREL GeoVision 2019 North Central region avg", "year": 2019
+  },
+  "SA_div": {
+    "drilling_soil": 28, "drilling_rock": 92, "well_casing": 18,
+    "sand_bag": 9, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 4, "mobilization": 950,
+    "source": "NREL GeoVision 2019 South region avg", "year": 2019
+  },
+  "ESC_div": {
+    "drilling_soil": 25, "drilling_rock": 88, "well_casing": 16,
+    "sand_bag": 9, "grout_bag": 18, "utube_pipe": 1.8,
+    "horiz_pipe": 0.9, "horiz_trench": 4, "mobilization": 900,
+    "source": "NREL GeoVision 2019 South region avg", "year": 2019
+  },
+  "WSC_div": {
+    "drilling_soil": 27, "drilling_rock": 90, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 4, "mobilization": 950,
+    "source": "NREL GeoVision 2019 South region avg", "year": 2019
+  },
+  "Mtn_div": {
+    "drilling_soil": 32, "drilling_rock": 105, "well_casing": 20,
+    "sand_bag": 10, "grout_bag": 20, "utube_pipe": 2.0,
+    "horiz_pipe": 1.1, "horiz_trench": 5, "mobilization": 1100,
+    "source": "NREL GeoVision 2019 West region avg", "year": 2019
+  },
+  "Pac_div": {
+    "drilling_soil": 42, "drilling_rock": 128, "well_casing": 26,
+    "sand_bag": 12, "grout_bag": 23, "utube_pipe": 2.5,
+    "horiz_pipe": 1.5, "horiz_trench": 7, "mobilization": 1500,
+    "source": "NREL GeoVision 2019 West region avg + RSMeans 2024", "year": 2024
+  },
+  "CA": {
+    "drilling_soil": 45, "drilling_rock": 130, "well_casing": 28,
+    "sand_bag": 12, "grout_bag": 23, "utube_pipe": 2.6,
+    "horiz_pipe": 1.5, "horiz_trench": 7, "mobilization": 1600,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "NY": {
+    "drilling_soil": 42, "drilling_rock": 122, "well_casing": 25,
+    "sand_bag": 11, "grout_bag": 22, "utube_pipe": 2.4,
+    "horiz_pipe": 1.4, "horiz_trench": 6, "mobilization": 1400,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "TX": {
+    "drilling_soil": 27, "drilling_rock": 88, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 4, "mobilization": 950,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "FL": {
+    "drilling_soil": 28, "drilling_rock": 90, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 4, "mobilization": 950,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "IL": {
+    "drilling_soil": 29, "drilling_rock": 96, "well_casing": 18,
+    "sand_bag": 10, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 5, "mobilization": 1000,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "PA": {
+    "drilling_soil": 38, "drilling_rock": 118, "well_casing": 23,
+    "sand_bag": 11, "grout_bag": 21, "utube_pipe": 2.2,
+    "horiz_pipe": 1.3, "horiz_trench": 6, "mobilization": 1200,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "OH": {
+    "drilling_soil": 28, "drilling_rock": 94, "well_casing": 18,
+    "sand_bag": 10, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 5, "mobilization": 1000,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "GA": {
+    "drilling_soil": 27, "drilling_rock": 90, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 4, "mobilization": 950,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "CO": {
+    "drilling_soil": 33, "drilling_rock": 108, "well_casing": 21,
+    "sand_bag": 10, "grout_bag": 20, "utube_pipe": 2.0,
+    "horiz_pipe": 1.1, "horiz_trench": 5, "mobilization": 1100,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "WA": {
+    "drilling_soil": 40, "drilling_rock": 122, "well_casing": 25,
+    "sand_bag": 12, "grout_bag": 22, "utube_pipe": 2.4,
+    "horiz_pipe": 1.4, "horiz_trench": 7, "mobilization": 1400,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "AZ": {
+    "drilling_soil": 31, "drilling_rock": 102, "well_casing": 20,
+    "sand_bag": 10, "grout_bag": 20, "utube_pipe": 2.0,
+    "horiz_pipe": 1.1, "horiz_trench": 5, "mobilization": 1050,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "MN": {
+    "drilling_soil": 27, "drilling_rock": 92, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 18, "utube_pipe": 1.8,
+    "horiz_pipe": 0.9, "horiz_trench": 4, "mobilization": 900,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "MI": {
+    "drilling_soil": 27, "drilling_rock": 93, "well_casing": 17,
+    "sand_bag": 10, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 5, "mobilization": 1000,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "NC": {
+    "drilling_soil": 27, "drilling_rock": 90, "well_casing": 17,
+    "sand_bag": 9, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 4, "mobilization": 950,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  },
+  "VA": {
+    "drilling_soil": 29, "drilling_rock": 95, "well_casing": 18,
+    "sand_bag": 10, "grout_bag": 19, "utube_pipe": 1.9,
+    "horiz_pipe": 1.0, "horiz_trench": 5, "mobilization": 1000,
+    "source": "RSMeans 2024 Mechanical + IGSHPA 2020", "year": 2024
+  }
+}
