@@ -93,6 +93,20 @@
     #deep-map      { height: 520px; border-radius: 7px; border: 1px solid var(--border); }
     #smuhf-map     { height: 560px; border-radius: 7px; border: 1px solid var(--border); }
 
+    /* ── Cost choropleth legend ── */
+    .cost-choropleth-legend {
+      background: white; padding: 10px 12px; border-radius: 6px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.18); font-size: 12px; line-height: 1.4;
+    }
+    .cost-legend-title { font-weight: 700; margin-bottom: 6px; color: #111; }
+    .cost-legend-row { display: flex; align-items: center; margin-bottom: 4px; }
+    .cost-legend-swatch {
+      display: inline-block; width: 18px; height: 14px;
+      border-radius: 2px; margin-right: 7px; flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .cost-legend-label { color: #374151; }
+
     /* ── Map legend ── */
     .map-legend {
       display: flex; align-items: center; gap: 10px;
@@ -1189,9 +1203,11 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
         "55":"WI","56":"WY",
       };
 
-      // Color scale: 5 quantile buckets $25–$65/ft
-      const breaks = [25, 32, 38, 44, 52, 65];
-      const colors = ['#d1fae5','#6ee7b7','#34d399','#10b981','#059669'];
+      // Color scale: 5 classes aligned to Census division clusters ($50–$80 actual range)
+      // ESC/WNC/WSC → SA/ENC → Mtn → NE/MA → Pac
+      const breaks = [50, 53, 57, 65, 73, 85];
+      const colors = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
+      const labels = ['< $53', '$53 – 57', '$57 – 65', '$65 – 73', '≥ $73'];
 
       function getColor(val) {
         for (let i = 0; i < breaks.length - 1; i++) {
@@ -1206,8 +1222,8 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
           const val = costData.states[abbrev] ? costData.states[abbrev].base_per_ft : null;
           return {
             fillColor: val ? getColor(val) : '#e5e7eb',
-            weight: 1, color: '#9ca3af',
-            fillOpacity: val ? 0.8 : 0.3,
+            weight: 1, color: '#6b7280',
+            fillOpacity: val ? 0.85 : 0.3,
           };
         },
         onEachFeature(feature, layer) {
@@ -1215,15 +1231,34 @@ Iterate: Tp → L until |ΔL|&lt;1m</div>
           const d = costData.states[abbrev];
           if (d) {
             layer.bindTooltip(
-              `<strong>${abbrev}</strong> (${d.region_used})<br>` +
-              `Best: $${d.best_per_ft}/ft<br>` +
-              `Base: $${d.base_per_ft}/ft<br>` +
-              `Worst: $${d.worst_per_ft}/ft`,
+              `<strong>${abbrev}</strong> <span style="color:#6b7280">${d.region_used}</span><br>` +
+              `Best: $${d.best_per_ft}/ft &nbsp; Base: <strong>$${d.base_per_ft}/ft</strong> &nbsp; Worst: $${d.worst_per_ft}/ft`,
               {sticky: true}
             );
           }
         },
       }).addTo(costMap);
+
+      // Legend
+      const legend = L.control({position: 'bottomright'});
+      legend.onAdd = function() {
+        const div = L.DomUtil.create('div', 'cost-choropleth-legend');
+        div.innerHTML = '<div class="cost-legend-title">Base $/ft</div>';
+        for (let i = 0; i < colors.length; i++) {
+          div.innerHTML +=
+            `<div class="cost-legend-row">` +
+            `<span class="cost-legend-swatch" style="background:${colors[i]}"></span>` +
+            `<span class="cost-legend-label">${labels[i]}</span>` +
+            `</div>`;
+        }
+        div.innerHTML +=
+          `<div class="cost-legend-row">` +
+          `<span class="cost-legend-swatch" style="background:#e5e7eb;border:1px solid #d1d5db"></span>` +
+          `<span class="cost-legend-label" style="color:#9ca3af">No data</span>` +
+          `</div>`;
+        return div;
+      };
+      legend.addTo(costMap);
 
       // Populate rate table
       const tbody = document.getElementById('cost-rate-tbody');
