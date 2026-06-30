@@ -18,7 +18,7 @@
           <li class="stage-item active-dim">s2 <span class="stage-name">Simulation</span></li>
           <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
           <li class="stage-item active"><a href="#">s4 <span class="stage-name">Sizing</span></a></li>
-          <li class="stage-item disabled">s5 <span class="stage-name">Cost</span><span class="badge">soon</span></li>
+          <li class="stage-item active-dim">s5 <span class="stage-name">Cost</span></li>
           <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
           <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
         </ul>
@@ -62,6 +62,21 @@
             </div>
             <span class="field-error" data-for="zip_code"></span>
           </div>
+          <div class="field">
+            <label for="soil_confidence">Soil / Rock Data Confidence
+              <span class="hint-inline">— scales effective k; conservative default adds ~20% to borefield length</span>
+            </label>
+            <div class="input-row">
+              <select id="soil_confidence" name="soil_confidence">
+                <option value="low" selected>Conservative (default) — no site data, k reduced ~17% → longer borefield</option>
+                <option value="medium">Medium — accept county-level k estimate as-is</option>
+                <option value="high">High — site thermal investigation completed, trust the data (k +10%)</option>
+              </select>
+            </div>
+            <span class="field-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block">
+              Without a site investigation, conservative sizing is recommended (≈ clay baseline, ~1.4 W/m·K equivalent).
+            </span>
+          </div>
         </div>
 
         <!-- s2: Building -->
@@ -76,31 +91,37 @@
             <div class="input-row">
               <select id="building_type" name="building_type">
                 <option value="">— select —</option>
-                <option value="small_office">Small Office (~511 m²)</option>
-                <option value="medium_office">Medium Office (~4,982 m²)</option>
-                <option value="large_office">Large Office (~46,320 m²)</option>
-                <option value="standalone_retail">Stand-alone Retail (~2,294 m²)</option>
-                <option value="primary_school">Primary School (~6,871 m²)</option>
-                <option value="secondary_school">Secondary School (~19,592 m²)</option>
-                <option value="hospital">Hospital (~22,422 m²)</option>
-                <option value="outpatient_healthcare">Outpatient Healthcare (~3,804 m²)</option>
-                <option value="small_hotel">Small Hotel (~4,014 m²)</option>
-                <option value="large_hotel">Large Hotel (~11,345 m²)</option>
-                <option value="warehouse">Warehouse (~4,835 m²)</option>
-                <option value="midrise_apartment">Mid-rise Apartment (~3,135 m²)</option>
+                <option value="small_office">Small Office</option>
+                <option value="medium_office">Medium Office</option>
+                <option value="large_office">Large Office</option>
+                <option value="standalone_retail">Stand-alone Retail</option>
+                <option value="primary_school">Primary School</option>
+                <option value="secondary_school">Secondary School</option>
+                <option value="hospital">Hospital</option>
+                <option value="outpatient_healthcare">Outpatient Healthcare</option>
+                <option value="small_hotel">Small Hotel</option>
+                <option value="large_hotel">Large Hotel</option>
+                <option value="warehouse">Warehouse</option>
+                <option value="midrise_apartment">Mid-rise Apartment</option>
               </select>
             </div>
             <span class="field-error" data-for="building_type"></span>
           </div>
           <div class="field">
-            <label for="mode">Dominant Mode</label>
+            <label for="floor_area_m2">Floor Area <span class="hint-inline">(leave blank to use DOE prototype area)</span></label>
             <div class="input-row">
-              <select id="mode" name="mode">
-                <option value="heating">Heating (cold climate)</option>
-                <option value="cooling">Cooling (warm climate)</option>
-              </select>
+              <input type="number" id="floor_area_m2" name="floor_area_m2" min="10" step="1" placeholder="e.g. 2000">
+              <span class="unit">m²</span>
             </div>
-            <span class="field-error" data-for="mode"></span>
+            <span class="field-hint" id="proto-area-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
+            <span class="field-error" data-for="floor_area_m2"></span>
+          </div>
+          <div class="field">
+            <label for="year_built">Year Built <span class="hint-inline">— enter 0 for new construction / planned</span></label>
+            <div class="input-row">
+              <input type="number" id="year_built" name="year_built" min="0" max="2025" step="1" placeholder="e.g. 2005, or 0 if new">
+            </div>
+            <span class="field-hint" id="year-factor-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
           </div>
         </div>
 
@@ -192,6 +213,58 @@
               <span class="result-value"><span id="sres-NB">—</span></span>
             </div>
           </div>
+        </div>
+
+        <!-- s5: Cost Estimate (populated after sizing) -->
+        <div id="cost-section" class="hidden" style="margin-top:20px;">
+          <div class="stage-header">
+            <span class="stage-pill">s5</span>
+            <span class="stage-label">Cost Estimate</span>
+            <span class="stage-note">Regional drilling rates — <span id="cost-region-tag">—</span></span>
+          </div>
+
+          <!-- Three-scenario cards -->
+          <div class="cost-scenarios" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div class="card cost-card" id="cost-best">
+              <div class="cost-scenario-label">Best Case</div>
+              <div class="cost-headline"><span id="cost-best-pft">—</span> <span class="cost-unit">$/ft</span></div>
+              <div class="cost-subline">Total: <span id="cost-best-total">—</span></div>
+            </div>
+            <div class="card cost-card cost-card-base" id="cost-base">
+              <div class="cost-scenario-label">Base Case</div>
+              <div class="cost-headline"><span id="cost-base-pft">—</span> <span class="cost-unit">$/ft</span></div>
+              <div class="cost-subline">Total: <span id="cost-base-total">—</span></div>
+            </div>
+            <div class="card cost-card" id="cost-worst">
+              <div class="cost-scenario-label">Worst Case</div>
+              <div class="cost-headline"><span id="cost-worst-pft">—</span> <span class="cost-unit">$/ft</span></div>
+              <div class="cost-subline">Total: <span id="cost-worst-total">—</span></div>
+            </div>
+          </div>
+
+          <!-- Contractor comparison strip -->
+          <div class="card" style="padding:10px 16px;font-size:12px;margin-bottom:16px;color:var(--text-muted);">
+            <strong style="color:var(--text);">Contractor comparison:</strong>
+            Your project (<span id="cost-state-tag">—</span>): <strong id="cost-cmp-base">—</strong>/ft &nbsp;|&nbsp;
+            National avg: <strong id="cost-cmp-us">—</strong>/ft &nbsp;|&nbsp;
+            Best case: <strong id="cost-cmp-best">—</strong>/ft &nbsp;|&nbsp;
+            Worst case: <strong id="cost-cmp-worst">—</strong>/ft
+          </div>
+
+          <!-- Line-item table toggle -->
+          <details>
+            <summary style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;margin-bottom:10px;">
+              Show line-item breakdown (base case)
+            </summary>
+            <table class="files-table" id="cost-breakdown-table" style="margin-top:8px;">
+              <thead>
+                <tr>
+                  <th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="cost-breakdown-body"></tbody>
+            </table>
+          </details>
         </div>
 
       </section><!-- /panel-smart -->
