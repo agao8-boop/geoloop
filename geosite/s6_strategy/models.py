@@ -48,7 +48,7 @@ class StrategyResult:
     def to_dict(self) -> dict:
         return {
             "case": self.case,
-            "imbalance_ratio": round(self.imbalance_ratio, 3),
+            "imbalance_ratio": round(min(self.imbalance_ratio, 9999.0), 3),
             "dominant_mode": self.dominant_mode,
             "L_h": round(self.L_h, 1),
             "L_c": round(self.L_c, 1),

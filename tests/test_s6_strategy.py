@@ -37,6 +37,12 @@ def test_small_office_5a_has_case_1_or_2():
 def test_l_after_less_than_l_before():
     result = run_strategy(**_CHICAGO_PARAMS)
     assert result.L_after < result.L_before, "Trimming must reduce borefield length"
+    assert result.L_after > result.L_before * 0.05, "L_after must not be degenerate (>5% of L_before)"
+
+
+def test_cost_after_per_ft_is_finite():
+    result = run_strategy(**_CHICAGO_PARAMS)
+    assert result.cost_after["cost_per_ft"] < 1000, "cost_per_ft must be plausible (<$1000/ft)"
 
 
 def test_peaker_kw_positive():

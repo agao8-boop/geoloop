@@ -1,4 +1,3 @@
-import numpy as np
 from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s5_cost import estimate_cost
 from geosite.s6_strategy.load_profile import load_hourly_profile, scale_profile
@@ -6,7 +5,6 @@ from geosite.s6_strategy.ldc import (
     compute_ldc,
     trim_profile,
     extract_one_sided_pulses,
-    rederive_three_pulse,
 )
 from geosite.s6_strategy.models import StrategyResult
 
@@ -117,10 +115,6 @@ def run_strategy(
         peaker_kW = max(peaker_heat_kW, peaker_cool_kW)
         peaker_type = "electric_heater+chiller"
 
-    # --- Trim profile + re-derive three-pulse ---
-    trimmed = trim_profile(profile, cutoff_W, trim_mode)
-    q_h_trimmed, q_m_trimmed, q_y_trimmed = rederive_three_pulse(trimmed)
-
     # --- Before sizing: use dominant mode's original three-pulse ---
     if dominant_mode in ("heating", "balanced") and L_h >= L_c:
         q_h_before, q_m_before, q_y_before = q_h_heat, q_m_heat, q_y_heat
@@ -132,9 +126,12 @@ def run_strategy(
     L_before = _do_size(q_h_before, q_m_before, q_y_before, k, alpha, T_g, before_mode, NB, B, A, adv)
     H_before = L_before / NB
 
+    # --- Trim profile + re-derive three-pulse (pinned to before_mode for sign consistency) ---
+    trimmed = trim_profile(profile, cutoff_W, trim_mode)
+    q_h_trimmed, q_m_trimmed, q_y_trimmed = extract_one_sided_pulses(trimmed, before_mode)
+
     # --- After sizing: trimmed profile uses same before_mode for T_in_HP ---
-    trimmed_mode_for_TinHP = before_mode
-    L_after = _do_size(q_h_trimmed, q_m_trimmed, q_y_trimmed, k, alpha, T_g, trimmed_mode_for_TinHP, NB, B, A, adv)
+    L_after = _do_size(q_h_trimmed, q_m_trimmed, q_y_trimmed, k, alpha, T_g, before_mode, NB, B, A, adv)
     H_after = L_after / NB
 
     # --- Cost before/after ---
