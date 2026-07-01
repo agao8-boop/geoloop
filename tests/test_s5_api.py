@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch, MagicMock
 import pytest
 from app import app
 
@@ -69,3 +70,31 @@ def test_cost_map_endpoint_returns_all_states(client):
     assert "states" in data
     # Should have at least the 9 Census divisions as representative entries
     assert len(data["states"]) >= 9
+
+
+@patch("geosite.s1_site.geocode.requests.get")
+def test_smart_run_includes_soil_class_fields(mock_get, client):
+    """POST /calculate/smart returns rock_class, k_min, k_max, shallow_soil_class, k_shallow in site dict."""
+    zip_resp = MagicMock()
+    zip_resp.json.return_value = {"places": [{"latitude": "41.88", "longitude": "-87.63"}]}
+    zip_resp.raise_for_status.return_value = None
+    tract_resp = MagicMock()
+    tract_resp.json.return_value = {
+        "result": {"geographies": {"Census Tracts": [{"GEOID": "17031320101"}]}}
+    }
+    tract_resp.raise_for_status.return_value = None
+    mock_get.side_effect = [zip_resp, tract_resp]
+
+    resp = client.post("/calculate/smart", json={
+        "zip_code": "60601",
+        "building_type": "medium_office",
+        "NB": 10, "B": 6.0, "A": 10.0,
+        "soil_confidence": "medium",
+    })
+    assert resp.status_code == 200
+    site = resp.get_json()["site"]
+    assert "rock_class" in site
+    assert "k_min" in site
+    assert "k_max" in site
+    assert "shallow_soil_class" in site
+    assert "k_shallow" in site

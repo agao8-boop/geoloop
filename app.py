@@ -240,8 +240,19 @@ def calculate_smart():
     T_in_HP = float(data.get("T_in_HP", _T_IN_HP_DEFAULTS[mode]))
     params = {k: float(data.get(k, v)) for k, v in _ADVANCED_DEFAULTS.items()}
 
-    # Apply soil confidence factor to k (conservative = lower k = longer L)
-    effective_k = site.k * k_factor
+    # Physics-grounded confidence: use Clauser-Huenges class bounds when available
+    _k_min_ok = site.k_min == site.k_min  # True when not NaN
+    _k_max_ok = site.k_max == site.k_max
+    if _k_min_ok and _k_max_ok:
+        if soil_confidence == "low":
+            effective_k = site.k_min
+        elif soil_confidence == "high":
+            # Upper bound, capped so it can't exceed 25% above county estimate
+            effective_k = min(site.k_max, site.k * 1.25)
+        else:
+            effective_k = site.k  # medium: county estimate unchanged
+    else:
+        effective_k = site.k * k_factor  # fallback: factor-based
 
     # --- s4: borefield sizing ---
     try:
@@ -268,6 +279,11 @@ def calculate_smart():
             "climate_zone": site.climate_zone,
             "state_abbrev": site.state_abbrev,
             "data_available": site.data_available,
+            "rock_class": site.rock_class,
+            "k_min": None if (site.k_min != site.k_min) else round(site.k_min, 3),
+            "k_max": None if (site.k_max != site.k_max) else round(site.k_max, 3),
+            "shallow_soil_class": site.shallow_soil_class,
+            "k_shallow": None if (site.k_shallow != site.k_shallow) else round(site.k_shallow, 3),
         },
         "loads": {
             "q_h": loads.q_h,
