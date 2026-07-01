@@ -1830,7 +1830,7 @@ county_fips,state_abbrev,county_name,climate_zone
 35061,NM,Valencia County,4B
 36001,NY,Albany County,5A
 36003,NY,Allegany County,5A
-36005,NY,Bronx County,5A
+36005,NY,Bronx County,4A
 36007,NY,Broome County,5A
 36009,NY,Cattaraugus County,5A
 36011,NY,Cayuga County,5A
@@ -1851,14 +1851,14 @@ county_fips,state_abbrev,county_name,climate_zone
 36041,NY,Hamilton County,5A
 36043,NY,Herkimer County,5A
 36045,NY,Jefferson County,5A
-36047,NY,Kings County,5A
+36047,NY,Kings County,4A
 36049,NY,Lewis County,5A
 36051,NY,Livingston County,5A
 36053,NY,Madison County,5A
 36055,NY,Monroe County,5A
 36057,NY,Montgomery County,5A
-36059,NY,Nassau County,5A
-36061,NY,New York County,5A
+36059,NY,Nassau County,4A
+36061,NY,New York County,4A
 36063,NY,Niagara County,5A
 36065,NY,Oneida County,5A
 36067,NY,Onondaga County,5A
@@ -1868,10 +1868,10 @@ county_fips,state_abbrev,county_name,climate_zone
 36075,NY,Oswego County,5A
 36077,NY,Otsego County,5A
 36079,NY,Putnam County,5A
-36081,NY,Queens County,5A
+36081,NY,Queens County,4A
 36083,NY,Rensselaer County,5A
-36085,NY,Richmond County,5A
-36087,NY,Rockland County,5A
+36085,NY,Richmond County,4A
+36087,NY,Rockland County,4A
 36089,NY,St. Lawrence County,5A
 36091,NY,Saratoga County,5A
 36093,NY,Schenectady County,5A
@@ -1887,7 +1887,7 @@ county_fips,state_abbrev,county_name,climate_zone
 36113,NY,Warren County,5A
 36115,NY,Washington County,5A
 36117,NY,Wayne County,5A
-36119,NY,Westchester County,5A
+36119,NY,Westchester County,4A
 36121,NY,Wyoming County,5A
 36123,NY,Yates County,5A
 37001,NC,Alamance County,3A
@@ -2252,13 +2252,13 @@ county_fips,state_abbrev,county_name,climate_zone
 42011,PA,Berks County,5A
 42013,PA,Blair County,5A
 42015,PA,Bradford County,5A
-42017,PA,Bucks County,5A
+42017,PA,Bucks County,4A
 42019,PA,Butler County,5A
 42021,PA,Cambria County,5A
 42023,PA,Cameron County,5A
 42025,PA,Carbon County,5A
 42027,PA,Centre County,5A
-42029,PA,Chester County,5A
+42029,PA,Chester County,4A
 42031,PA,Clarion County,5A
 42033,PA,Clearfield County,5A
 42035,PA,Clinton County,5A
@@ -2266,7 +2266,7 @@ county_fips,state_abbrev,county_name,climate_zone
 42039,PA,Crawford County,5A
 42041,PA,Cumberland County,5A
 42043,PA,Dauphin County,5A
-42045,PA,Delaware County,5A
+42045,PA,Delaware County,4A
 42047,PA,Elk County,5A
 42049,PA,Erie County,5A
 42051,PA,Fayette County,5A
@@ -2289,12 +2289,12 @@ county_fips,state_abbrev,county_name,climate_zone
 42085,PA,Mercer County,5A
 42087,PA,Mifflin County,5A
 42089,PA,Monroe County,5A
-42091,PA,Montgomery County,5A
+42091,PA,Montgomery County,4A
 42093,PA,Montour County,5A
 42095,PA,Northampton County,5A
 42097,PA,Northumberland County,5A
 42099,PA,Perry County,5A
-42101,PA,Philadelphia County,5A
+42101,PA,Philadelphia County,4A
 42103,PA,Pike County,5A
 42105,PA,Potter County,5A
 42107,PA,Schuylkill County,5A
@@ -2565,7 +2565,7 @@ county_fips,state_abbrev,county_name,climate_zone
 48079,TX,Cochran County,2A
 48081,TX,Coke County,2A
 48083,TX,Coleman County,2A
-48085,TX,Collin County,2A
+48085,TX,Collin County,3A
 48087,TX,Collingsworth County,2A
 48089,TX,Colorado County,2A
 48091,TX,Comal County,2A
@@ -2579,11 +2579,11 @@ county_fips,state_abbrev,county_name,climate_zone
 48107,TX,Crosby County,2A
 48109,TX,Culberson County,2B
 48111,TX,Dallam County,2A
-48113,TX,Dallas County,2A
+48113,TX,Dallas County,3A
 48115,TX,Dawson County,2A
 48117,TX,Deaf Smith County,2A
 48119,TX,Delta County,2A
-48121,TX,Denton County,2A
+48121,TX,Denton County,3A
 48123,TX,DeWitt County,2A
 48125,TX,Dickens County,2A
 48127,TX,Dimmit County,2A
@@ -2592,7 +2592,7 @@ county_fips,state_abbrev,county_name,climate_zone
 48133,TX,Eastland County,2A
 48135,TX,Ector County,2A
 48137,TX,Edwards County,2A
-48139,TX,Ellis County,2A
+48139,TX,Ellis County,3A
 48141,TX,El Paso County,2B
 48143,TX,Erath County,2A
 48145,TX,Falls County,2A
@@ -2613,7 +2613,7 @@ county_fips,state_abbrev,county_name,climate_zone
 48175,TX,Goliad County,2A
 48177,TX,Gonzales County,2A
 48179,TX,Gray County,2A
-48181,TX,Grayson County,2A
+48181,TX,Grayson County,3A
 48183,TX,Gregg County,2A
 48185,TX,Grimes County,2A
 48187,TX,Guadalupe County,2A
@@ -2633,12 +2633,12 @@ county_fips,state_abbrev,county_name,climate_zone
 48215,TX,Hidalgo County,2A
 48217,TX,Hill County,2A
 48219,TX,Hockley County,2A
-48221,TX,Hood County,2A
+48221,TX,Hood County,3A
 48223,TX,Hopkins County,2A
 48225,TX,Houston County,2A
 48227,TX,Howard County,2A
 48229,TX,Hudspeth County,2B
-48231,TX,Hunt County,2A
+48231,TX,Hunt County,3A
 48233,TX,Hutchinson County,2A
 48235,TX,Irion County,2A
 48237,TX,Jack County,2A
@@ -2648,15 +2648,15 @@ county_fips,state_abbrev,county_name,climate_zone
 48245,TX,Jefferson County,2A
 48247,TX,Jim Hogg County,2A
 48249,TX,Jim Wells County,2A
-48251,TX,Johnson County,2A
+48251,TX,Johnson County,3A
 48253,TX,Jones County,2A
 48255,TX,Karnes County,2A
-48257,TX,Kaufman County,2A
+48257,TX,Kaufman County,3A
 48259,TX,Kendall County,2A
 48261,TX,Kenedy County,2A
 48263,TX,Kent County,2A
 48265,TX,Kerr County,2A
-48267,TX,Kimble County,2A
+48267,TX,Kimble County,3A
 48269,TX,King County,2A
 48271,TX,Kinney County,2A
 48273,TX,Kleberg County,2A
@@ -2666,9 +2666,9 @@ county_fips,state_abbrev,county_name,climate_zone
 48281,TX,Lampasas County,2A
 48283,TX,La Salle County,2A
 48285,TX,Lavaca County,2A
-48287,TX,Lee County,2A
+48287,TX,Lee County,3A
 48289,TX,Leon County,2A
-48291,TX,Liberty County,2A
+48291,TX,Liberty County,3A
 48293,TX,Limestone County,2A
 48295,TX,Lipscomb County,2A
 48297,TX,Live Oak County,2A
@@ -2677,7 +2677,7 @@ county_fips,state_abbrev,county_name,climate_zone
 48303,TX,Lubbock County,2A
 48305,TX,Lynn County,2A
 48307,TX,McCulloch County,2A
-48309,TX,McLennan County,2A
+48309,TX,McLennan County,3A
 48311,TX,McMullen County,2A
 48313,TX,Madison County,2A
 48315,TX,Marion County,2A
@@ -2687,7 +2687,7 @@ county_fips,state_abbrev,county_name,climate_zone
 48323,TX,Maverick County,2A
 48325,TX,Medina County,2A
 48327,TX,Menard County,2A
-48329,TX,Midland County,2A
+48329,TX,Midland County,3A
 48331,TX,Milam County,2A
 48333,TX,Mills County,2A
 48335,TX,Mitchell County,2A
@@ -2697,16 +2697,16 @@ county_fips,state_abbrev,county_name,climate_zone
 48343,TX,Morris County,2A
 48345,TX,Motley County,2A
 48347,TX,Nacogdoches County,2A
-48349,TX,Navarro County,2A
+48349,TX,Navarro County,3A
 48351,TX,Newton County,2A
 48353,TX,Nolan County,2A
 48355,TX,Nueces County,2A
 48357,TX,Ochiltree County,2A
 48359,TX,Oldham County,2A
 48361,TX,Orange County,2A
-48363,TX,Palo Pinto County,2A
+48363,TX,Palo Pinto County,3A
 48365,TX,Panola County,2A
-48367,TX,Parker County,2A
+48367,TX,Parker County,3A
 48369,TX,Parmer County,2A
 48371,TX,Pecos County,2A
 48373,TX,Polk County,2A
@@ -2721,7 +2721,7 @@ county_fips,state_abbrev,county_name,climate_zone
 48391,TX,Refugio County,2A
 48393,TX,Roberts County,2A
 48395,TX,Robertson County,2A
-48397,TX,Rockwall County,2A
+48397,TX,Rockwall County,3A
 48399,TX,Runnels County,2A
 48401,TX,Rusk County,2A
 48403,TX,Sabine County,2A
@@ -2735,14 +2735,14 @@ county_fips,state_abbrev,county_name,climate_zone
 48419,TX,Shelby County,2A
 48421,TX,Sherman County,2A
 48423,TX,Smith County,2A
-48425,TX,Somervell County,2A
+48425,TX,Somervell County,3A
 48427,TX,Starr County,2A
 48429,TX,Stephens County,2A
 48431,TX,Sterling County,2A
 48433,TX,Stonewall County,2A
 48435,TX,Sutton County,2A
 48437,TX,Swisher County,2A
-48439,TX,Tarrant County,2A
+48439,TX,Tarrant County,3A
 48441,TX,Taylor County,2A
 48443,TX,Terrell County,3B
 48445,TX,Terry County,2A
