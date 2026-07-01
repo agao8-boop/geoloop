@@ -461,32 +461,53 @@
     document.getElementById('s6-peaker-kw').textContent = `${res.peaker_kW.toFixed(1)} kW`;
     document.getElementById('s6-peaker-type').textContent = peakerLabel;
 
-    _renderS6ChartA('s6-chart-a', res.hourly_profile, 180);
+    _renderS6ChartA('s6-chart-a', res.hourly_profile, res.cutoff_W, res.dominant_mode, 180);
   }
 
-  function _renderS6ChartA(canvasId, hourlyProfile, heightPx) {
-    // Downsample to 52 weekly averages for performance
-    const weeklyAvg = [];
-    for (let w = 0; w < 52; w++) {
-      const start = w * 168;
-      const end = Math.min(start + 168, hourlyProfile.length);
-      const slice = hourlyProfile.slice(start, end);
-      weeklyAvg.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+  function _renderS6ChartA(canvasId, hourlyProfile, cutoffW, dominantMode, heightPx) {
+    // Downsample to every 4th hour (2190 bars) for compact display
+    const ds = hourlyProfile.filter((_, i) => i % 4 === 0);
+    const colors = ds.map(h =>
+      h < 0 ? 'rgba(59,130,246,0.7)' : h > 0 ? 'rgba(239,68,68,0.7)' : 'transparent'
+    );
+
+    // Cutoff annotation datasets based on dominant mode
+    const cutoffDatasets = [];
+    if (dominantMode === 'heating' || dominantMode === 'balanced') {
+      cutoffDatasets.push({
+        type: 'line',
+        label: `−Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
+        data: Array(ds.length).fill(-cutoffW),
+        borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
+        parsing: false,
+      });
     }
-    const labels = weeklyAvg.map((_, i) => `W${i + 1}`);
-    const colors = weeklyAvg.map(v => v < 0 ? 'rgba(59,130,246,0.7)' : 'rgba(239,68,68,0.7)');
+    if (dominantMode === 'cooling' || dominantMode === 'balanced') {
+      cutoffDatasets.push({
+        type: 'line',
+        label: `+Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
+        data: Array(ds.length).fill(cutoffW),
+        borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
+        parsing: false,
+      });
+    }
 
     const canvas = document.getElementById(canvasId);
     if (canvas._chartInst) canvas._chartInst.destroy();
     canvas._chartInst = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels,
-        datasets: [{
-          data: weeklyAvg,
-          backgroundColor: colors,
-          borderWidth: 0,
-        }],
+        labels: ds.map((_, i) => i * 4),
+        datasets: [
+          {
+            data: ds,
+            backgroundColor: colors,
+            borderWidth: 0,
+            label: 'Ground load',
+            parsing: false,
+          },
+          ...cutoffDatasets,
+        ],
       },
       options: {
         responsive: true,
@@ -500,6 +521,7 @@
             },
           },
         },
+        datasets: {bar: {parsing: false}},
         scales: {
           x: {display: false},
           y: {

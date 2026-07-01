@@ -93,9 +93,11 @@ def run_strategy(
     cutoff_W = ldc["cutoff_W"]
 
     # --- Peaker sizing ---
-    # Always trim both sides: cutoff_W is based on |load| across all hours,
-    # so any hour exceeding cutoff_W in either direction goes to a peaker.
-    trim_mode = "balanced"
+    # Case 1 (imbalanced): only trim the dominant side; the non-dominant side
+    # passes through unchanged to the borefield (extract_one_sided_pulses zeroes
+    # the non-dominant side anyway, so L_after is unaffected).
+    # Case 2 (balanced): trim both sides symmetrically.
+    trim_mode = dominant_mode if case == 1 else "balanced"
 
     peaker_heat_kW = max(
         (abs(h) - cutoff_W for h in profile if h < 0 and abs(h) > cutoff_W), default=0.0

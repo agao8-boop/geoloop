@@ -63,7 +63,18 @@ def test_hourly_profile_length():
 
 def test_hourly_trimmed_max_le_cutoff():
     result = run_strategy(**_CHICAGO_PARAMS)
-    assert max(abs(h) for h in result.hourly_trimmed) <= result.cutoff_W + 0.1
+    cw = result.cutoff_W + 0.1
+    if result.case == 1:
+        # One-sided trim: only the dominant side is clipped; non-dominant passes through.
+        if result.dominant_mode == "heating":
+            # Heating hours (h < 0) must be clipped; cooling hours may exceed cutoff.
+            assert all(h >= -cw for h in result.hourly_trimmed if h < 0)
+        else:
+            # Cooling hours (h > 0) must be clipped; heating hours may exceed cutoff.
+            assert all(h <= cw for h in result.hourly_trimmed if h > 0)
+    else:
+        # Balanced trim: both sides clipped.
+        assert max(abs(h) for h in result.hourly_trimmed) <= cw
 
 
 def test_imbalance_ratio_gte_1():
