@@ -12,6 +12,7 @@ from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
 from geosite.models import SiteData, LoadPulses
 from geosite.s5_cost import estimate_cost
+from geosite.s6_strategy import run_strategy
 
 app = Flask(__name__)
 
@@ -556,6 +557,84 @@ def hourly_loads_api():
                         "message": "prototype_loads_hourly.json not generated yet"}), 404
     import json as _json
     return _json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
+
+
+@app.route("/api/strategy", methods=["POST"])
+def strategy_api():
+    """Run mandatory hybrid GSHP strategy analysis.
+
+    Required: building_type, climate_zone, k, alpha, T_g, NB, B, A, state
+    Optional: ldc_cutoff_pct (default 10), imbalance_threshold (default 1.25),
+              floor_area_m2, year_built (int), year_factor (float, overrides year_built)
+              Advanced: Cp, mfls, rbore, rpin, rpext, kgrout, kpipe, LU, hconv
+    """
+    try:
+        data = request.get_json(force=True)
+    except BadRequest:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
+
+    if data is None:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
+
+    for field in ("building_type", "climate_zone", "k", "alpha", "T_g", "NB", "B", "A"):
+        if field not in data or str(data[field]).strip() == "":
+            return jsonify({"error": "field", "field": field,
+                            "message": f"'{field}' is required"}), 400
+
+    building_type = str(data["building_type"]).strip()
+    climate_zone  = str(data["climate_zone"]).strip()
+    state         = data.get("state") or None
+
+    try:
+        k     = float(data["k"])
+        alpha = float(data["alpha"])
+        T_g   = float(data["T_g"])
+        NB    = int(data["NB"])
+        B     = float(data["B"])
+        A     = float(data["A"])
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": "field", "message": str(exc)}), 400
+
+    ldc_cutoff_pct      = float(data.get("ldc_cutoff_pct", 10.0))
+    imbalance_threshold = float(data.get("imbalance_threshold", 1.25))
+
+    floor_area_m2 = None
+    if data.get("floor_area_m2"):
+        floor_area_m2 = float(data["floor_area_m2"])
+
+    year_factor = 1.0
+    if data.get("year_factor"):
+        year_factor = float(data["year_factor"])
+    elif data.get("year_built"):
+        year_factor = _year_to_load_factor(int(data["year_built"]))
+
+    sizing_params = {
+        k_: float(data.get(k_, v))
+        for k_, v in {
+            "Cp": 4200.0, "mfls": 0.05, "rbore": 0.06, "rpin": 0.01365,
+            "rpext": 0.0167, "kgrout": 1.5, "kpipe": 0.42, "LU": 0.0511, "hconv": 1000.0,
+        }.items()
+    }
+
+    try:
+        result = run_strategy(
+            building_type=building_type,
+            climate_zone=climate_zone,
+            k=k, alpha=alpha, T_g=T_g,
+            NB=NB, B=B, A=A,
+            ldc_cutoff_pct=ldc_cutoff_pct,
+            imbalance_threshold=imbalance_threshold,
+            floor_area_m2=floor_area_m2,
+            year_factor=year_factor,
+            state=state,
+            **sizing_params,
+        )
+    except KeyError as exc:
+        return jsonify({"error": "field", "message": f"Unknown building_type or climate_zone: {exc}"}), 400
+    except Exception as exc:
+        return jsonify({"error": "calculation", "message": str(exc)}), 500
+
+    return jsonify(result.to_dict())
 
 
 @app.route("/dev")
