@@ -98,10 +98,10 @@ def run_strategy(
     trim_mode = "balanced"
 
     peaker_heat_kW = max(
-        (abs(h) for h in profile if h < 0 and abs(h) > cutoff_W), default=0.0
+        (abs(h) - cutoff_W for h in profile if h < 0 and abs(h) > cutoff_W), default=0.0
     ) / 1000.0
     peaker_cool_kW = max(
-        (h for h in profile if h > 0 and h > cutoff_W), default=0.0
+        (h - cutoff_W for h in profile if h > 0 and h > cutoff_W), default=0.0
     ) / 1000.0
 
     if case == 1:

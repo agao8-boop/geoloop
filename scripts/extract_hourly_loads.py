@@ -22,8 +22,6 @@ _PROTOTYPE_AREAS_M2 = {
     "large_office":  46320,
 }
 
-_MONTH_HOURS = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]
-
 _DIR_RE = re.compile(r'^(.+)_([0-9]+[A-C]?)$')
 
 

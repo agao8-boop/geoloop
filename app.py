@@ -414,10 +414,9 @@ def smuhf_points_api():
     Filtered to equilibrium wells (quality A = high, B = medium) with valid measured k.
     These are MEASURED in-situ thermal conductivity values at borehole depth, NOT soil estimates.
     """
-    import json as _json
     p = _PUBLIC_DATA / "smuhf_points.json"
     if p.exists():
-        return _json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
+        return json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
     return jsonify({"points": [], "count": 0, "error": "data not yet generated"}), 200
 
 
@@ -555,16 +554,15 @@ def hourly_loads_api():
     if not p.exists():
         return jsonify({"error": "data_not_found",
                         "message": "prototype_loads_hourly.json not generated yet"}), 404
-    import json as _json
-    return _json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
+    return json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
 
 
 @app.route("/api/strategy", methods=["POST"])
 def strategy_api():
     """Run mandatory hybrid GSHP strategy analysis.
 
-    Required: building_type, climate_zone, k, alpha, T_g, NB, B, A, state
-    Optional: ldc_cutoff_pct (default 10), imbalance_threshold (default 1.25),
+    Required: building_type, climate_zone, k, alpha, T_g, NB, B, A
+    Optional: state (2-letter abbrev or null), ldc_cutoff_pct (default 10), imbalance_threshold (default 1.25),
               floor_area_m2, year_built (int), year_factor (float, overrides year_built)
               Advanced: Cp, mfls, rbore, rpin, rpext, kgrout, kpipe, LU, hconv
     """
