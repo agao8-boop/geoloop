@@ -255,6 +255,86 @@
           <button class="trace-run-btn" id="t-run">Run Trace</button>
         </div>
 
+        <!-- ZIP reference table -->
+        <details id="zip-ref-details" style="margin-bottom:18px">
+          <summary style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:6px">
+            <span id="zip-ref-arrow" style="font-size:10px;transition:transform 0.15s">▶</span>
+            Example ZIP Codes — Full US coverage available
+            <span style="font-weight:400;color:var(--text-muted);margin-left:4px">(click a row to auto-fill; any valid US ZIP now works)</span>
+          </summary>
+          <div style="margin-top:10px">
+            <input type="text" id="zip-ref-filter" placeholder="Filter by zip, city, county, or state…"
+              style="width:100%;max-width:360px;padding:6px 10px;border:1px solid var(--border);border-radius:5px;font-size:12px;margin-bottom:8px;box-sizing:border-box">
+            <table class="files-table" id="zip-ref-table">
+              <thead>
+                <tr>
+                  <th>ZIP</th>
+                  <th>City</th>
+                  <th>County</th>
+                  <th>State</th>
+                  <th>Climate Zone</th>
+                  <th>Census Tract GEOID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="zip-ref-row" data-zip="60601" style="cursor:pointer">
+                  <td><code>60601</code></td><td>Chicago</td><td>Cook County</td><td>IL</td><td>5A</td><td style="font-family:monospace;color:#6b7280">17031320101</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="90210" style="cursor:pointer">
+                  <td><code>90210</code></td><td>Beverly Hills</td><td>Los Angeles County</td><td>CA</td><td>3B</td><td style="font-family:monospace;color:#6b7280">06037700600</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="77001" style="cursor:pointer">
+                  <td><code>77001</code></td><td>Houston</td><td>Harris County</td><td>TX</td><td>2A</td><td style="font-family:monospace;color:#6b7280">48201230200</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="02101" style="cursor:pointer">
+                  <td><code>02101</code></td><td>Boston</td><td>Suffolk County</td><td>MA</td><td>5A</td><td style="font-family:monospace;color:#6b7280">— county lookup</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="10001" style="cursor:pointer">
+                  <td><code>10001</code></td><td>New York</td><td>New York County</td><td>NY</td><td>4A</td><td style="font-family:monospace;color:#6b7280">— county lookup</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="85001" style="cursor:pointer">
+                  <td><code>85001</code></td><td>Phoenix</td><td>Maricopa County</td><td>AZ</td><td>2B</td><td style="font-family:monospace;color:#6b7280">— county lookup</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="30301" style="cursor:pointer">
+                  <td><code>30301</code></td><td>Atlanta</td><td>Fulton County</td><td>GA</td><td>3A</td><td style="font-family:monospace;color:#6b7280">— county lookup</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="98101" style="cursor:pointer">
+                  <td><code>98101</code></td><td>Seattle</td><td>King County</td><td>WA</td><td>4C</td><td style="font-family:monospace;color:#6b7280">— county lookup</td>
+                </tr>
+                <tr class="zip-ref-row" data-zip="80201" style="cursor:pointer">
+                  <td><code>80201</code></td><td>Denver</td><td>Denver County</td><td>CO</td><td>5B</td><td style="font-family:monospace;color:#6b7280">— county lookup</td>
+                </tr>
+              </tbody>
+            </table>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:6px">
+              Coverage expanded to all US counties via ASHRAE 169-2013 state-level climate zone assignments. County-level exceptions applied for AZ, CA, FL, TX, AK, NV, OR, WA and other multi-zone states. Original 3 tracts remain as exact-match references.
+            </p>
+          </div>
+        </details>
+        <script>
+          (function () {
+            const det = document.getElementById('zip-ref-details');
+            const arrow = document.getElementById('zip-ref-arrow');
+            det.addEventListener('toggle', () => {
+              arrow.style.transform = det.open ? 'rotate(90deg)' : '';
+            });
+            document.getElementById('zip-ref-filter').addEventListener('input', function () {
+              const q = this.value.toLowerCase();
+              document.querySelectorAll('.zip-ref-row').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+              });
+            });
+            document.querySelectorAll('.zip-ref-row').forEach(row => {
+              row.addEventListener('mouseenter', () => row.style.background = '#f0f9ff');
+              row.addEventListener('mouseleave', () => row.style.background = '');
+              row.addEventListener('click', () => {
+                document.getElementById('t-zip').value = row.dataset.zip;
+                det.open = false;
+              });
+            });
+          })();
+        </script>
+
         <!-- s1a: Geocoding -->
         <div class="wf-section">
           <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
@@ -1462,7 +1542,6 @@ headline = total_usd / L_ft</div>
         label: `−Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
         data: Array(n).fill(-cutoffW),
         borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-        parsing: false,
       });
     }
     if (dominantMode === 'cooling' || dominantMode === 'balanced') {
@@ -1471,7 +1550,6 @@ headline = total_usd / L_ft</div>
         label: `+Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
         data: Array(n).fill(cutoffW),
         borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-        parsing: false,
       });
     }
 
@@ -1487,7 +1565,6 @@ headline = total_usd / L_ft</div>
             backgroundColor: colors,
             borderWidth: 0,
             label: 'Ground load (W)',
-            parsing: false,
           },
           ...cutoffDatasets,
         ],
@@ -1495,7 +1572,6 @@ headline = total_usd / L_ft</div>
       options: {
         responsive: true, maintainAspectRatio: false, animation: false,
         plugins: {legend: {display: true}},
-        datasets: {bar: {parsing: false}},
         scales: {
           x: {display: false},
           y: {ticks: {callback: v => `${(v/1000).toFixed(0)}kW`}},

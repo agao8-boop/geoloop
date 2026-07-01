@@ -22,11 +22,13 @@ _DATA = pathlib.Path(__file__).parents[2] / "data" / "public"
 _DEEP_COUNTY_CSV  = _DATA / "deep_thermal_by_county.csv"
 _SHALLOW_TRACT_CSV = _DATA / "thermal_by_tract.csv"
 _CLIMATE_CSV      = _DATA / "climate_by_tract.csv"
+_CLIMATE_COUNTY_CSV = _DATA / "climate_by_county.csv"
 
 # Cache DataFrames in module-level variables (loaded once per process)
 _deep_df:    pd.DataFrame | None = None
 _shallow_df: pd.DataFrame | None = None
 _climate_df: pd.DataFrame | None = None
+_climate_county_df: pd.DataFrame | None = None
 
 
 def _load_deep() -> pd.DataFrame | None:
@@ -49,6 +51,14 @@ def _load_climate() -> pd.DataFrame:
     if _climate_df is None:
         _climate_df = pd.read_csv(_CLIMATE_CSV, dtype={"geoid": str})
     return _climate_df
+
+
+def _load_climate_county() -> pd.DataFrame | None:
+    global _climate_county_df
+    if _climate_county_df is None and _CLIMATE_COUNTY_CSV.exists():
+        _climate_county_df = pd.read_csv(_CLIMATE_COUNTY_CSV, dtype={"county_fips": str})
+        _climate_county_df["county_fips"] = _climate_county_df["county_fips"].str.zfill(5)
+    return _climate_county_df
 
 
 def lookup_by_geoid(
@@ -75,6 +85,12 @@ def lookup_by_geoid(
     climate_zone = str(c_row.iloc[0]["climate_zone"]) if not c_row.empty else ""
 
     county_fips = geoid[:5].zfill(5)
+    if not climate_zone:
+        county_climate = _load_climate_county()
+        if county_climate is not None:
+            cc_row = county_climate[county_climate["county_fips"] == county_fips]
+            if not cc_row.empty:
+                climate_zone = str(cc_row.iloc[0]["climate_zone"])
 
     # ── Primary: deep borehole county dataset ────────────────────────────
     if deep_csv is not None and deep_csv.exists():
