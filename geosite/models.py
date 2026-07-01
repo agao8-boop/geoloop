@@ -13,6 +13,12 @@ class SiteData:
     climate_zone: str    # ASHRAE climate zone, e.g. "5A"
     data_available: bool # False when no SSURGO data exists for this tract
     state_abbrev: str = ""  # 2-letter state abbreviation from deep_thermal_by_county.csv
+    # Soil-class-aware fields (populated when deep_thermal_by_county.csv is available)
+    rock_class: str = ""          # SGMC dominant rock class at depth
+    k_min: float = float("nan")   # Clauser-Huenges lower bound for rock class [W/m·K]
+    k_max: float = float("nan")   # Clauser-Huenges upper bound for rock class [W/m·K]
+    shallow_soil_class: str = ""  # SSURGO Côté-Konrad soil class (0–2 m)
+    k_shallow: float = float("nan")  # Côté-Konrad k at field saturation [W/m·K]
 
 
 @dataclass
