@@ -243,7 +243,7 @@
           </div>
           <div class="trace-field">
             <label>Soil Confidence</label>
-            <select id="t-conf">
+            <select id="t-conf" title="Low: uses rock-class lower bound (dry/loose soil) — conservative, longer borefield. Medium: county-level estimate. High: rock-class upper bound — optimistic, shorter borefield.">
               <option value="low">Conservative</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
@@ -1264,6 +1264,25 @@ headline = total_usd / L_ft</div>
   })();
 
   // ── Pipeline trace ────────────────────────────────────────────────────
+  const ROCK_CLASS_LABELS = {
+    alluvial_glacial:    'Alluvial / Glacial sediments',
+    clay_shale:          'Clay / Shale',
+    limestone_carbonate: 'Limestone / Carbonate',
+    sandstone:           'Sandstone',
+    granite_felsic:      'Granite / Felsic crystalline',
+    basalt_mafic:        'Basalt / Mafic volcanic',
+    metamorphic:         'Metamorphic (gneiss/schist)',
+    coal_organic:        'Coal / Organic',
+    undifferentiated:    'Undifferentiated bedrock',
+  };
+  const SOIL_CLASS_LABELS = {
+    gravel_coarse_sand: 'Gravel / Coarse sand',
+    medium_fine_sand:   'Medium-fine sand',
+    coarse_sand:        'Coarse sand',
+    silt_clay:          'Silt / Clay (loam)',
+    peat_organic:       'Peat / Organic',
+  };
+
   function kv(k, v, flag) {
     const cls = flag === 'ok' ? 'flag-ok' : flag === 'warn' ? 'flag-warn' : '';
     return `<span class="k">${k}</span><span class="v ${cls}">${v}</span><br>`;
@@ -1320,14 +1339,20 @@ headline = total_usd / L_ft</div>
       kv('GEOID', '→ lookup thermal_by_tract.csv') +
       kv('data_available', s.data_available ? '✓ True' : '✗ False — no SSURGO data', s.data_available ? 'ok' : 'err');
 
+    const rockLbl = s.rock_class ? (ROCK_CLASS_LABELS[s.rock_class] || s.rock_class) : '—';
+    const soilLbl = s.shallow_soil_class ? (SOIL_CLASS_LABELS[s.shallow_soil_class] || s.shallow_soil_class) : '—';
     document.getElementById('s1b-out').innerHTML =
       kv('k  (raw thermal conductivity)',     `${s.k} W/m·K`) +
       kv('k_effective  (after confidence)',   `${s.k_effective} W/m·K  [${s.soil_confidence} confidence]`, 'ok') +
+      kv('k range (rock class bounds)',       s.k_min != null ? `${s.k_min} – ${s.k_max} W/m·K` : '—', s.k_min != null ? 'ok' : 'warn') +
+      kv('rock class (SGMC at depth)',        `${rockLbl}  [${s.rock_class || '—'}]`, s.rock_class ? 'ok' : 'warn') +
+      kv('shallow soil class (SSURGO 0–2m)', `${soilLbl}  [${s.shallow_soil_class || '—'}]`, s.shallow_soil_class ? 'ok' : 'warn') +
+      kv('k_shallow (Côté-Konrad)',           s.k_shallow != null ? `${s.k_shallow} W/m·K` : '—') +
       kv('α  (thermal diffusivity)',          `${s.alpha} m²/day`, 'ok') +
       kv('T_g (ground temperature)',          `${s.T_g} °C`, 'ok') +
       kv('climate_zone',                     s.climate_zone, 'ok') +
       kv('state_abbrev',                     s.state_abbrev || '(not resolved)', s.state_abbrev ? 'ok' : 'warn') +
-      kv('source',                           'data/public/deep_thermal_by_county.csv') +
+      kv('source',                           'deep_thermal_by_county.csv + soil_class_by_county.csv') +
       kv('note',                             'k via SMU IDW (Blackwell & Richards 2004) or SGMC/C&H 1995 fallback');
 
     // s2 input/output

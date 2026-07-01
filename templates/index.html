@@ -67,7 +67,7 @@
               <span class="hint-inline">— scales effective k; conservative default adds ~20% to borefield length</span>
             </label>
             <div class="input-row">
-              <select id="soil_confidence" name="soil_confidence">
+              <select id="soil_confidence" name="soil_confidence" title="Low: uses rock-class lower bound (dry/loose soil) — conservative, longer borefield. Medium: county-level estimate. High: rock-class upper bound — optimistic, shorter borefield.">
                 <option value="low" selected>Conservative (default) — no site data, k reduced ~17% → longer borefield</option>
                 <option value="medium">Medium — accept county-level k estimate as-is</option>
                 <option value="high">High — site thermal investigation completed, trust the data (k +10%)</option>

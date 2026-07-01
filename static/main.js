@@ -1,6 +1,25 @@
 (function () {
   'use strict';
 
+  const ROCK_CLASS_LABELS = {
+    alluvial_glacial:    'Alluvial / Glacial sediments',
+    clay_shale:          'Clay / Shale',
+    limestone_carbonate: 'Limestone / Carbonate',
+    sandstone:           'Sandstone',
+    granite_felsic:      'Granite / Felsic crystalline',
+    basalt_mafic:        'Basalt / Mafic volcanic',
+    metamorphic:         'Metamorphic (gneiss/schist)',
+    coal_organic:        'Coal / Organic',
+    undifferentiated:    'Undifferentiated bedrock',
+  };
+  const SOIL_CLASS_LABELS = {
+    gravel_coarse_sand: 'Gravel / Coarse sand',
+    medium_fine_sand:   'Medium-fine sand',
+    coarse_sand:        'Coarse sand',
+    silt_clay:          'Silt / Clay (loam)',
+    peat_organic:       'Peat / Organic',
+  };
+
   // ── Mode toggle (Smart / Manual) ─────────────────────────────────────
   const modeButtons = document.querySelectorAll('.mode-btn');
   const panelSmart  = document.getElementById('panel-smart');
@@ -133,10 +152,35 @@
     const kLine = kEff !== kRaw
       ? `k = ${kRaw} W/m·K → k<sub>eff</sub> = ${kEff} W/m·K (${confLabel})`
       : `k = ${kRaw} W/m·K (${confLabel})`;
+
+    // Build soil-class context line
+    const rockLabel  = site.rock_class  ? (ROCK_CLASS_LABELS[site.rock_class]  || site.rock_class)  : null;
+    const soilLabel  = site.shallow_soil_class ? (SOIL_CLASS_LABELS[site.shallow_soil_class] || site.shallow_soil_class) : null;
+    const classLine  = [
+      rockLabel  ? `<span title="SGMC bedrock class at depth">🪨 ${rockLabel}</span>` : null,
+      soilLabel  ? `<span title="SSURGO surface soil (0–2 m)">🌱 ${soilLabel}</span>` : null,
+    ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+    // k range bar: show [k_min ··· k_eff ··· k_max] if bounds available
+    let kRangeLine = '';
+    if (site.k_min != null && site.k_max != null) {
+      const pct = v => Math.min(100, Math.max(0, ((v - site.k_min) / (site.k_max - site.k_min)) * 100));
+      const markerPct = pct(kEff);
+      kRangeLine = `<div style="margin-top:4px;font-size:11px;color:#555">` +
+        `k range (${site.rock_class || 'rock class'}): ` +
+        `<span style="color:#2563eb">${site.k_min}</span> ` +
+        `<span style="display:inline-block;width:80px;height:6px;background:#e5e7eb;border-radius:3px;vertical-align:middle;position:relative">` +
+        `<span style="position:absolute;left:${markerPct}%;top:-2px;width:2px;height:10px;background:#1d4ed8;border-radius:1px"></span>` +
+        `</span> ` +
+        `<span style="color:#dc2626">${site.k_max}</span> W/m·K</div>`;
+    }
+
     document.getElementById('pipeline-s1').innerHTML =
       `${kLine} &nbsp;·&nbsp; α = ${site.alpha} m²/day &nbsp;·&nbsp; T<sub>g</sub> = ${site.T_g}°C<br>` +
       `Climate zone: ${site.climate_zone} &nbsp;·&nbsp; ` +
-      (site.data_available ? '✓ Deep borehole data' : '⚠ No soil data');
+      (site.data_available ? '✓ Deep borehole data' : '⚠ No soil data') +
+      (classLine ? `<br>${classLine}` : '') +
+      kRangeLine;
 
     const yearFactor = loads.year_factor ?? 1;
     const yearBuilt  = loads.year_built;
@@ -479,7 +523,6 @@
         label: `−Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
         data: Array(ds.length).fill(-cutoffW),
         borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-        parsing: false,
       });
     }
     if (dominantMode === 'cooling' || dominantMode === 'balanced') {
@@ -488,7 +531,6 @@
         label: `+Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
         data: Array(ds.length).fill(cutoffW),
         borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-        parsing: false,
       });
     }
 
@@ -504,7 +546,6 @@
             backgroundColor: colors,
             borderWidth: 0,
             label: 'Ground load',
-            parsing: false,
           },
           ...cutoffDatasets,
         ],
@@ -521,7 +562,6 @@
             },
           },
         },
-        datasets: {bar: {parsing: false}},
         scales: {
           x: {display: false},
           y: {
