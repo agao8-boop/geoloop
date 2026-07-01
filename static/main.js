@@ -461,10 +461,10 @@
     document.getElementById('s6-peaker-kw').textContent = `${res.peaker_kW.toFixed(1)} kW`;
     document.getElementById('s6-peaker-type').textContent = peakerLabel;
 
-    _renderS6ChartA('s6-chart-a', res.hourly_profile, res.cutoff_W, 180);
+    _renderS6ChartA('s6-chart-a', res.hourly_profile, 180);
   }
 
-  function _renderS6ChartA(canvasId, hourlyProfile, cutoffW, heightPx) {
+  function _renderS6ChartA(canvasId, hourlyProfile, heightPx) {
     // Downsample to 52 weekly averages for performance
     const weeklyAvg = [];
     for (let w = 0; w < 52; w++) {
@@ -477,7 +477,6 @@
     const colors = weeklyAvg.map(v => v < 0 ? 'rgba(59,130,246,0.7)' : 'rgba(239,68,68,0.7)');
 
     const canvas = document.getElementById(canvasId);
-    canvas.height = heightPx;
     if (canvas._chartInst) canvas._chartInst.destroy();
     canvas._chartInst = new Chart(canvas, {
       type: 'bar',
