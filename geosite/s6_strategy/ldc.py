@@ -13,6 +13,7 @@ def _monthly_averages(arr: np.ndarray) -> np.ndarray:
 
 
 def compute_ldc(profile: list, cutoff_pct: float) -> dict:
+    """Sort 8760h profile by |load| descending, return cutoff_W at x% rank and sorted_abs list."""
     arr = np.asarray(profile, dtype=float)
     sorted_abs = np.sort(np.abs(arr))[::-1]
     cutoff_idx = int(len(arr) * cutoff_pct / 100)
@@ -25,6 +26,7 @@ def compute_ldc(profile: list, cutoff_pct: float) -> dict:
 
 
 def trim_profile(profile: list, cutoff_W: float, dominant_mode: str) -> list:
+    """Clip loads to ±cutoff_W; 'heating'=clip negative only, 'cooling'=clip positive only, 'balanced'=clip both."""
     result = []
     for h in profile:
         if dominant_mode == "heating":
@@ -37,6 +39,7 @@ def trim_profile(profile: list, cutoff_W: float, dominant_mode: str) -> list:
 
 
 def extract_one_sided_pulses(profile: list, mode: str) -> tuple:
+    """Extract (q_h, q_m, q_y) for one-mode sizing; 'heating' zeroes positive hours (q_h<0), 'cooling' zeroes negative (q_h>0)."""
     arr = np.asarray(profile, dtype=float)
     if mode == "heating":
         one_sided = np.where(arr < 0, arr, 0.0)
@@ -51,6 +54,7 @@ def extract_one_sided_pulses(profile: list, mode: str) -> tuple:
 
 
 def rederive_three_pulse(trimmed: list) -> tuple:
+    """Return (q_h, q_m, q_y) from trimmed profile; auto-detects dominant mode from |heat| vs |cool| energy sums."""
     arr = np.asarray(trimmed, dtype=float)
     heat_energy = float(np.where(arr < 0, -arr, 0).sum())
     cool_energy = float(np.where(arr > 0, arr, 0).sum())
