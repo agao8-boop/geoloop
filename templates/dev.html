@@ -158,7 +158,13 @@
     .tt-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
     .tt-table td:nth-child(2) { color: var(--text-muted); font-style: italic; }
     .tt-table td:nth-child(3) { font-family: "SF Mono","Fira Code",monospace; font-size: 11px; color: #374151; }
+
+    /* ── s6 kv-row pattern ── */
+    .kv-row { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px solid var(--border); }
+    .kv-key { color: var(--text-muted); min-width: 120px; flex-shrink: 0; font-size: 12px; }
+    .kv-val { font-family: "SF Mono","Fira Code",monospace; color: var(--text); font-weight: 600; font-size: 12px; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="dev-banner">⚙ Developer Mode — not visible to public users &nbsp;|&nbsp; <a href="/" style="color:#6ee7b7">← User Tool</a></div>
@@ -175,7 +181,7 @@
           <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
           <li class="stage-item active-dim">s4 <span class="stage-name">Sizing</span></li>
           <li class="stage-item active-dim">s5 <span class="stage-name">Cost</span></li>
-          <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
+          <li class="stage-item active-dim">s6 <span class="stage-name">Strategy</span></li>
           <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
         </ul>
       </nav>
@@ -393,6 +399,56 @@ headline = total_usd / L_ft</div>
             <div class="step-card full-width">
               <div class="step-label">Output — Cost Scenarios &amp; Line Items</div>
               <div id="s5-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- s6: Hybrid Strategy -->
+        <div class="wf-section" id="s6-wf-section" style="display:none">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#0ea5e9">s6</span>
+            <span class="wf-title" style="font-size:13px">Hybrid Strategy — LDC Peak Shaving</span>
+          </div>
+          <div class="step-grid">
+            <!-- Case detection -->
+            <div class="step-card">
+              <div class="step-label">Case Detection</div>
+              <div class="kv-list" id="s6-case-out"><span class="step-empty">run a trace</span></div>
+            </div>
+            <!-- LDC params -->
+            <div class="step-card">
+              <div class="step-label">LDC Parameters</div>
+              <div class="kv-list" id="s6-ldc-out"><span class="step-empty">—</span></div>
+            </div>
+            <!-- Peaker -->
+            <div class="step-card">
+              <div class="step-label">Peaker Unit</div>
+              <div class="kv-list" id="s6-peaker-out"><span class="step-empty">—</span></div>
+            </div>
+            <!-- Before/after sizing -->
+            <div class="step-card full-width">
+              <div class="step-label">Sizing — Before vs After Peaker</div>
+              <div id="s6-sizing-out"><span class="step-empty">—</span></div>
+            </div>
+            <!-- Chart A: Annual profile -->
+            <div class="step-card full-width">
+              <div class="step-label">Chart A — Annual Hourly Ground Load Profile</div>
+              <div style="position:relative;height:360px"><canvas id="s6-dev-chart-a"></canvas></div>
+            </div>
+            <!-- Chart B: LDC curve -->
+            <div class="step-card full-width">
+              <div class="step-label">Chart B — Load Duration Curve</div>
+              <div style="position:relative;height:300px"><canvas id="s6-dev-chart-b"></canvas></div>
+            </div>
+            <!-- Chart C: Before/after comparison -->
+            <div class="step-card full-width">
+              <div class="step-label">Chart C — Before vs After (Borefield + Cost)</div>
+              <div style="position:relative;height:250px"><canvas id="s6-dev-chart-c"></canvas></div>
+            </div>
+            <!-- Full StrategyResult table -->
+            <div class="step-card full-width">
+              <div class="step-label">Full StrategyResult</div>
+              <div id="s6-full-out"><span class="step-empty">—</span></div>
             </div>
           </div>
         </div>
@@ -1273,8 +1329,217 @@ headline = total_usd / L_ft</div>
     s5html += '</tbody></table></details>';
     document.getElementById('s5-out').innerHTML = s5html;
 
-    btn.disabled=false; btn.textContent='Run Trace';
+    // s6: Hybrid Strategy
+    document.getElementById('s6-wf-section').style.display = 'block';
+    document.getElementById('s6-case-out').innerHTML = '<span class="step-empty">Calculating…</span>';
+
+    const s6Payload = {
+      building_type: body.building_type,
+      climate_zone:  s.climate_zone,
+      k:             s.k_effective,
+      alpha:         s.alpha,
+      T_g:           s.T_g,
+      NB:            parseInt(body.NB),
+      B:             parseFloat(body.B),
+      A:             parseFloat(body.A || 1.0),
+      state:         s.state_abbrev || null,
+      floor_area_m2: body.floor_area_m2 ? parseFloat(body.floor_area_m2) : null,
+      year_factor:   l.year_factor || 1.0,
+    };
+
+    fetch('/api/strategy', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(s6Payload),
+    })
+    .then(r => r.json())
+    .then(s6 => {
+      const peakerLabel = s6.peaker_type === 'electric_heater' ? 'Electric Heater'
+        : s6.peaker_type === 'chiller' ? 'Chiller' : 'Electric Heater + Chiller';
+
+      // Case detection kv-list
+      document.getElementById('s6-case-out').innerHTML = `
+        <div class="kv-row"><span class="kv-key">Case</span><span class="kv-val">${s6.case} (${s6.case === 1 ? 'Imbalanced' : 'Balanced'})</span></div>
+        <div class="kv-row"><span class="kv-key">Imbalance ratio</span><span class="kv-val">${s6.imbalance_ratio.toFixed(3)}×</span></div>
+        <div class="kv-row"><span class="kv-key">Dominant mode</span><span class="kv-val">${s6.dominant_mode}</span></div>
+        <div class="kv-row"><span class="kv-key">L_heating</span><span class="kv-val">${s6.L_h.toFixed(0)} m</span></div>
+        <div class="kv-row"><span class="kv-key">L_cooling</span><span class="kv-val">${s6.L_c.toFixed(0)} m</span></div>
+      `;
+
+      // LDC params
+      document.getElementById('s6-ldc-out').innerHTML = `
+        <div class="kv-row"><span class="kv-key">Cutoff %</span><span class="kv-val">${s6.ldc_cutoff_pct}%</span></div>
+        <div class="kv-row"><span class="kv-key">Cutoff W</span><span class="kv-val">${s6.cutoff_W.toFixed(0)} W (${(s6.cutoff_W/1000).toFixed(1)} kW)</span></div>
+        <div class="kv-row"><span class="kv-key">q_h before</span><span class="kv-val">${s6.q_h_before.toFixed(0)} W</span></div>
+        <div class="kv-row"><span class="kv-key">q_h trimmed</span><span class="kv-val">${s6.q_h_trimmed.toFixed(0)} W</span></div>
+        <div class="kv-row"><span class="kv-key">q_m before</span><span class="kv-val">${s6.q_m_before.toFixed(0)} W</span></div>
+        <div class="kv-row"><span class="kv-key">q_m trimmed</span><span class="kv-val">${s6.q_m_trimmed.toFixed(0)} W</span></div>
+        <div class="kv-row"><span class="kv-key">q_y before</span><span class="kv-val">${s6.q_y_before.toFixed(0)} W</span></div>
+        <div class="kv-row"><span class="kv-key">q_y trimmed</span><span class="kv-val">${s6.q_y_trimmed.toFixed(0)} W</span></div>
+      `;
+
+      // Peaker
+      document.getElementById('s6-peaker-out').innerHTML = `
+        <div class="kv-row"><span class="kv-key">Type</span><span class="kv-val">${peakerLabel}</span></div>
+        <div class="kv-row"><span class="kv-key">Capacity</span><span class="kv-val">${s6.peaker_kW.toFixed(1)} kW</span></div>
+        <div class="kv-row"><span class="kv-key">Heat-side</span><span class="kv-val">${s6.peaker_heat_kW.toFixed(1)} kW</span></div>
+        <div class="kv-row"><span class="kv-key">Cool-side</span><span class="kv-val">${s6.peaker_cool_kW.toFixed(1)} kW</span></div>
+      `;
+
+      // Sizing before/after
+      const reduction = s6.L_before > 0 ? ((1 - s6.L_after/s6.L_before)*100).toFixed(1) : 0;
+      const costSave = ((s6.cost_before.total_usd - s6.cost_after.total_usd)/1000).toFixed(0);
+      document.getElementById('s6-sizing-out').innerHTML = `
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr>
+            <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border)"></th>
+            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">Without Peaker</th>
+            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">With Peaker</th>
+            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">Reduction</th>
+          </tr></thead>
+          <tbody>
+            <tr><td style="padding:4px 8px">Total length L</td>
+                <td style="text-align:right;padding:4px 8px">${s6.L_before.toLocaleString()} m</td>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">${s6.L_after.toLocaleString()} m</td>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">−${reduction}%</td></tr>
+            <tr><td style="padding:4px 8px">Depth H</td>
+                <td style="text-align:right;padding:4px 8px">${s6.H_before.toLocaleString()} m</td>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">${s6.H_after.toLocaleString()} m</td>
+                <td style="text-align:right;padding:4px 8px">per borehole</td></tr>
+            <tr><td style="padding:4px 8px">Base cost</td>
+                <td style="text-align:right;padding:4px 8px">$${(s6.cost_before.total_usd/1000).toFixed(0)}k</td>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">$${(s6.cost_after.total_usd/1000).toFixed(0)}k</td>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">−$${costSave}k</td></tr>
+          </tbody>
+        </table>
+      `;
+
+      // Chart A: annual hourly profile (weekly averages, 52 bars)
+      _devChartA(s6.hourly_profile, s6.cutoff_W);
+      // Chart B: LDC curve (downsample to ~876 points: every 10th)
+      _devChartB(s6.hourly_profile, s6.cutoff_W);
+      // Chart C: before/after bars
+      _devChartC(s6);
+
+      // Full StrategyResult
+      const fullKeys = Object.keys(s6).filter(k => k !== 'hourly_profile');
+      let fullHtml = '<table style="width:100%;border-collapse:collapse;font-size:11px"><tbody>';
+      fullKeys.forEach(k => {
+        const v = s6[k];
+        const display = (v !== null && typeof v === 'object') ? JSON.stringify(v) : String(v);
+        fullHtml += `<tr><td style="padding:3px 8px;color:var(--text-muted);width:160px">${k}</td>` +
+          `<td style="padding:3px 8px;font-family:monospace;font-size:11px">${display}</td></tr>`;
+      });
+      fullHtml += '</tbody></table>';
+      document.getElementById('s6-full-out').innerHTML = fullHtml;
+
+      btn.disabled=false; btn.textContent='Run Trace';
+    })
+    .catch(err => {
+      document.getElementById('s6-case-out').innerHTML =
+        `<span class="step-empty" style="color:#ef4444">Error: ${err.message}</span>`;
+      btn.disabled=false; btn.textContent='Run Trace';
+    });
   });
+
+  function _devChartA(hourlyProfile, cutoffW) {
+    const weekly = [];
+    for (let w = 0; w < 52; w++) {
+      const sl = hourlyProfile.slice(w * 168, w * 168 + 168);
+      weekly.push(sl.reduce((a, b) => a + b, 0) / sl.length);
+    }
+    const colors = weekly.map(v => v < 0 ? 'rgba(59,130,246,0.8)' : 'rgba(239,68,68,0.8)');
+    const canvas = document.getElementById('s6-dev-chart-a');
+    if (canvas._ci) canvas._ci.destroy();
+    canvas._ci = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: weekly.map((_, i) => `W${i+1}`),
+        datasets: [
+          {data: weekly, backgroundColor: colors, borderWidth: 0, label: 'Ground load'},
+          {
+            type: 'line', label: `+Cutoff (${(cutoffW/1000).toFixed(1)}kW)`,
+            data: Array(52).fill(cutoffW), borderColor: '#f59e0b',
+            borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
+          },
+          {
+            type: 'line', label: `-Cutoff`,
+            data: Array(52).fill(-cutoffW), borderColor: '#f59e0b',
+            borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
+          },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: {legend: {display: true}},
+        scales: {
+          x: {display: false},
+          y: {ticks: {callback: v => `${(v/1000).toFixed(0)}kW`}},
+        },
+      },
+    });
+  }
+
+  function _devChartB(hourlyProfile, cutoffW) {
+    const sorted = [...hourlyProfile].map(Math.abs).sort((a, b) => b - a);
+    // Downsample: every 10th point → ~876 points
+    const ds = sorted.filter((_, i) => i % 10 === 0);
+    const canvas = document.getElementById('s6-dev-chart-b');
+    if (canvas._ci) canvas._ci.destroy();
+    canvas._ci = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: ds.map((_, i) => i * 10),
+        datasets: [
+          {
+            data: ds, borderColor: '#6366f1', borderWidth: 1.5,
+            pointRadius: 0, fill: false, label: '|Load| (W)',
+          },
+          {
+            type: 'line', data: Array(ds.length).fill(cutoffW),
+            borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0,
+            borderWidth: 1.5, label: `Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
+          },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: {legend: {display: true}},
+        scales: {
+          x: {title: {display: true, text: 'Rank (1=largest)'}},
+          y: {ticks: {callback: v => `${(v/1000).toFixed(0)}kW`}},
+        },
+      },
+    });
+  }
+
+  function _devChartC(s6) {
+    const canvas = document.getElementById('s6-dev-chart-c');
+    if (canvas._ci) canvas._ci.destroy();
+    canvas._ci = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['Borefield L (m)', 'Depth H (m/borehole)', 'Base Cost ($k)'],
+        datasets: [
+          {
+            label: 'Without Peaker',
+            data: [s6.L_before, s6.H_before, s6.cost_before.total_usd / 1000],
+            backgroundColor: 'rgba(99,102,241,0.7)',
+          },
+          {
+            label: 'With Peaker',
+            data: [s6.L_after, s6.H_after, s6.cost_after.total_usd / 1000],
+            backgroundColor: 'rgba(16,185,129,0.7)',
+          },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: {legend: {display: true}},
+        scales: {y: {beginAtZero: true}},
+      },
+    });
+  }
 
   // ── Section 5: Cost choropleth ──────────────────────────────────────
   (function () {
