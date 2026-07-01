@@ -547,6 +547,17 @@ def cost_map_api():
     return jsonify({"states": out})
 
 
+@app.route("/api/loads/hourly")
+def hourly_loads_api():
+    """Serve pre-extracted 8760h hourly ground load profiles (W) for all building × zone combos."""
+    p = _PUBLIC_DATA / "prototype_loads_hourly.json"
+    if not p.exists():
+        return jsonify({"error": "data_not_found",
+                        "message": "prototype_loads_hourly.json not generated yet"}), 404
+    import json as _json
+    return _json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
+
+
 @app.route("/dev")
 def developer():
     """Developer-only pipeline dashboard — not linked from the public UI."""
