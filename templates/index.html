@@ -19,7 +19,7 @@
           <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
           <li class="stage-item active"><a href="#">s4 <span class="stage-name">Sizing</span></a></li>
           <li class="stage-item active-dim">s5 <span class="stage-name">Cost</span></li>
-          <li class="stage-item disabled">s6 <span class="stage-name">Strategy</span><span class="badge">soon</span></li>
+          <li class="stage-item active-dim">s6 <span class="stage-name">Strategy</span></li>
           <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
         </ul>
       </nav>
@@ -267,6 +267,36 @@
           </details>
         </div>
 
+        <!-- s6: Hybrid Strategy -->
+        <div id="s6-section" style="display:none;margin-top:24px">
+          <h3 style="font-size:14px;font-weight:600;color:var(--text);margin:0 0 10px">
+            Hybrid System Strategy
+          </h3>
+          <div id="s6-headline" style="font-size:13px;color:var(--muted);margin-bottom:12px;font-style:italic">
+            Calculating…
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+            <div class="result-card" style="padding:10px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Without Peaker</div>
+              <div id="s6-before-L" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
+              <div id="s6-before-cost" style="font-size:12px;color:var(--muted)">—</div>
+            </div>
+            <div class="result-card" style="padding:10px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">With Peaker</div>
+              <div id="s6-after-L" style="font-size:20px;font-weight:700;color:#10b981">—</div>
+              <div id="s6-after-cost" style="font-size:12px;color:var(--muted)">—</div>
+            </div>
+            <div class="result-card" style="padding:10px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Peaker Unit</div>
+              <div id="s6-peaker-kw" style="font-size:20px;font-weight:700;color:#f59e0b">—</div>
+              <div id="s6-peaker-type" style="font-size:12px;color:var(--muted)">—</div>
+            </div>
+          </div>
+          <div style="position:relative;height:180px">
+            <canvas id="s6-chart-a"></canvas>
+          </div>
+        </div>
+
       </section><!-- /panel-smart -->
 
       <!-- ════════════════════════════════════════════
@@ -488,6 +518,7 @@
 
     </main>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script src="/static/main.js"></script>
 </body>
 </html>

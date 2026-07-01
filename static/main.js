@@ -70,6 +70,7 @@
     pipelinePanel.classList.add('hidden');
     smartResult.classList.add('hidden');
     document.getElementById('cost-section').classList.add('hidden');
+    document.getElementById('s6-section').style.display = 'none';
     smartBtn.disabled = true;
     smartBtn.textContent = 'Calculating…';
 
@@ -165,7 +166,9 @@
     // s5: fetch cost estimate
     const siteState = result.site && result.site.state_abbrev ? result.site.state_abbrev : null;
     const B_m = parseFloat(document.getElementById('s_B').value) || 6.0;
-    fetchCostEstimate(result.L, result.NB, B_m, siteState);
+    // Attach form-sourced building_type to result for use by s6 strategy call
+    result.building_type = body.building_type;
+    fetchCostEstimate(result.L, result.NB, B_m, siteState, result);
 
     resetSmartBtn();
   });
@@ -338,7 +341,7 @@
   });
 
   // ── s5: Cost estimate fetch and render ────────────────────────────────
-  function fetchCostEstimate(L_m, NB, B_m, state) {
+  function fetchCostEstimate(L_m, NB, B_m, state, smartRes) {
     fetch('/api/cost', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -392,8 +395,121 @@
           <td>$${item.rate}/LF</td>
           <td>$${Math.round(item.cost_usd).toLocaleString()}</td>`;
       });
+
+      // s6: trigger hybrid strategy section after cost section is rendered
+      if (smartRes) {
+        fetchStrategy(smartRes, {B: B_m, A: parseFloat(document.getElementById('s_A').value) || 1.0});
+      }
     })
     .catch(() => {}); // fail silently — sizing result still shows
+  }
+
+  // ── s6: Hybrid strategy fetch and render ─────────────────────────────
+  async function fetchStrategy(smartRes, costState) {
+    const s6Section = document.getElementById('s6-section');
+    s6Section.style.display = 'block';
+    document.getElementById('s6-headline').textContent = 'Calculating…';
+
+    const payload = {
+      building_type: smartRes.building_type,
+      climate_zone:  smartRes.site.climate_zone,
+      k:             smartRes.site.k_effective ?? smartRes.site.k,
+      alpha:         smartRes.site.alpha,
+      T_g:           smartRes.site.T_g,
+      NB:            smartRes.NB,
+      B:             costState.B,
+      A:             costState.A,
+      state:         smartRes.site.state_abbrev,
+      floor_area_m2: smartRes.loads.floor_area_m2 || null,
+      year_factor:   smartRes.loads.year_factor || 1.0,
+    };
+
+    let res;
+    try {
+      const resp = await fetch('/api/strategy', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      res = await resp.json();
+    } catch (err) {
+      document.getElementById('s6-headline').textContent = 'Strategy calculation failed.';
+      return;
+    }
+
+    if (!res || res.error) {
+      document.getElementById('s6-headline').textContent = res && res.message ? res.message : 'Strategy calculation failed.';
+      return;
+    }
+
+    const reduction = res.L_before > 0
+      ? Math.round((1 - res.L_after / res.L_before) * 100) : 0;
+    const peakerLabel = res.peaker_type === 'electric_heater' ? 'electric heater'
+      : res.peaker_type === 'chiller' ? 'chiller' : 'electric heater + chiller';
+
+    document.getElementById('s6-headline').textContent =
+      `Hybrid system reduces borefield from ${res.L_before.toLocaleString()} m → ` +
+      `${res.L_after.toLocaleString()} m (−${reduction}%) with a ` +
+      `${res.peaker_kW.toFixed(1)} kW ${peakerLabel}.`;
+
+    document.getElementById('s6-before-L').textContent = `${res.L_before.toLocaleString()} m`;
+    document.getElementById('s6-before-cost').textContent =
+      `$${(res.cost_before.total_usd / 1000).toFixed(0)}k base`;
+    document.getElementById('s6-after-L').textContent = `${res.L_after.toLocaleString()} m`;
+    document.getElementById('s6-after-cost').textContent =
+      `$${(res.cost_after.total_usd / 1000).toFixed(0)}k base`;
+    document.getElementById('s6-peaker-kw').textContent = `${res.peaker_kW.toFixed(1)} kW`;
+    document.getElementById('s6-peaker-type').textContent = peakerLabel;
+
+    _renderS6ChartA('s6-chart-a', res.hourly_profile, res.cutoff_W, 180);
+  }
+
+  function _renderS6ChartA(canvasId, hourlyProfile, cutoffW, heightPx) {
+    // Downsample to 52 weekly averages for performance
+    const weeklyAvg = [];
+    for (let w = 0; w < 52; w++) {
+      const start = w * 168;
+      const end = Math.min(start + 168, hourlyProfile.length);
+      const slice = hourlyProfile.slice(start, end);
+      weeklyAvg.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+    }
+    const labels = weeklyAvg.map((_, i) => `W${i + 1}`);
+    const colors = weeklyAvg.map(v => v < 0 ? 'rgba(59,130,246,0.7)' : 'rgba(239,68,68,0.7)');
+
+    const canvas = document.getElementById(canvasId);
+    canvas.height = heightPx;
+    if (canvas._chartInst) canvas._chartInst.destroy();
+    canvas._chartInst = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: weeklyAvg,
+          backgroundColor: colors,
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {display: false},
+          tooltip: {
+            callbacks: {
+              label: ctx => `${(ctx.raw / 1000).toFixed(1)} kW`,
+            },
+          },
+        },
+        scales: {
+          x: {display: false},
+          y: {
+            ticks: {callback: v => `${(v / 1000).toFixed(0)}kW`},
+            grid: {color: 'rgba(0,0,0,0.05)'},
+          },
+        },
+      },
+    });
   }
 
 })();
