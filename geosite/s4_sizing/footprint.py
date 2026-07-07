@@ -92,3 +92,56 @@ def compute_nb_range(
         "prototype_area_used": prototype_area_used,
     }
     return nb_min, nb_max, meta
+
+
+def find_optimal_nb(
+    nb_min: int,
+    nb_max: int,
+    q_h: float,
+    q_m: float,
+    q_y: float,
+    k: float,
+    alpha: float,
+    T_g: float,
+    H_min: float = 125.0,
+    B: float = 6.0,
+    A: float = 1.0,
+    **adv,
+) -> tuple[int, float, float]:
+    """Pick the NB in [nb_min, nb_max] that minimizes total drilled length L.
+
+    Candidates must satisfy the minimum-depth constraint H = L/NB >= H_min
+    (shallow holes waste mobilization cost and header pipe). L increases with
+    NB via the Tp interaction correction and H decreases, so the minimum-L
+    valid NB is expected at the low end — the full range is swept anyway
+    because the Tp polynomial is not guaranteed monotone near the boundary.
+
+    Fallback: when no range NB satisfies H >= H_min (small load), the field
+    is smaller than one footprint line; depth-primary sizing with
+    H_target=H_min decides NB instead (per the 2026-07-06 professor
+    directive: depth is the primary input). Callers detect the fallback as
+    nb_opt < nb_min. adv carries T_in_HP plus the 9 borehole/fluid params.
+
+    Returns (nb_opt, L_opt, H_opt).
+    """
+    common = dict(q_h=q_h, q_m=q_m, q_y=q_y, k=k, alpha=alpha, T_g=T_g, **adv)
+
+    L0 = float(size_borefield(**common))
+    if L0 <= 0:
+        return 1, L0, L0
+
+    best = None
+    for nb in range(nb_min, nb_max + 1):
+        L = float(size_borefield(**common, B=B, NB=nb, A=A))
+        if L <= 0:
+            continue
+        H = L / nb
+        if H < H_min:
+            continue
+        if best is None or L < best[1]:
+            best = (nb, L, H)
+    if best is not None:
+        return best
+
+    L, nb, H = size_borefield_for_depth(**common, B=B, A=A, H_target=H_min)
+    return nb, L, H

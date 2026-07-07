@@ -77,3 +77,54 @@ def test_invalid_inputs_raise():
         compute_nb_range(-5.0, "small_office")
     with pytest.raises(ValueError):
         compute_nb_range(None, "small_office", spacing_m=0.0)
+
+
+from geosite.s4_sizing.ashrae_sizing import size_borefield
+from geosite.s4_sizing.footprint import find_optimal_nb
+
+_ADV = dict(
+    Cp=4200.0, mfls=0.05, rbore=0.06, rpin=0.01365, rpext=0.0167,
+    kgrout=1.5, kpipe=0.42, LU=0.0511, hconv=1000.0,
+)
+_GROUND = dict(k=2.0, alpha=0.086, T_g=15.0)
+_BIG_COOL = dict(q_h=400_000.0, q_m=90_000.0, q_y=20_000.0, T_in_HP=40.2)
+_SMALL_COOL = dict(q_h=8_000.0, q_m=4_000.0, q_y=1_000.0, T_in_HP=40.2)
+
+
+def test_optimal_nb_within_range_and_meets_depth():
+    nb, L, H = find_optimal_nb(4, 69, **_BIG_COOL, **_GROUND,
+                               H_min=125.0, B=6.0, A=9.0, **_ADV)
+    assert 4 <= nb <= 69
+    assert H == pytest.approx(L / nb)
+    assert H >= 125.0
+    assert L > 0
+
+
+def test_optimal_nb_minimizes_L_over_valid_range():
+    nb, L, H = find_optimal_nb(4, 69, **_BIG_COOL, **_GROUND,
+                               H_min=125.0, B=6.0, A=9.0, **_ADV)
+    for cand in range(4, 70):
+        L_c = float(size_borefield(**_BIG_COOL, **_GROUND, **_ADV,
+                                   B=6.0, NB=cand, A=9.0))
+        if L_c > 0 and L_c / cand >= 125.0:
+            assert L <= L_c + 1e-9
+
+
+def test_small_load_falls_back_to_depth_primary():
+    # L0 ~ 101 m: even nb_min=2 gives H ~ 51 m < 125 -> no valid range NB;
+    # depth-primary fallback gives NB=1 < nb_min
+    nb, L, H = find_optimal_nb(2, 25, **_SMALL_COOL, **_GROUND,
+                               H_min=125.0, B=6.0, A=9.0, **_ADV)
+    assert nb < 2          # fallback signalled by nb_opt < nb_min
+    assert nb >= 1
+    assert L > 0
+    assert H == pytest.approx(L / nb)
+
+
+def test_nonbinding_constraint_returns_L0():
+    # Strong ground, tiny injection at high T_in_HP -> L can be non-positive
+    nb, L, H = find_optimal_nb(
+        2, 25, q_h=100.0, q_m=50.0, q_y=-5_000.0, T_in_HP=40.2,
+        **_GROUND, H_min=125.0, B=6.0, A=9.0, **_ADV)
+    assert nb == 1
+    assert L <= 0
