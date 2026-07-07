@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
+from geosite.s4_sizing.footprint import compute_nb_range, find_optimal_nb
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
 from geosite.models import SiteData, LoadPulses
@@ -147,18 +148,33 @@ def calculate_smart():
         return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
 
     # --- validate required fields ---
-    required = {"zip_code": str, "building_type": str,
-                "NB": int, "B": float, "A": float}
-    for field, _ in required.items():
+    for field in ("zip_code", "building_type", "B", "A"):
         if field not in data or str(data[field]).strip() == "":
             return jsonify({"error": "field", "field": field,
                             "message": f"'{field}' is required"}), 400
 
     zip_code = str(data["zip_code"]).strip()
     building_type = str(data["building_type"]).strip()
-    NB = int(data["NB"])
     B = float(data["B"])
     A = float(data["A"])
+
+    # NB fixed-count mode is legacy; footprint-derived NB is the default.
+    # data["NB"] may be JSON null (dev.html sends NaN -> null when blank).
+    NB = None
+    if data.get("NB") not in (None, ""):
+        try:
+            NB = int(data["NB"])
+        except (ValueError, TypeError):
+            return jsonify({"error": "field", "field": "NB",
+                            "message": "NB must be an integer"}), 400
+    try:
+        H_min = float(data.get("H_min", 125.0))
+    except (ValueError, TypeError):
+        return jsonify({"error": "field", "field": "H_min",
+                        "message": "H_min must be a number"}), 400
+    if not (30.0 <= H_min <= 300.0):
+        return jsonify({"error": "field", "field": "H_min",
+                        "message": "H_min must be between 30 and 300 m"}), 400
 
     # Optional: floor area scaling
     floor_area_m2 = None
@@ -196,7 +212,7 @@ def calculate_smart():
         soil_confidence = "medium"
     k_factor = _CONFIDENCE_K_FACTORS[soil_confidence]
 
-    if NB < 1:
+    if NB is not None and NB < 1:
         return jsonify({"error": "field", "field": "NB",
                         "message": "NB must be >= 1"}), 400
     if A < 1:
@@ -226,18 +242,24 @@ def calculate_smart():
         return jsonify({"error": "field", "field": "building_type",
                         "message": str(exc)}), 400
 
-    # Apply construction year correction factor to all three pulses
+    # Apply construction year correction factor to all pulses (NaN-safe)
+    def _scale(v: float) -> float:
+        return v * year_factor if v == v else float("nan")
+
     loads = LoadPulses(
         q_h=loads.q_h * year_factor,
         q_m=loads.q_m * year_factor,
         q_y=loads.q_y * year_factor,
+        q_h_heat=_scale(loads.q_h_heat),
+        q_m_heat=_scale(loads.q_m_heat),
+        q_h_cool=_scale(loads.q_h_cool),
+        q_m_cool=_scale(loads.q_m_cool),
     )
 
-    # Auto-detect dominant mode from load sign (negative = heating, positive = cooling)
+    # Dominant mode for backward-compat labels and single-pass fallback
     mode = "heating" if loads.q_h < 0 else "cooling"
 
-    # --- resolve system parameters (user override or default) ---
-    T_in_HP = float(data.get("T_in_HP", _T_IN_HP_DEFAULTS[mode]))
+    # --- resolve system parameters ---
     params = {k: float(data.get(k, v)) for k, v in _ADVANCED_DEFAULTS.items()}
 
     # Physics-grounded confidence: use Clauser-Huenges class bounds when available
@@ -247,29 +269,101 @@ def calculate_smart():
         if soil_confidence == "low":
             effective_k = site.k_min
         elif soil_confidence == "high":
-            # Upper bound, capped so it can't exceed 25% above county estimate
             effective_k = min(site.k_max, site.k * 1.25)
         else:
-            effective_k = site.k  # medium: county estimate unchanged
+            effective_k = site.k
     else:
-        effective_k = site.k * k_factor  # fallback: factor-based
+        effective_k = site.k * k_factor
 
-    # --- s4: borefield sizing ---
+    nb_min = nb_max = None
+    fp_meta = None
+    if NB is None:
+        try:
+            nb_min, nb_max, fp_meta = compute_nb_range(
+                floor_area_m2, building_type, spacing_m=B)
+        except (KeyError, ValueError) as exc:
+            return jsonify({"error": "field", "field": "building_type",
+                            "message": str(exc)}), 400
+
+    # --- s4: two-pass borefield sizing ---
+    # Run for both heating and cooling; the mode requiring more borefield governs.
+    # A negative result from either pass means that mode's constraint is not binding.
+    _has_both = (loads.q_h_heat == loads.q_h_heat) and (loads.q_h_cool == loads.q_h_cool)
+
     try:
-        L = size_borefield(
-            q_h=loads.q_h, q_m=loads.q_m, q_y=loads.q_y,
-            k=effective_k, alpha=site.alpha, T_g=site.T_g,
-            T_in_HP=T_in_HP,
-            B=B, NB=NB, A=A,
-            **params,
-        )
+        if _has_both:
+            T_heat = float(data.get("T_in_HP_heat", _T_IN_HP_DEFAULTS["heating"]))
+            T_cool = float(data.get("T_in_HP_cool", _T_IN_HP_DEFAULTS["cooling"]))
+            if NB is not None:
+                L_heat = size_borefield(
+                    q_h=loads.q_h_heat, q_m=loads.q_m_heat, q_y=loads.q_y,
+                    k=effective_k, alpha=site.alpha, T_g=site.T_g,
+                    T_in_HP=T_heat, B=B, NB=NB, A=A, **params,
+                )
+                L_cool = size_borefield(
+                    q_h=loads.q_h_cool, q_m=loads.q_m_cool, q_y=loads.q_y,
+                    k=effective_k, alpha=site.alpha, T_g=site.T_g,
+                    T_in_HP=T_cool, B=B, NB=NB, A=A, **params,
+                )
+                governing = "heating" if L_heat >= L_cool else "cooling"
+                L = max(L_heat, L_cool)
+                NB_out, H = NB, L / NB
+            else:
+                NB_h, L_heat, H_h = find_optimal_nb(
+                    nb_min, nb_max,
+                    q_h=loads.q_h_heat, q_m=loads.q_m_heat, q_y=loads.q_y,
+                    k=effective_k, alpha=site.alpha, T_g=site.T_g,
+                    H_min=H_min, B=B, A=A, T_in_HP=T_heat, **params,
+                )
+                NB_c, L_cool, H_c = find_optimal_nb(
+                    nb_min, nb_max,
+                    q_h=loads.q_h_cool, q_m=loads.q_m_cool, q_y=loads.q_y,
+                    k=effective_k, alpha=site.alpha, T_g=site.T_g,
+                    H_min=H_min, B=B, A=A, T_in_HP=T_cool, **params,
+                )
+                governing = "heating" if L_heat >= L_cool else "cooling"
+                L, NB_out, H = ((L_heat, NB_h, H_h) if governing == "heating"
+                                else (L_cool, NB_c, H_c))
+        else:
+            T_in_HP = float(data.get("T_in_HP", _T_IN_HP_DEFAULTS[mode]))
+            L_heat = None
+            L_cool = None
+            governing = mode
+            if NB is not None:
+                L = size_borefield(
+                    q_h=loads.q_h, q_m=loads.q_m, q_y=loads.q_y,
+                    k=effective_k, alpha=site.alpha, T_g=site.T_g,
+                    T_in_HP=T_in_HP, B=B, NB=NB, A=A, **params,
+                )
+                NB_out, H = NB, L / NB
+            else:
+                NB_out, L, H = find_optimal_nb(
+                    nb_min, nb_max,
+                    q_h=loads.q_h, q_m=loads.q_m, q_y=loads.q_y,
+                    k=effective_k, alpha=site.alpha, T_g=site.T_g,
+                    H_min=H_min, B=B, A=A, T_in_HP=T_in_HP, **params,
+                )
     except Exception as exc:
         return jsonify({"error": "calculation", "message": str(exc)}), 500
 
+    # Thermal imbalance metrics (only meaningful when two-pass ran)
+    imbalance_m = round(abs(L_heat - L_cool)) if (L_heat is not None and L_cool is not None) else None
+    # Ground cools over time when net annual extraction (q_y < 0); solar thermal can offset
+    solar_thermal_recommended = loads.q_y < 0
+
     return jsonify({
         "L": round(L),
-        "H": round(L / NB),
-        "NB": NB,
+        "H": round(H),
+        "NB": NB_out,
+        "nb_min": nb_min,
+        "nb_max": nb_max,
+        "H_min": None if NB is not None else H_min,
+        "footprint": fp_meta,
+        "governing": governing,
+        "L_heat": round(L_heat) if L_heat is not None else None,
+        "L_cool": round(L_cool) if L_cool is not None else None,
+        "imbalance_m": imbalance_m,
+        "solar_thermal_recommended": solar_thermal_recommended,
         "site": {
             "k": site.k,
             "k_effective": round(effective_k, 3),
@@ -289,6 +383,8 @@ def calculate_smart():
             "q_h": loads.q_h,
             "q_m": loads.q_m,
             "q_y": loads.q_y,
+            "q_h_heat": None if not _has_both else loads.q_h_heat,
+            "q_h_cool": None if not _has_both else loads.q_h_cool,
             "mode": mode,
             "year_built": year_built,
             "year_factor": year_factor,
@@ -590,7 +686,7 @@ def strategy_api():
     if data is None:
         return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
 
-    for field in ("building_type", "climate_zone", "k", "alpha", "T_g", "NB", "B", "A"):
+    for field in ("building_type", "climate_zone", "k", "alpha", "T_g", "B"):
         if field not in data or str(data[field]).strip() == "":
             return jsonify({"error": "field", "field": field,
                             "message": f"'{field}' is required"}), 400
@@ -603,14 +699,16 @@ def strategy_api():
         k     = float(data["k"])
         alpha = float(data["alpha"])
         T_g   = float(data["T_g"])
-        NB    = int(data["NB"])
         B     = float(data["B"])
-        A     = float(data["A"])
+        A     = float(data.get("A", 9.0))
+        NB    = int(data["NB"]) if data.get("NB") not in (None, "") else None
     except (ValueError, TypeError) as exc:
         return jsonify({"error": "field", "message": str(exc)}), 400
 
     ldc_cutoff_pct      = float(data.get("ldc_cutoff_pct", 10.0))
     imbalance_threshold = float(data.get("imbalance_threshold", 1.25))
+    H_min               = float(data.get("H_min", 125.0))
+    ignore_top_pct      = float(data.get("ignore_top_pct", 0.4))
 
     floor_area_m2 = None
     if data.get("floor_area_m2"):
@@ -636,7 +734,9 @@ def strategy_api():
             climate_zone=climate_zone,
             k=k, alpha=alpha, T_g=T_g,
             NB=NB, B=B, A=A,
+            H_min=H_min,
             ldc_cutoff_pct=ldc_cutoff_pct,
+            ignore_top_pct=ignore_top_pct,
             imbalance_threshold=imbalance_threshold,
             floor_area_m2=floor_area_m2,
             year_factor=year_factor,
