@@ -39,3 +39,29 @@ def test_unknown_building_type_raises():
 def test_unknown_climate_zone_raises():
     with pytest.raises(KeyError, match="9Z"):
         lookup_prototype_loads("small_office", "9Z", loads_json=FIXTURE_JSON)
+
+
+def test_get_loads_envelope_factor_default_is_identity():
+    from geosite.s2_simulation import get_loads
+    base = get_loads("small_office", "5A")
+    same = get_loads("small_office", "5A", envelope_factor=1.0)
+    assert same.q_h == base.q_h
+    assert same.q_m == base.q_m
+    assert same.q_y == base.q_y
+
+
+def test_get_loads_envelope_factor_scales_linearly():
+    from geosite.s2_simulation import get_loads
+    base = get_loads("small_office", "5A")
+    x2 = get_loads("small_office", "5A", envelope_factor=2.0)
+    assert x2.q_h == pytest.approx(2.0 * base.q_h)
+    assert x2.q_m == pytest.approx(2.0 * base.q_m)
+    assert x2.q_y == pytest.approx(2.0 * base.q_y)
+
+
+def test_get_loads_envelope_factor_nan_safe():
+    from geosite.s2_simulation import get_loads
+    loads = get_loads("small_office", "5A", envelope_factor=2.0)
+    # cross-mode fields either scale or stay NaN — never crash
+    for v in (loads.q_h_heat, loads.q_h_cool):
+        assert (v != v) or isinstance(v, float)
