@@ -249,6 +249,30 @@
               <option value="high">High</option>
             </select>
           </div>
+          <div class="trace-field">
+            <label>WWR</label>
+            <select id="t-wwr">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="trace-field">
+            <label>Envelope</label>
+            <select id="t-envelope">
+              <option value="high">High perf</option>
+              <option value="standard" selected>Standard</option>
+              <option value="low">Low perf</option>
+            </select>
+          </div>
+          <div class="trace-field">
+            <label>Glazing</label>
+            <select id="t-glazing">
+              <option value="triple">Triple</option>
+              <option value="double" selected>Double</option>
+              <option value="single">Single</option>
+            </select>
+          </div>
           <div class="trace-field"><label>NB</label><input type="number" id="t-nb" value="16" style="width:55px"></div>
           <div class="trace-field"><label>B (m)</label><input type="number" id="t-b" value="6.0" step="0.1" style="width:65px"></div>
           <div class="trace-field"><label>A</label><input type="number" id="t-a" value="1.0" step="0.1" style="width:55px"></div>
@@ -1298,6 +1322,9 @@ headline = total_usd / L_ft</div>
       zip_code:        document.getElementById('t-zip').value.trim(),
       building_type:   document.getElementById('t-bldg').value,
       soil_confidence: document.getElementById('t-conf').value,
+      wwr:             document.getElementById('t-wwr').value,
+      envelope:        document.getElementById('t-envelope').value,
+      glazing:         document.getElementById('t-glazing').value,
       NB:              parseFloat(document.getElementById('t-nb').value),
       B:               parseFloat(document.getElementById('t-b').value),
       A:               parseFloat(document.getElementById('t-a').value),
@@ -1363,6 +1390,8 @@ headline = total_usd / L_ft</div>
       kv('climate_zone',   s.climate_zone) +
       kv('floor_area_m2',  floorNote) +
       kv('year_built',     yearNote) +
+      kv('wwr / envelope / glazing', `${l.wwr ?? '—'} / ${l.envelope ?? '—'} / ${l.glazing ?? '—'}`) +
+      kv('envelope_factor', l.envelope_factor != null ? `×${l.envelope_factor.toFixed(2)} (placeholder — awaiting calibration)` : '×1.00') +
       kv('source',         'data/public/prototype_loads.json (EnergyPlus pre-computed)');
 
     const autoMode  = l.mode;
