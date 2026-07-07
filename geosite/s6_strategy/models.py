@@ -45,6 +45,33 @@ class StrategyResult:
     hourly_profile: list         # original ground load (W)
     hourly_trimmed: list         # trimmed ground load (W)
 
+    # ASHRAE cap & constraints
+    cap_W: float              # 99.6th-percentile load (design ceiling) [W]
+    ignore_top_pct: float     # % of hours capped (0.4 → ASHRAE 99.6%)
+    H_min: float              # minimum borehole depth constraint [m]
+
+    # Method 1 — hours-based
+    m1_cutoff_W: float
+    m1_cutoff_h: int
+    m1_gshp_hours_pct: float
+    m1_gshp_energy_pct: float
+    m1_peaker_kW: float
+    m1_L_after: float
+    m1_H_after: float
+
+    # Method 2 — energy-based
+    m2_cutoff_W: float
+    m2_cutoff_h: int
+    m2_gshp_hours_pct: float
+    m2_gshp_energy_pct: float
+    m2_peaker_kW: float
+    m2_L_after: float
+    m2_H_after: float
+
+    # Footprint-derived NB range (None when NB was user-fixed)
+    nb_min: int | None = None
+    nb_max: int | None = None
+
     def to_dict(self) -> dict:
         return {
             "case": self.case,
@@ -73,4 +100,33 @@ class StrategyResult:
             "cost_after": self.cost_after,
             "hourly_profile": [round(v, 2) for v in self.hourly_profile],
             "hourly_trimmed": [round(v, 2) for v in self.hourly_trimmed],
+            "cap_W": round(self.cap_W, 1),
+            "ignore_top_pct": self.ignore_top_pct,
+            "H_min": self.H_min,
+            "nb_min": self.nb_min,
+            "nb_max": self.nb_max,
+            "comparison": {
+                "m1": {
+                    "method": "hours",
+                    "cutoff_W": round(self.m1_cutoff_W, 1),
+                    "cutoff_h": self.m1_cutoff_h,
+                    "gshp_hours_pct": self.m1_gshp_hours_pct,
+                    "gshp_energy_pct": self.m1_gshp_energy_pct,
+                    "peaker_kW": round(self.m1_peaker_kW, 1),
+                    "L_after": round(self.m1_L_after),
+                    "H_after": round(self.m1_H_after),
+                    "savings_pct": round(100.0 * (1 - self.m1_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,
+                },
+                "m2": {
+                    "method": "energy",
+                    "cutoff_W": round(self.m2_cutoff_W, 1),
+                    "cutoff_h": self.m2_cutoff_h,
+                    "gshp_hours_pct": self.m2_gshp_hours_pct,
+                    "gshp_energy_pct": self.m2_gshp_energy_pct,
+                    "peaker_kW": round(self.m2_peaker_kW, 1),
+                    "L_after": round(self.m2_L_after),
+                    "H_after": round(self.m2_H_after),
+                    "savings_pct": round(100.0 * (1 - self.m2_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,
+                },
+            },
         }
