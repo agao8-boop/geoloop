@@ -66,6 +66,7 @@ def run_strategy(
     imbalance_threshold: float = 1.25,
     floor_area_m2=None,
     year_factor: float = 1.0,
+    envelope_factor: float = 1.0,
     state=None,
     **sizing_params,
 ) -> StrategyResult:
@@ -75,12 +76,13 @@ def run_strategy(
     A: borefield array aspect ratio (default 9.0, elongated arrangement).
     H_min: minimum borehole depth [m] used when computing NB (default 125 m).
     ignore_top_pct: top % of hours capped at ASHRAE design-condition load (default 0.4% → 99.6%).
+    envelope_factor: building-design load multiplier (WWR x envelope x glazing); 1.0 until calibrated.
     """
     adv = {k_: sizing_params.get(k_, v) for k_, v in _ADVANCED_DEFAULTS.items()}
 
     # --- Load and scale profile ---
     raw_profile = load_hourly_profile(building_type, climate_zone)
-    scale = year_factor
+    scale = year_factor * envelope_factor
     if floor_area_m2 is not None:
         proto_area = _PROTOTYPE_AREAS_M2[building_type]
         scale *= floor_area_m2 / proto_area

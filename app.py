@@ -11,6 +11,9 @@ from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s4_sizing.footprint import compute_nb_range, find_optimal_nb
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
+from geosite.s2_simulation.envelope import (
+    WWR_OPTIONS, ENVELOPE_OPTIONS, GLAZING_OPTIONS, compute_envelope_factor,
+)
 from geosite.models import SiteData, LoadPulses
 from geosite.s5_cost import estimate_cost
 from geosite.s6_strategy import run_strategy
@@ -48,6 +51,13 @@ def calculate():
             return jsonify({"error": "field", "field": f,
                             "message": f"'{f}' must be a number"}), 400
 
+    design, err = _parse_design_fields(data)
+    if err:
+        return err
+    wwr, envelope, glazing, envelope_factor = design
+    for f in ("q_h", "q_m", "q_y"):
+        values[f] *= envelope_factor
+
     # --- validate ranges ---
     if not (0.025 <= values["alpha"] <= 0.2):
         return jsonify({"error": "field", "field": "alpha",
@@ -76,7 +86,8 @@ def calculate():
     except Exception as exc:
         return jsonify({"error": "calculation", "message": str(exc)}), 500
 
-    return jsonify({"L": round(L), "H": round(L / values["NB"]), "NB": values["NB"]})
+    return jsonify({"L": round(L), "H": round(L / values["NB"]),
+                    "NB": values["NB"], "envelope_factor": envelope_factor})
 
 
 # Engineering defaults for borehole/system parameters (Advanced tab values)
@@ -92,6 +103,20 @@ _ADVANCED_DEFAULTS = {
     "hconv":  1000.0,
 }
 _T_IN_HP_DEFAULTS = {"heating": 5.0, "cooling": 40.2}
+
+
+def _parse_design_fields(data):
+    """Return (wwr, envelope, glazing, envelope_factor) or a Flask 400 tuple."""
+    wwr      = str(data.get("wwr", "medium")).strip().lower()
+    envelope = str(data.get("envelope", "standard")).strip().lower()
+    glazing  = str(data.get("glazing", "double")).strip().lower()
+    for field, value, options in (("wwr", wwr, WWR_OPTIONS),
+                                  ("envelope", envelope, ENVELOPE_OPTIONS),
+                                  ("glazing", glazing, GLAZING_OPTIONS)):
+        if value not in options:
+            return None, (jsonify({"error": "field", "field": field,
+                                   "message": f"'{field}' must be one of {sorted(options)}"}), 400)
+    return (wwr, envelope, glazing, compute_envelope_factor(wwr, envelope, glazing)), None
 
 # Piecewise-linear breakpoints: (construction_year, load_factor vs 90.1-2019 prototype)
 # Sources: DOE/PNNL ASHRAE 90.1 savings analyses; CBECS 2018 EUI vintage ratios (DOE EIA)
@@ -212,6 +237,11 @@ def calculate_smart():
         soil_confidence = "medium"
     k_factor = _CONFIDENCE_K_FACTORS[soil_confidence]
 
+    design, err = _parse_design_fields(data)
+    if err:
+        return err
+    wwr, envelope, glazing, envelope_factor = design
+
     if NB is not None and NB < 1:
         return jsonify({"error": "field", "field": "NB",
                         "message": "NB must be >= 1"}), 400
@@ -237,7 +267,8 @@ def calculate_smart():
     # --- s2: get building loads (with optional area scaling) ---
     try:
         loads: LoadPulses = get_loads(building_type, site.climate_zone,
-                                      floor_area_m2=floor_area_m2)
+                                      floor_area_m2=floor_area_m2,
+                                      envelope_factor=envelope_factor)
     except KeyError as exc:
         return jsonify({"error": "field", "field": "building_type",
                         "message": str(exc)}), 400
@@ -389,6 +420,10 @@ def calculate_smart():
             "year_built": year_built,
             "year_factor": year_factor,
             "floor_area_m2": floor_area_m2,
+            "wwr": wwr,
+            "envelope": envelope,
+            "glazing": glazing,
+            "envelope_factor": envelope_factor,
         },
     })
 
@@ -720,6 +755,17 @@ def strategy_api():
     elif data.get("year_built"):
         year_factor = _year_to_load_factor(int(data["year_built"]))
 
+    envelope_factor = 1.0
+    if data.get("envelope_factor") not in (None, ""):
+        try:
+            envelope_factor = float(data["envelope_factor"])
+        except (ValueError, TypeError):
+            return jsonify({"error": "field", "field": "envelope_factor",
+                            "message": "envelope_factor must be a number"}), 400
+    if not (0.0 < envelope_factor <= 10.0):
+        return jsonify({"error": "field", "field": "envelope_factor",
+                        "message": "envelope_factor must be in (0, 10]"}), 400
+
     sizing_params = {
         k_: float(data.get(k_, v))
         for k_, v in {
@@ -740,6 +786,7 @@ def strategy_api():
             imbalance_threshold=imbalance_threshold,
             floor_area_m2=floor_area_m2,
             year_factor=year_factor,
+            envelope_factor=envelope_factor,
             state=state,
             **sizing_params,
         )
