@@ -20,6 +20,14 @@
     peat_organic:       'Peat / Organic',
   };
 
+  function fmtInt(n) {
+    return n == null ? '—' : Math.round(n).toLocaleString('en-US');
+  }
+
+  function fmtUSD(n) {
+    return n == null ? '—' : '$' + Math.round(n).toLocaleString('en-US');
+  }
+
   // ── Mode toggle (Smart / Manual) ─────────────────────────────────────
   const modeButtons = document.querySelectorAll('.mode-btn');
   const panelSmart  = document.getElementById('panel-smart');
@@ -89,18 +97,21 @@
     pipelinePanel.classList.add('hidden');
     smartResult.classList.add('hidden');
     document.getElementById('cost-section').classList.add('hidden');
-    document.getElementById('s6-section').style.display = 'none';
+    document.getElementById('s6-section').classList.add('hidden');
     smartBtn.disabled = true;
+    smartBtn.classList.add('loading');
     smartBtn.textContent = 'Calculating…';
 
+    const nbRaw = document.getElementById('s_NB').value.trim();
     const body = {
       zip_code:        document.getElementById('zip_code').value.trim(),
       building_type:   document.getElementById('building_type').value,
-      NB:              parseFloat(document.getElementById('s_NB').value),
       B:               parseFloat(document.getElementById('s_B').value),
       A:               parseFloat(document.getElementById('s_A').value),
+      H_min:           parseFloat(document.getElementById('s_H_min').value) || 125,
       soil_confidence: document.getElementById('soil_confidence').value,
     };
+    if (nbRaw !== '') body.NB = parseInt(nbRaw, 10);
 
     // optional: floor area scaling
     const floorArea = document.getElementById('floor_area_m2').value.trim();
@@ -133,7 +144,7 @@
     if (!response.ok) {
       if (result.error === 'field') {
         // Remap s_NB/s_B/s_A back to their DOM names
-        const fieldMap = { NB: 's_NB', B: 's_B', A: 's_A' };
+        const fieldMap = { NB: 's_NB', B: 's_B', A: 's_A', H_min: 's_H_min' };
         const domField = fieldMap[result.field] || result.field;
         showFieldError(domField, result.message);
       } else {
@@ -157,8 +168,8 @@
     const rockLabel  = site.rock_class  ? (ROCK_CLASS_LABELS[site.rock_class]  || site.rock_class)  : null;
     const soilLabel  = site.shallow_soil_class ? (SOIL_CLASS_LABELS[site.shallow_soil_class] || site.shallow_soil_class) : null;
     const classLine  = [
-      rockLabel  ? `<span title="SGMC bedrock class at depth">🪨 ${rockLabel}</span>` : null,
-      soilLabel  ? `<span title="SSURGO surface soil (0–2 m)">🌱 ${soilLabel}</span>` : null,
+      rockLabel  ? `<span title="SGMC bedrock class at depth">Bedrock: ${rockLabel}</span>` : null,
+      soilLabel  ? `<span title="SSURGO surface soil (0–2 m)">Surface soil: ${soilLabel}</span>` : null,
     ].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
     // k range bar: show [k_min ··· k_eff ··· k_max] if bounds available
@@ -178,7 +189,7 @@
     document.getElementById('pipeline-s1').innerHTML =
       `${kLine} &nbsp;·&nbsp; α = ${site.alpha} m²/day &nbsp;·&nbsp; T<sub>g</sub> = ${site.T_g}°C<br>` +
       `Climate zone: ${site.climate_zone} &nbsp;·&nbsp; ` +
-      (site.data_available ? '✓ Deep borehole data' : '⚠ No soil data') +
+      (site.data_available ? 'Deep borehole data available' : 'No soil data — defaults used') +
       (classLine ? `<br>${classLine}` : '') +
       kRangeLine;
 
@@ -201,9 +212,56 @@
     pipelinePanel.classList.remove('hidden');
 
     // Show sizing result
-    document.getElementById('sres-L').textContent  = result.L?.toLocaleString();
-    document.getElementById('sres-H').textContent  = result.H?.toLocaleString();
-    document.getElementById('sres-NB').textContent = result.NB?.toLocaleString();
+    document.getElementById('sres-L').textContent  = fmtInt(result.L);
+    document.getElementById('sres-H').textContent  = fmtInt(result.H);
+    document.getElementById('sres-NB').textContent = fmtInt(result.NB);
+    const nbRange = document.getElementById('sres-NB-range');
+    if (result.nb_min != null && result.nb_max != null) {
+      nbRange.textContent = result.NB < result.nb_min
+        ? `below footprint range ${result.nb_min}–${result.nb_max} (small load — depth-primary fallback)`
+        : `optimal within footprint range ${result.nb_min}–${result.nb_max}`;
+    } else {
+      nbRange.textContent = 'user override';
+    }
+
+    // Two-pass sizing breakdown
+    const twoPassBlock = document.getElementById('two-pass-block');
+    if (result.L_heat != null && result.L_cool != null) {
+      document.getElementById('sres-L-heat').textContent = fmtInt(result.L_heat);
+      document.getElementById('sres-L-cool').textContent = fmtInt(result.L_cool);
+      const maxL = Math.max(result.L_heat, result.L_cool, 1);
+      document.getElementById('bar-L-heat').style.width =
+        `${Math.max(0, result.L_heat) / maxL * 100}%`;
+      document.getElementById('bar-L-cool').style.width =
+        `${Math.max(0, result.L_cool) / maxL * 100}%`;
+      document.getElementById('sres-governing').textContent =
+        result.governing === 'heating' ? 'Heating' : 'Cooling';
+
+      const imbalLine = document.getElementById('sres-imbalance-line');
+      if (result.imbalance_m != null) {
+        const imbalPct = result.L > 0 ? Math.round(result.imbalance_m / result.L * 100) : 0;
+        // Direction of ground temperature drift is determined by annual net load sign
+        const qy = result.loads?.q_y ?? 0;
+        const direction = qy < 0
+          ? 'net annual heat extraction → ground cools over time (thermal depletion)'
+          : 'net annual heat injection → ground warms over time (thermal saturation)';
+        imbalLine.innerHTML =
+          `Thermal imbalance: <strong>${result.imbalance_m.toLocaleString()} m</strong> ` +
+          `(${imbalPct}% of borefield length) — ${direction}`;
+      }
+
+      const solarLine = document.getElementById('sres-solar-line');
+      if (result.solar_thermal_recommended) {
+        solarLine.classList.remove('hidden');
+      } else {
+        solarLine.classList.add('hidden');
+      }
+
+      twoPassBlock.classList.remove('hidden');
+    } else {
+      twoPassBlock.classList.add('hidden');
+    }
+
     smartResult.classList.remove('hidden');
     smartResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -212,6 +270,7 @@
     const B_m = parseFloat(document.getElementById('s_B').value) || 6.0;
     // Attach form-sourced building_type to result for use by s6 strategy call
     result.building_type = body.building_type;
+    result.NB_user = body.NB ?? null;
     fetchCostEstimate(result.L, result.NB, B_m, siteState, result);
 
     resetSmartBtn();
@@ -219,6 +278,7 @@
 
   function resetSmartBtn() {
     smartBtn.disabled    = false;
+    smartBtn.classList.remove('loading');
     smartBtn.textContent = 'Calculate Borefield Size';
   }
 
@@ -347,6 +407,9 @@
   document.getElementById('calc-btn').addEventListener('click', async () => {
     clearManualErrors();
     document.getElementById('result-panel').classList.add('hidden');
+    const manualBtn = document.getElementById('calc-btn');
+    manualBtn.disabled = true;
+    manualBtn.classList.add('loading');
 
     const data = collectManualInputs();
 
@@ -360,6 +423,8 @@
       result = await response.json();
     } catch (err) {
       showCalcError('Network error: ' + err.message);
+      manualBtn.disabled = false;
+      manualBtn.classList.remove('loading');
       return;
     }
 
@@ -374,9 +439,13 @@
       } else {
         showCalcError(result.message || 'Calculation failed.');
       }
+      manualBtn.disabled = false;
+      manualBtn.classList.remove('loading');
       return;
     }
 
+    manualBtn.disabled = false;
+    manualBtn.classList.remove('loading');
     document.getElementById('res-L').textContent  = result.L.toLocaleString();
     document.getElementById('res-H').textContent  = result.H.toLocaleString();
     document.getElementById('res-NB').textContent = result.NB.toLocaleString();
@@ -394,17 +463,24 @@
     .then(r => r.json())
     .then(cost => {
       document.getElementById('cost-section').classList.remove('hidden');
-      const fmtTotal = (n) => '$' + Math.round(n).toLocaleString();
 
       document.getElementById('cost-region-tag').textContent = cost.region_used;
       document.getElementById('cost-state-tag').textContent = state || 'National';
 
       document.getElementById('cost-best-pft').textContent  = '$' + cost.best.cost_per_ft.toFixed(2);
-      document.getElementById('cost-best-total').textContent = fmtTotal(cost.best.total_usd);
+      document.getElementById('cost-best-total').textContent = fmtUSD(cost.best.total_usd);
       document.getElementById('cost-base-pft').textContent  = '$' + cost.base.cost_per_ft.toFixed(2);
-      document.getElementById('cost-base-total').textContent = fmtTotal(cost.base.total_usd);
+      document.getElementById('cost-base-total').textContent = fmtUSD(cost.base.total_usd);
       document.getElementById('cost-worst-pft').textContent = '$' + cost.worst.cost_per_ft.toFixed(2);
-      document.getElementById('cost-worst-total').textContent = fmtTotal(cost.worst.total_usd);
+      document.getElementById('cost-worst-total').textContent = fmtUSD(cost.worst.total_usd);
+
+      const best = cost.best.total_usd, base = cost.base.total_usd, worst = cost.worst.total_usd;
+      const span = Math.max(worst - best, 1);
+      document.getElementById('cost-range-min').textContent = fmtUSD(best);
+      document.getElementById('cost-range-max').textContent = fmtUSD(worst);
+      document.getElementById('cost-range-label').textContent = fmtUSD(base) + ' expected';
+      document.getElementById('cost-range-marker').style.left =
+        `${Math.min(100, Math.max(0, (base - best) / span * 100))}%`;
 
       document.getElementById('cost-cmp-base').textContent  = '$' + cost.base.cost_per_ft.toFixed(2);
       document.getElementById('cost-cmp-best').textContent  = '$' + cost.best.cost_per_ft.toFixed(2);
@@ -451,22 +527,26 @@
   // ── s6: Hybrid strategy fetch and render ─────────────────────────────
   async function fetchStrategy(smartRes, costState) {
     const s6Section = document.getElementById('s6-section');
-    s6Section.style.display = 'block';
+    s6Section.classList.remove('hidden');
     document.getElementById('s6-headline').textContent = 'Calculating…';
+    document.getElementById('s6-cap-note').classList.add('hidden');
+    document.getElementById('s6-comparison').classList.add('hidden');
 
+    const hMinVal = document.getElementById('s_H_min');
     const payload = {
       building_type: smartRes.building_type,
       climate_zone:  smartRes.site.climate_zone,
       k:             smartRes.site.k_effective ?? smartRes.site.k,
       alpha:         smartRes.site.alpha,
       T_g:           smartRes.site.T_g,
-      NB:            smartRes.NB,
       B:             costState.B,
       A:             costState.A,
+      H_min:         hMinVal ? parseFloat(hMinVal.value) : 125.0,
       state:         smartRes.site.state_abbrev,
       floor_area_m2: smartRes.loads.floor_area_m2 || null,
       year_factor:   smartRes.loads.year_factor || 1.0,
     };
+    if (smartRes.NB_user) payload.NB = smartRes.NB_user;
 
     let res;
     try {
@@ -486,52 +566,81 @@
       return;
     }
 
-    const reduction = res.L_before > 0
-      ? Math.round((1 - res.L_after / res.L_before) * 100) : 0;
+    const m1 = res.comparison?.m1 || {};
+    const m2 = res.comparison?.m2 || {};
     const peakerLabel = res.peaker_type === 'electric_heater' ? 'electric heater'
       : res.peaker_type === 'chiller' ? 'chiller' : 'electric heater + chiller';
 
     document.getElementById('s6-headline').textContent =
-      `Hybrid system reduces borefield from ${res.L_before.toLocaleString()} m → ` +
-      `${res.L_after.toLocaleString()} m (−${reduction}%) with a ` +
-      `${res.peaker_kW.toFixed(1)} kW ${peakerLabel}.`;
+      `Baseline borefield: ${fmtInt(res.L_before)} m. ` +
+      `M1 (hours): −${m1.savings_pct ?? 0}% → ${fmtInt(m1.L_after ?? 0)} m. ` +
+      `M2 (energy): −${m2.savings_pct ?? 0}% → ${fmtInt(m2.L_after ?? 0)} m.`;
 
-    document.getElementById('s6-before-L').textContent = `${res.L_before.toLocaleString()} m`;
+    document.getElementById('s6-before-L').textContent = `${fmtInt(res.L_before)} m`;
     document.getElementById('s6-before-cost').textContent =
       `$${(res.cost_before.total_usd / 1000).toFixed(0)}k base`;
-    document.getElementById('s6-after-L').textContent = `${res.L_after.toLocaleString()} m`;
+    document.getElementById('s6-after-L').textContent = m1.L_after ? `${fmtInt(m1.L_after)} m` : '—';
     document.getElementById('s6-after-cost').textContent =
       `$${(res.cost_after.total_usd / 1000).toFixed(0)}k base`;
     document.getElementById('s6-peaker-kw').textContent = `${res.peaker_kW.toFixed(1)} kW`;
     document.getElementById('s6-peaker-type').textContent = peakerLabel;
 
-    _renderS6ChartA('s6-chart-a', res.hourly_profile, res.cutoff_W, res.dominant_mode, 180);
+    // ASHRAE cap note
+    if (res.cap_W != null) {
+      document.getElementById('s6-cap-kw').textContent = (res.cap_W / 1000).toFixed(1);
+      document.getElementById('s6-nb-val').textContent = res.NB;
+      document.getElementById('s6-h-val').textContent = res.H_before != null ? Math.round(res.H_before) : '—';
+      document.getElementById('s6-cap-note').classList.remove('hidden');
+    }
+
+    // M1 vs M2 comparison table
+    if (m1.cutoff_W != null && m2.cutoff_W != null) {
+      document.getElementById('s6-m1-cutoff').textContent = `${(m1.cutoff_W/1000).toFixed(1)} kW`;
+      document.getElementById('s6-m2-cutoff').textContent = `${(m2.cutoff_W/1000).toFixed(1)} kW`;
+      document.getElementById('s6-m1-hrs').textContent = `${m1.cutoff_h} hrs`;
+      document.getElementById('s6-m2-hrs').textContent = `${m2.cutoff_h} hrs`;
+      document.getElementById('s6-m1-coverage').textContent = `${m1.gshp_hours_pct}% hrs · ${m1.gshp_energy_pct}% kWh`;
+      document.getElementById('s6-m2-coverage').textContent = `${m2.gshp_hours_pct}% hrs · ${m2.gshp_energy_pct}% kWh`;
+      document.getElementById('s6-m1-peaker').textContent = `${m1.peaker_kW} kW`;
+      document.getElementById('s6-m2-peaker').textContent = `${m2.peaker_kW} kW`;
+      document.getElementById('s6-m1-L').textContent = `${fmtInt(m1.L_after)} m`;
+      document.getElementById('s6-m2-L').textContent = `${fmtInt(m2.L_after)} m`;
+      document.getElementById('s6-m1-save').textContent = `−${m1.savings_pct}%`;
+      document.getElementById('s6-m2-save').textContent = `−${m2.savings_pct}%`;
+      document.getElementById('s6-comparison').classList.remove('hidden');
+    }
+
+    _renderS6ChartA('s6-chart-a', res.hourly_profile, m1.cutoff_W, m2.cutoff_W, res.cap_W, res.dominant_mode, 220);
   }
 
-  function _renderS6ChartA(canvasId, hourlyProfile, cutoffW, dominantMode, heightPx) {
+  function _renderS6ChartA(canvasId, hourlyProfile, m1CutoffW, m2CutoffW, capW, dominantMode, heightPx) {
     // Downsample to every 4th hour (2190 bars) for compact display
     const ds = hourlyProfile.filter((_, i) => i % 4 === 0);
     const colors = ds.map(h =>
-      h < 0 ? 'rgba(59,130,246,0.7)' : h > 0 ? 'rgba(239,68,68,0.7)' : 'transparent'
+      h < 0 ? 'rgba(37,99,235,0.65)' : h > 0 ? 'rgba(220,38,38,0.55)' : 'transparent'
     );
 
-    // Cutoff annotation datasets based on dominant mode
     const cutoffDatasets = [];
-    if (dominantMode === 'heating' || dominantMode === 'balanced') {
+    const addLine = (val, sign, color, dash, label) => {
+      if (val == null) return;
       cutoffDatasets.push({
-        type: 'line',
-        label: `−Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
-        data: Array(ds.length).fill(-cutoffW),
-        borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
+        type: 'line', label,
+        data: Array(ds.length).fill(sign * val),
+        borderColor: color, borderDash: dash, pointRadius: 0, borderWidth: 1.5,
       });
+    };
+
+    const heat = dominantMode === 'heating' || dominantMode === 'balanced';
+    const cool = dominantMode === 'cooling' || dominantMode === 'balanced';
+    if (heat) {
+      addLine(capW,     -1, '#dc2626', [2, 2], `ASHRAE cap (−${(capW/1000).toFixed(1)} kW)`);
+      addLine(m1CutoffW,-1, '#b45309', [6, 3], `M1 cutoff (−${(m1CutoffW/1000).toFixed(1)} kW)`);
+      addLine(m2CutoffW,-1, '#0ea5e9', [3, 3], `M2 cutoff (−${(m2CutoffW/1000).toFixed(1)} kW)`);
     }
-    if (dominantMode === 'cooling' || dominantMode === 'balanced') {
-      cutoffDatasets.push({
-        type: 'line',
-        label: `+Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
-        data: Array(ds.length).fill(cutoffW),
-        borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-      });
+    if (cool) {
+      addLine(capW,      1, '#dc2626', [2, 2], `ASHRAE cap (+${(capW/1000).toFixed(1)} kW)`);
+      addLine(m1CutoffW, 1, '#b45309', [6, 3], `M1 cutoff (+${(m1CutoffW/1000).toFixed(1)} kW)`);
+      addLine(m2CutoffW, 1, '#0ea5e9', [3, 3], `M2 cutoff (+${(m2CutoffW/1000).toFixed(1)} kW)`);
     }
 
     const canvas = document.getElementById(canvasId);
@@ -565,8 +674,12 @@
         scales: {
           x: {display: false},
           y: {
-            ticks: {callback: v => `${(v / 1000).toFixed(0)}kW`},
-            grid: {color: 'rgba(0,0,0,0.05)'},
+            ticks: {
+              callback: v => `${(v / 1000).toFixed(0)} kW`,
+              font: {family: "'Inter', sans-serif", size: 11},
+              color: '#5b6b7b',
+            },
+            grid: {color: 'rgba(22,35,47,0.06)'},
           },
         },
       },

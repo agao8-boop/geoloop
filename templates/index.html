@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GeoSite Advisor</title>
+  <title>GeoSite Advisor — Geothermal Borefield Sizing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -11,7 +14,10 @@
 
     <!-- ── Sidebar ── -->
     <aside class="sidebar">
-      <div class="sidebar-title">GeoSite Advisor</div>
+      <div>
+        <div class="sidebar-title">GeoSite Advisor</div>
+        <div class="sidebar-sub">Geothermal borefield feasibility</div>
+      </div>
       <nav>
         <ul class="stage-list">
           <li class="stage-item active-dim">s1 <span class="stage-name">Site</span></li>
@@ -31,6 +37,7 @@
     <!-- ── Main ── -->
     <main class="main">
       <h1 class="page-title">Borefield Sizing</h1>
+      <p class="page-sub">Vertical closed-loop ground-source heat pump sizing — ASHRAE three-pulse method (Philippe et&nbsp;al. 2010)</p>
 
       <!-- ── MODE TOGGLE ── -->
       <div class="mode-toggle">
@@ -132,12 +139,12 @@
         </div>
         <div class="card">
           <div class="field">
-            <label for="s_NB">Number of boreholes</label>
+            <label for="s_H_min">Minimum borehole depth <span class="hint-inline">— borehole count is derived from your building footprint; depths shallower than this are rejected</span></label>
             <div class="input-row">
-              <input type="number" id="s_NB" name="s_NB" min="1" value="16">
-              <span class="unit">—</span>
+              <input type="number" id="s_H_min" name="s_H_min" step="1" min="30" max="300" value="125">
+              <span class="unit">m</span>
             </div>
-            <span class="field-error" data-for="s_NB"></span>
+            <span class="field-error" data-for="s_H_min"></span>
           </div>
           <div class="field">
             <label for="s_B">Borehole spacing</label>
@@ -148,9 +155,9 @@
             <span class="field-error" data-for="s_B"></span>
           </div>
           <div class="field">
-            <label for="s_A">Aspect ratio <em>(≥ 1)</em></label>
+            <label for="s_A">Aspect ratio <em>(≥ 1)</em> <span class="hint-inline">— array elongation; 9 = 3×3 to 1×9 range</span></label>
             <div class="input-row">
-              <input type="number" id="s_A" name="s_A" step="0.1" min="1" value="1.0">
+              <input type="number" id="s_A" name="s_A" step="0.1" min="1" value="9.0">
               <span class="unit">—</span>
             </div>
             <span class="field-error" data-for="s_A"></span>
@@ -175,6 +182,14 @@
                 <span class="unit">kg/s·kW</span>
               </div>
             </div>
+            <div class="field">
+              <label for="s_NB">Borehole count override <span class="hint-inline">(fixes NB and skips the footprint search)</span></label>
+              <div class="input-row">
+                <input type="number" id="s_NB" name="s_NB" min="1" placeholder="auto from footprint">
+                <span class="unit">—</span>
+              </div>
+              <span class="field-error" data-for="s_NB"></span>
+            </div>
           </div>
         </details>
 
@@ -198,33 +213,74 @@
 
         <!-- Smart results -->
         <div id="smart-result" class="result-panel hidden">
-          <h2 class="result-title">Sizing Result</h2>
-          <div class="result-grid">
-            <div class="result-item">
-              <span class="result-label">Total borefield length L</span>
-              <span class="result-value"><span id="sres-L">—</span> m</span>
+          <div class="result-head">
+            <h2 class="result-title">Sizing Result</h2>
+            <span class="result-chip">Governing: <span id="sres-governing">—</span></span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat">
+              <span class="stat-label">Total borefield length</span>
+              <span class="stat-value"><span id="sres-L">—</span><span class="stat-unit">m</span></span>
             </div>
-            <div class="result-item">
-              <span class="result-label">Borehole depth H</span>
-              <span class="result-value"><span id="sres-H">—</span> m</span>
+            <div class="stat">
+              <span class="stat-label">Borehole depth</span>
+              <span class="stat-value"><span id="sres-H">—</span><span class="stat-unit">m</span></span>
             </div>
-            <div class="result-item">
-              <span class="result-label">Number of boreholes</span>
-              <span class="result-value"><span id="sres-NB">—</span></span>
+            <div class="stat">
+              <span class="stat-label">Boreholes</span>
+              <span class="stat-value"><span id="sres-NB">—</span></span>
+              <span class="stat-sub" id="sres-NB-range"></span>
+            </div>
+          </div>
+          <div id="two-pass-block" class="two-pass hidden">
+            <div class="two-pass-title">Two-pass sizing check
+              <span class="two-pass-sub">— heating and cooling evaluated independently; the larger governs</span>
+            </div>
+            <div class="mode-bars">
+              <div class="mode-bar-row">
+                <span class="mode-bar-label">Heating</span>
+                <div class="mode-bar-track"><div class="mode-bar-fill mode-bar-heat" id="bar-L-heat"></div></div>
+                <span class="mode-bar-value"><span id="sres-L-heat">—</span> m</span>
+              </div>
+              <div class="mode-bar-row">
+                <span class="mode-bar-label">Cooling</span>
+                <div class="mode-bar-track"><div class="mode-bar-fill mode-bar-cool" id="bar-L-cool"></div></div>
+                <span class="mode-bar-value"><span id="sres-L-cool">—</span> m</span>
+              </div>
+            </div>
+            <div id="sres-imbalance-line" class="two-pass-note"></div>
+            <div id="sres-solar-line" class="callout callout-warn hidden">
+              <strong>Thermal depletion risk:</strong> annual heat extraction exceeds injection (q<sub>y</sub> &lt; 0).
+              Ground temperature will decline over the 10-year design horizon. Consider a
+              <strong>solar thermal supplement</strong> (flat-plate collectors feeding ground-loop preheat)
+              to rebalance annual heat flux and reduce required borefield length.
             </div>
           </div>
         </div>
 
         <!-- s5: Cost Estimate (populated after sizing) -->
-        <div id="cost-section" class="hidden" style="margin-top:20px;">
+        <div id="cost-section" class="hidden">
           <div class="stage-header">
             <span class="stage-pill">s5</span>
             <span class="stage-label">Cost Estimate</span>
             <span class="stage-note">Regional drilling rates — <span id="cost-region-tag">—</span></span>
           </div>
 
-          <!-- Three-scenario cards -->
-          <div class="cost-scenarios" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div class="card cost-range">
+            <div class="cost-range-head">
+              <span class="cost-range-title">Installed cost range</span>
+              <span class="cost-range-total" id="cost-range-label">—</span>
+            </div>
+            <div class="cost-range-track">
+              <div class="cost-range-marker" id="cost-range-marker"></div>
+            </div>
+            <div class="cost-range-ends">
+              <span id="cost-range-min">—</span>
+              <span id="cost-range-max">—</span>
+            </div>
+          </div>
+
+          <div class="cost-grid">
             <div class="card cost-card" id="cost-best">
               <div class="cost-scenario-label">Best Case</div>
               <div class="cost-headline"><span id="cost-best-pft">—</span> <span class="cost-unit">$/ft</span></div>
@@ -242,8 +298,7 @@
             </div>
           </div>
 
-          <!-- Contractor comparison strip -->
-          <div class="card" style="padding:10px 16px;font-size:12px;margin-bottom:16px;color:var(--text-muted);">
+          <div class="card cost-note">
             <strong style="color:var(--text);">Contractor comparison:</strong>
             Your project (<span id="cost-state-tag">—</span>): <strong id="cost-cmp-base">—</strong>/ft &nbsp;|&nbsp;
             National avg: <strong id="cost-cmp-us">—</strong>/ft &nbsp;|&nbsp;
@@ -251,12 +306,9 @@
             Worst case: <strong id="cost-cmp-worst">—</strong>/ft
           </div>
 
-          <!-- Line-item table toggle -->
           <details>
-            <summary style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;margin-bottom:10px;">
-              Show line-item breakdown (base case)
-            </summary>
-            <table class="files-table" id="cost-breakdown-table" style="margin-top:8px;">
+            <summary class="breakdown-toggle">Show line-item breakdown (base case)</summary>
+            <table class="files-table" id="cost-breakdown-table">
               <thead>
                 <tr>
                   <th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Subtotal</th>
@@ -268,31 +320,80 @@
         </div>
 
         <!-- s6: Hybrid Strategy -->
-        <div id="s6-section" style="display:none;margin-top:24px">
-          <h3 style="font-size:14px;font-weight:600;color:var(--text);margin:0 0 10px">
-            Hybrid System Strategy
-          </h3>
-          <div id="s6-headline" style="font-size:13px;color:var(--muted);margin-bottom:12px;font-style:italic">
-            Calculating…
+        <div id="s6-section" class="hidden">
+          <div class="stage-header">
+            <span class="stage-pill">s6</span>
+            <span class="stage-label">Hybrid System Strategy</span>
+            <span class="stage-note">Load-duration-curve peak shaving</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-            <div class="result-card" style="padding:10px">
-              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Without Peaker</div>
-              <div id="s6-before-L" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-              <div id="s6-before-cost" style="font-size:12px;color:var(--muted)">—</div>
+          <div id="s6-headline" class="strategy-headline">Calculating…</div>
+          <div class="stat-grid stat-grid-3">
+            <div class="stat">
+              <span class="stat-label">Without peaker</span>
+              <span class="stat-value" id="s6-before-L">—</span>
+              <span class="stat-sub" id="s6-before-cost">—</span>
             </div>
-            <div class="result-card" style="padding:10px">
-              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">With Peaker</div>
-              <div id="s6-after-L" style="font-size:20px;font-weight:700;color:#10b981">—</div>
-              <div id="s6-after-cost" style="font-size:12px;color:var(--muted)">—</div>
+            <div class="stat stat-accent">
+              <span class="stat-label">With peaker (M1)</span>
+              <span class="stat-value" id="s6-after-L">—</span>
+              <span class="stat-sub" id="s6-after-cost">—</span>
             </div>
-            <div class="result-card" style="padding:10px">
-              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Peaker Unit</div>
-              <div id="s6-peaker-kw" style="font-size:20px;font-weight:700;color:#f59e0b">—</div>
-              <div id="s6-peaker-type" style="font-size:12px;color:var(--muted)">—</div>
+            <div class="stat stat-warn">
+              <span class="stat-label">Peaker unit</span>
+              <span class="stat-value" id="s6-peaker-kw">—</span>
+              <span class="stat-sub" id="s6-peaker-type">—</span>
             </div>
           </div>
-          <div style="position:relative;height:180px">
+          <div id="s6-cap-note" class="card cost-note hidden">
+            ASHRAE 99.6% design condition cap: <strong id="s6-cap-kw">—</strong> kW &nbsp;·&nbsp;
+            NB: <strong id="s6-nb-val">—</strong> boreholes &nbsp;·&nbsp;
+            H: <strong id="s6-h-val">—</strong> m each
+          </div>
+          <div id="s6-comparison" class="compare-block hidden">
+            <div class="compare-title">Cutoff method comparison</div>
+            <table class="files-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th class="num col-m1">M1 — Hours (top 10% hrs)</th>
+                  <th class="num col-m2">M2 — Energy (top 10% kWh)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Cutoff load</td>
+                  <td id="s6-m1-cutoff" class="num">—</td>
+                  <td id="s6-m2-cutoff" class="num">—</td>
+                </tr>
+                <tr>
+                  <td>Peaker hours</td>
+                  <td id="s6-m1-hrs" class="num">—</td>
+                  <td id="s6-m2-hrs" class="num">—</td>
+                </tr>
+                <tr>
+                  <td>GSHP covers</td>
+                  <td id="s6-m1-coverage" class="num">—</td>
+                  <td id="s6-m2-coverage" class="num">—</td>
+                </tr>
+                <tr>
+                  <td>Peaker size</td>
+                  <td id="s6-m1-peaker" class="num val-warn">—</td>
+                  <td id="s6-m2-peaker" class="num val-warn">—</td>
+                </tr>
+                <tr>
+                  <td>Borefield L</td>
+                  <td id="s6-m1-L" class="num val-good">—</td>
+                  <td id="s6-m2-L" class="num val-good">—</td>
+                </tr>
+                <tr>
+                  <td>Savings vs baseline</td>
+                  <td id="s6-m1-save" class="num val-good">—</td>
+                  <td id="s6-m2-save" class="num val-good">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="chart-wrap">
             <canvas id="s6-chart-a"></canvas>
           </div>
         </div>
