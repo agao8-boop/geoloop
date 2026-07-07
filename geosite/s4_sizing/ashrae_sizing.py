@@ -236,3 +236,70 @@ def size_borefield(
             L = L_new
 
     return L
+
+
+def size_borefield_for_depth(
+    q_h: float,
+    q_m: float,
+    q_y: float,
+    k: float,
+    alpha: float,
+    T_g: float,
+    Cp: float,
+    mfls: float,
+    T_in_HP: float,
+    rbore: float,
+    rpin: float,
+    rpext: float,
+    kgrout: float,
+    kpipe: float,
+    LU: float,
+    hconv: float,
+    B: float,
+    A: float = 1.0,
+    H_target: float = 125.0,
+    tol: float = 1.0,
+    max_nb_iter: int = 25,
+) -> tuple[float, int, float]:
+    """Depth-primary borefield sizing: derive NB from a target borehole depth.
+
+    Standard industry practice fixes the borehole depth (drill-rig capability,
+    typically 100-150 m) and derives the borehole count. Because NB feeds the
+    Tp interaction correction, L and NB are iterated to a joint fixed point:
+        NB = ceil(L / H_target)  with  L = size_borefield(..., NB=NB).
+
+    Returns
+    -------
+    (L, NB, H) : total length [m], borehole count, actual depth per hole [m].
+                 At the fixed point H <= H_target by construction.
+                 A non-positive L (non-binding fluid-temperature constraint)
+                 returns (L, 1, L) without iterating.
+    """
+    common = dict(
+        q_h=q_h, q_m=q_m, q_y=q_y, k=k, alpha=alpha, T_g=T_g,
+        Cp=Cp, mfls=mfls, T_in_HP=T_in_HP, rbore=rbore, rpin=rpin,
+        rpext=rpext, kgrout=kgrout, kpipe=kpipe, LU=LU, hconv=hconv,
+        tol=tol,
+    )
+    L = float(size_borefield(**common))
+    if L <= 0:
+        return L, 1, L
+
+    NB = max(1, math.ceil(L / H_target))
+    seen: set[int] = set()
+    for _ in range(max_nb_iter):
+        L = float(size_borefield(**common, B=B, NB=NB, A=A))
+        if L <= 0:
+            return L, 1, L
+        NB_new = max(1, math.ceil(L / H_target))
+        if NB_new == NB:
+            break
+        if NB_new in seen:
+            # ceil() can 2-cycle near a boundary; more boreholes = shallower,
+            # conservative side of the target depth
+            NB = max(NB, NB_new)
+            L = float(size_borefield(**common, B=B, NB=NB, A=A))
+            break
+        seen.add(NB)
+        NB = NB_new
+    return L, NB, L / NB
