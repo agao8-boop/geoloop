@@ -16,6 +16,8 @@ REQUIRED_IDS = [
     "zip_code", "soil_confidence", "building_type", "floor_area_m2",
     "year_built", "proto-area-hint", "year-factor-hint",
     "s_B", "s_A", "s_T_in_HP", "s_mfls",
+    "s_wwr", "s_envelope", "s_glazing",
+    "wwr", "envelope", "glazing",
     "smart-error", "smart-btn",
     "pipeline-panel", "pipeline-s1", "pipeline-s2",
     "smart-result", "sres-L", "sres-H", "sres-NB",

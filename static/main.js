@@ -110,6 +110,9 @@
       A:               parseFloat(document.getElementById('s_A').value),
       H_min:           parseFloat(document.getElementById('s_H_min').value) || 125,
       soil_confidence: document.getElementById('soil_confidence').value,
+      wwr:             document.getElementById('s_wwr').value,
+      envelope:        document.getElementById('s_envelope').value,
+      glazing:         document.getElementById('s_glazing').value,
     };
     if (nbRaw !== '') body.NB = parseInt(nbRaw, 10);
 
@@ -395,6 +398,7 @@
       'Cp', 'mfls', 'T_in_HP',
       'rbore', 'rpin', 'rpext', 'kgrout', 'kpipe', 'LU', 'hconv',
       'B', 'NB', 'A',
+      'wwr', 'envelope', 'glazing',
     ];
     const data = {};
     fields.forEach(name => {
@@ -545,6 +549,7 @@
       state:         smartRes.site.state_abbrev,
       floor_area_m2: smartRes.loads.floor_area_m2 || null,
       year_factor:   smartRes.loads.year_factor || 1.0,
+      envelope_factor: smartRes.loads.envelope_factor || 1.0,
     };
     if (smartRes.NB_user) payload.NB = smartRes.NB_user;
 

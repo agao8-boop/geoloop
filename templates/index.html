@@ -132,6 +132,48 @@
           </div>
         </div>
 
+        <!-- s2b: Building Design (efficiency multipliers — neutral until calibrated) -->
+        <div class="stage-header">
+          <span class="stage-pill">s2</span>
+          <span class="stage-label">Building Design</span>
+          <span class="stage-note">Efficiency multipliers pending calibration — all options currently neutral (×1.00)</span>
+        </div>
+        <div class="card">
+          <div class="field">
+            <label for="s_wwr">Window-Wall Ratio <span class="hint-inline">— share of wall area that is glass</span></label>
+            <div class="input-row">
+              <select id="s_wwr" name="s_wwr">
+                <option value="low">Low (&le; 20%)</option>
+                <option value="medium" selected>Medium (30&ndash;40%, prototype baseline)</option>
+                <option value="high">High (&ge; 50%)</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="s_wwr"></span>
+          </div>
+          <div class="field">
+            <label for="s_envelope">Envelope Efficiency <span class="hint-inline">— insulation and air sealing</span></label>
+            <div class="input-row">
+              <select id="s_envelope" name="s_envelope">
+                <option value="high">High performance</option>
+                <option value="standard" selected>Standard (code baseline)</option>
+                <option value="low">Low performance</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="s_envelope"></span>
+          </div>
+          <div class="field">
+            <label for="s_glazing">Glazing Type <span class="hint-inline">— glass quality</span></label>
+            <div class="input-row">
+              <select id="s_glazing" name="s_glazing">
+                <option value="triple">Triple-pane</option>
+                <option value="double" selected>Double-pane (standard)</option>
+                <option value="single">Single-pane</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="s_glazing"></span>
+          </div>
+        </div>
+
         <!-- s4: Borefield geometry (still user input) -->
         <div class="stage-header">
           <span class="stage-pill">s4</span>
@@ -445,6 +487,44 @@
                   <span class="unit">W</span>
                 </div>
                 <span class="field-error" data-for="q_y"></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2 class="card-title">Building Design</h2>
+              <p class="hint">Load multipliers — all options currently neutral (&times;1.00) pending calibration.</p>
+              <div class="field">
+                <label for="wwr">Window-Wall Ratio</label>
+                <div class="input-row">
+                  <select id="wwr" name="wwr">
+                    <option value="low">Low (&le; 20%)</option>
+                    <option value="medium" selected>Medium (30&ndash;40%)</option>
+                    <option value="high">High (&ge; 50%)</option>
+                  </select>
+                </div>
+                <span class="field-error" data-for="wwr"></span>
+              </div>
+              <div class="field">
+                <label for="envelope">Envelope Efficiency</label>
+                <div class="input-row">
+                  <select id="envelope" name="envelope">
+                    <option value="high">High performance</option>
+                    <option value="standard" selected>Standard</option>
+                    <option value="low">Low performance</option>
+                  </select>
+                </div>
+                <span class="field-error" data-for="envelope"></span>
+              </div>
+              <div class="field">
+                <label for="glazing">Glazing Type</label>
+                <div class="input-row">
+                  <select id="glazing" name="glazing">
+                    <option value="triple">Triple-pane</option>
+                    <option value="double" selected>Double-pane (standard)</option>
+                    <option value="single">Single-pane</option>
+                  </select>
+                </div>
+                <span class="field-error" data-for="glazing"></span>
               </div>
             </div>
 
