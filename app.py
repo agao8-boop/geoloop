@@ -12,6 +12,7 @@ from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s4_sizing.footprint import (
     compute_nb_range, find_optimal_nb, load_implied_nb_range,
 )
+from geosite.s4_sizing.defaults import ADVANCED_DEFAULTS, T_IN_HP_DEFAULTS
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
 from geosite.s2_simulation.envelope import (
@@ -93,19 +94,53 @@ def calculate():
                     "NB": values["NB"], "envelope_factor": envelope_factor})
 
 
-# Engineering defaults for borehole/system parameters (Advanced tab values)
-_ADVANCED_DEFAULTS = {
-    "Cp":     4200.0,
-    "mfls":   0.05,
-    "rbore":  0.06,
-    "rpin":   0.01365,
-    "rpext":  0.0167,
-    "kgrout": 1.5,
-    "kpipe":  0.42,
-    "LU":     0.0511,
-    "hconv":  1000.0,
-}
-_T_IN_HP_DEFAULTS = {"heating": 5.0, "cooling": 40.2}
+# Canonical defaults live in geosite.s4_sizing.defaults; aliases kept for
+# backward compatibility with existing references.
+_ADVANCED_DEFAULTS = ADVANCED_DEFAULTS
+_T_IN_HP_DEFAULTS = T_IN_HP_DEFAULTS
+
+
+def _parse_advanced_params(data):
+    """Parse + range-validate advanced borehole/fluid overrides.
+
+    Returns (params_dict, None) on success or (None, flask_error_tuple).
+    T_in_HP* values stay in `data` (consumed by _run_sizing); they are only
+    checked for numeric validity here.
+    """
+    params = {}
+    for key, default in ADVANCED_DEFAULTS.items():
+        raw = data.get(key, default)
+        if raw is None or str(raw).strip() == "":
+            raw = default
+        try:
+            params[key] = float(raw)
+        except (ValueError, TypeError):
+            return None, (jsonify({"error": "field", "field": key,
+                                   "message": f"'{key}' must be a number"}), 400)
+
+    if not (0.05 <= params["rbore"] <= 0.1):
+        return None, (jsonify({"error": "field", "field": "rbore",
+                               "message": "Borehole radius must be between 0.05 and 0.1 m"}), 400)
+    for key in ("Cp", "mfls", "kgrout", "kpipe", "hconv", "LU", "rpin", "rpext"):
+        if params[key] <= 0:
+            return None, (jsonify({"error": "field", "field": key,
+                                   "message": f"'{key}' must be positive"}), 400)
+    if not (params["rpin"] < params["rpext"] < params["rbore"]):
+        return None, (jsonify({"error": "field", "field": "rpext",
+                               "message": "Pipe radii must satisfy rpin < rpext < rbore"}), 400)
+    if not (params["LU"] < 2 * params["rbore"]):
+        return None, (jsonify({"error": "field", "field": "LU",
+                               "message": "U-tube spacing must be less than the borehole diameter"}), 400)
+
+    for key in ("T_in_HP", "T_in_HP_heat", "T_in_HP_cool"):
+        if data.get(key) not in (None, ""):
+            try:
+                float(data[key])
+            except (ValueError, TypeError):
+                return None, (jsonify({"error": "field", "field": key,
+                                       "message": f"'{key}' must be a number"}), 400)
+
+    return params, None
 
 
 def _parse_design_fields(data):
@@ -509,7 +544,9 @@ def calculate_smart():
     if err:
         return err
 
-    params = {k: float(data.get(k, v)) for k, v in _ADVANCED_DEFAULTS.items()}
+    params, err = _parse_advanced_params(data)
+    if err:
+        return err
 
     result, err = _run_sizing(
         q_pulses=payload["loads"],
@@ -660,7 +697,9 @@ def calculate_stage2():
             return jsonify({"error": "field", "field": "NB",
                             "message": "NB must be >= 1"}), 400
 
-    params = {k: float(data.get(k, v)) for k, v in _ADVANCED_DEFAULTS.items()}
+    params, err = _parse_advanced_params(data)
+    if err:
+        return err
 
     result, err = _run_sizing(
         q_pulses=q_pulses, effective_k=effective_k, alpha=alpha, T_g=T_g,
@@ -1010,13 +1049,9 @@ def strategy_api():
         return jsonify({"error": "field", "field": "envelope_factor",
                         "message": "envelope_factor must be in (0, 10]"}), 400
 
-    sizing_params = {
-        k_: float(data.get(k_, v))
-        for k_, v in {
-            "Cp": 4200.0, "mfls": 0.05, "rbore": 0.06, "rpin": 0.01365,
-            "rpext": 0.0167, "kgrout": 1.5, "kpipe": 0.42, "LU": 0.0511, "hconv": 1000.0,
-        }.items()
-    }
+    sizing_params, err = _parse_advanced_params(data)
+    if err:
+        return err
 
     try:
         result = run_strategy(

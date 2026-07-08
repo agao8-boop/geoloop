@@ -73,6 +73,31 @@ def test_stage2_rejects_missing_stage1_echo(client):
         assert resp.get_json()["field"] == missing
 
 
+def test_stage2_rejects_out_of_range_rbore(client):
+    resp = _post(client, dict(_BASE, rbore=0.2))
+    assert resp.status_code == 400
+    body = resp.get_json()
+    assert body["field"] == "rbore"
+    assert "0.05" in body["message"] and "0.1" in body["message"]
+
+
+def test_stage2_rejects_nonpositive_kgrout(client):
+    resp = _post(client, dict(_BASE, kgrout=0))
+    assert resp.status_code == 400
+    assert resp.get_json()["field"] == "kgrout"
+
+
+def test_stage2_rejects_non_numeric_t_in_hp_heat(client):
+    resp = _post(client, dict(_BASE, T_in_HP_heat="abc"))
+    assert resp.status_code == 400
+    assert resp.get_json()["field"] == "T_in_HP_heat"
+
+
+def test_stage2_rejects_inconsistent_pipe_radii(client):
+    resp = _post(client, dict(_BASE, rpin=0.02, rpext=0.0167))
+    assert resp.status_code == 400
+
+
 def test_stage2_rejects_out_of_range_h_min(client):
     resp = _post(client, dict(_BASE, H_min=1000))
     assert resp.status_code == 400

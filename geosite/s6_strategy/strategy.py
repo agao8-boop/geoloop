@@ -12,19 +12,10 @@ from geosite.s6_strategy.ldc import (
     extract_one_sided_pulses,
 )
 from geosite.s6_strategy.models import StrategyResult
-
-_ADVANCED_DEFAULTS = {
-    "Cp":     4200.0,
-    "mfls":   0.05,
-    "rbore":  0.06,
-    "rpin":   0.01365,
-    "rpext":  0.0167,
-    "kgrout": 1.5,
-    "kpipe":  0.42,
-    "LU":     0.0511,
-    "hconv":  1000.0,
-}
-_T_IN_HP = {"heating": 5.0, "cooling": 40.2}
+from geosite.s4_sizing.defaults import (
+    ADVANCED_DEFAULTS as _ADVANCED_DEFAULTS,
+    T_IN_HP_DEFAULTS as _T_IN_HP,
+)
 
 
 def _do_size(q_h, q_m, q_y, k, alpha, T_g, mode, NB, B, A, adv) -> float:
