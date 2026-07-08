@@ -67,6 +67,22 @@ def test_geometry_input_present(index_html):
     assert 'id="s_H_target"' in index_html or 'id="s_NB"' in index_html
 
 
+DEV_REQUIRED_IDS = ["t-run", "t-hmin", "t-nb", "s4a-in", "s4a-out",
+                    "s1a-out", "s1b-out", "s2-out", "s4-out", "s5-out"]
+
+
+@pytest.fixture(scope="module")
+def dev_html():
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        return c.get("/dev").get_data(as_text=True)
+
+
+@pytest.mark.parametrize("el_id", DEV_REQUIRED_IDS)
+def test_dev_contains_hook_id(dev_html, el_id):
+    assert f'id="{el_id}"' in dev_html, f"dev.html hook id '{el_id}' missing"
+
+
 def test_references_renders(client):
     assert client.get("/references").status_code == 200
 

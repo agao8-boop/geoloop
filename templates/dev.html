@@ -273,9 +273,10 @@
               <option value="single">Single</option>
             </select>
           </div>
-          <div class="trace-field"><label>NB</label><input type="number" id="t-nb" value="16" style="width:55px"></div>
+          <div class="trace-field"><label>NB (expert)</label><input type="number" id="t-nb" placeholder="auto" style="width:55px" title="Leave blank — NB is computed. Fill only to force a fixed count."></div>
+          <div class="trace-field"><label>H_min (m)</label><input type="number" id="t-hmin" value="125" style="width:65px"></div>
           <div class="trace-field"><label>B (m)</label><input type="number" id="t-b" value="6.0" step="0.1" style="width:65px"></div>
-          <div class="trace-field"><label>A</label><input type="number" id="t-a" value="1.0" step="0.1" style="width:55px"></div>
+          <div class="trace-field"><label>A</label><input type="number" id="t-a" value="9.0" step="0.1" style="width:55px"></div>
           <button class="trace-run-btn" id="t-run">Run Trace</button>
         </div>
 
@@ -358,6 +359,12 @@
             });
           })();
         </script>
+
+        <div class="wf-header" style="border-bottom:2px solid var(--accent);margin-top:4px">
+          <span class="stage-pill" style="background:var(--accent)">STAGE 1</span>
+          <span class="wf-title">Site &amp; Building Analysis</span>
+          <span class="wf-subtitle">s1 geocode + soil → s2/s3 loads → footprint NB range · what the user tool returns from "Analyze Site &amp; Loads"</span>
+        </div>
 
         <!-- s1a: Geocoding -->
         <div class="wf-section">
@@ -446,6 +453,41 @@ Data: USGS SSURGO + DS-801</div>
             <div class="step-card full-width">
               <div class="step-label">Output — Three-Pulse Ground Loads</div>
               <div class="kv-list" id="s2-out"><span class="step-empty">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wf-header" style="border-bottom:2px solid #10b981;margin-top:4px">
+          <span class="stage-pill" style="background:#10b981">STAGE 2</span>
+          <span class="wf-title">Borefield Sizing</span>
+          <span class="wf-subtitle">NB optimization → three-pulse sizing → cost → strategy · what "Size Borefield" returns</span>
+        </div>
+
+        <!-- s4a: Footprint NB Range & Optimal NB -->
+        <div class="wf-section">
+          <div class="wf-header" style="margin-bottom:8px;border-bottom:1px dashed var(--border)">
+            <span class="stage-pill" style="background:#10b981">s4a</span>
+            <span class="wf-title" style="font-size:13px">Borehole Count — Footprint Range &amp; Optimizer</span>
+          </div>
+          <div class="step-grid">
+            <div class="step-card">
+              <div class="step-label">Inputs consumed</div>
+              <div class="kv-list" id="s4a-in"><span class="step-empty">run a trace</span></div>
+            </div>
+            <div class="step-card">
+              <div class="step-label">How it works</div>
+              <div class="eq-block">footprint = floor_area / n_floors
+W = sqrt(footprint / 9);  L = 9W
+nb_min = ceil(W / B)      (short-side line)
+nb_max = floor(2(L+W)/B)  (full perimeter)
+sweep NB in [nb_min, nb_max]:
+  L(NB) via three-pulse sizing
+  keep NB minimizing L s.t. H=L/NB ≥ H_min
+fallback: depth-primary, NB = ceil(L/H_min)</div>
+            </div>
+            <div class="step-card full-width">
+              <div class="step-label">Output</div>
+              <div class="kv-list" id="s4a-out"><span class="step-empty">—</span></div>
             </div>
           </div>
         </div>
@@ -1404,12 +1446,36 @@ headline = total_usd / L_ft</div>
       kv('sign convention',           'positive = cooling (heat injection), negative = heating (heat extraction)') +
       kv('ref',                       'Philippe et al. (2010), ASHRAE Journal 52(7)');
 
+    // s4a: footprint NB range + optimizer outcome (stage boundary)
+    const fp = result.footprint;
+    document.getElementById('s4a-in').innerHTML =
+      kv('building_type', body.building_type + '  (from STAGE 1)') +
+      kv('floor_area_m2', l.floor_area_m2 ? `${l.floor_area_m2} m²` : 'DOE prototype default') +
+      kv('B (spacing)',   `${body.B} m  (STAGE 2 input)`) +
+      kv('H_min',         `${document.getElementById('t-hmin').value || 125} m  (STAGE 2 input — primary control)`);
+
+    if (result.nb_min != null) {
+      document.getElementById('s4a-out').innerHTML =
+        kv('footprint',   `${Math.round(fp.footprint_m2).toLocaleString()} m²  (${Math.round(fp.length_m)} × ${Math.round(fp.width_m)} m, ${fp.n_floors} floors, aspect ${fp.aspect})`) +
+        kv('nb_min',      `${result.nb_min}  (one line along short side)`) +
+        kv('nb_max',      `${result.nb_max}  (full perimeter ring)`) +
+        kv('NB chosen',   `${result.NB}`, 'ok') +
+        kv('nb_source',   result.nb_source === 'depth_fallback'
+              ? 'depth_fallback — no in-range NB satisfies H ≥ H_min; NB = ceil(L/H_min)'
+              : 'optimizer — minimum total drill length with H ≥ H_min',
+           result.nb_source === 'depth_fallback' ? 'warn' : 'ok');
+    } else {
+      document.getElementById('s4a-out').innerHTML =
+        kv('nb_source', 'expert_override — NB fixed by dev input, footprint search skipped', 'warn') +
+        kv('NB (fixed)', `${result.NB}`);
+    }
+
     // s4 input/output
     const modeDefault = autoMode === 'heating' ? '5.0 °C (heating default)' : '40.2 °C (cooling default)';
     document.getElementById('s4-in').innerHTML =
-      kv('k_effective, α, T_g',  `${s.k_effective} W/m·K, ${s.alpha} m²/day, ${s.T_g}°C  (from s1)`) +
-      kv('q_h, q_m, q_y',        `${l.q_h.toLocaleString()}, ${l.q_m.toLocaleString()}, ${l.q_y.toLocaleString()} W  (from s2)`) +
-      kv('NB, B, A',             `${result.NB}, ${body.B} m, ${body.A}`) +
+      kv('k_effective, α, T_g',  `${s.k_effective} W/m·K, ${s.alpha} m²/day, ${s.T_g}°C  (from STAGE 1)`) +
+      kv('q_h, q_m, q_y',        `${l.q_h.toLocaleString()}, ${l.q_m.toLocaleString()}, ${l.q_y.toLocaleString()} W  (from STAGE 1)`) +
+      kv('NB, B, A',             `${result.NB} (computed, s4a), ${body.B} m, ${body.A}`) +
       kv('T_in_HP',              modeDefault) +
       kv('defaults',             'rbore=0.06m, kgrout=1.5 W/m·K, mfls=0.05 kg/s·kW, Cp=4200 J/kg·K …');
 
@@ -1467,19 +1533,21 @@ headline = total_usd / L_ft</div>
     document.getElementById('s6-wf-section').style.display = 'block';
     document.getElementById('s6-case-out').innerHTML = '<span class="step-empty">Calculating…</span>';
 
+    const nbVal = document.getElementById('t-nb').value.trim();
     const s6Payload = {
       building_type: body.building_type,
       climate_zone:  s.climate_zone,
       k:             s.k_effective,
       alpha:         s.alpha,
       T_g:           s.T_g,
-      NB:            parseInt(body.NB),
       B:             parseFloat(body.B),
-      A:             parseFloat(body.A || 1.0),
+      A:             parseFloat(body.A || 9.0),
+      H_min:         parseFloat(document.getElementById('t-hmin').value || 125),
       state:         s.state_abbrev || null,
       floor_area_m2: body.floor_area_m2 ? parseFloat(body.floor_area_m2) : null,
       year_factor:   l.year_factor || 1.0,
     };
+    if (nbVal !== '') s6Payload.NB = parseInt(nbVal, 10);
 
     fetch('/api/strategy', {
       method: 'POST',
@@ -1507,15 +1575,18 @@ headline = total_usd / L_ft</div>
       `;
 
       // LDC params
+      const m1 = s6.comparison?.m1 || {};
+      const m2 = s6.comparison?.m2 || {};
       document.getElementById('s6-ldc-out').innerHTML = `
         <div class="kv-row"><span class="kv-key">Cutoff %</span><span class="kv-val">${s6.ldc_cutoff_pct}%</span></div>
-        <div class="kv-row"><span class="kv-key">Cutoff W</span><span class="kv-val">${s6.cutoff_W.toFixed(0)} W (${(s6.cutoff_W/1000).toFixed(1)} kW)</span></div>
+        <div class="kv-row"><span class="kv-key">ASHRAE cap</span><span class="kv-val">${s6.cap_W != null ? (s6.cap_W/1000).toFixed(1)+' kW (99.6%)' : '—'}</span></div>
+        <div class="kv-row"><span class="kv-key">M1 cutoff</span><span class="kv-val">${m1.cutoff_W != null ? (m1.cutoff_W/1000).toFixed(1)+' kW @ '+m1.cutoff_h+' hrs' : '—'}</span></div>
+        <div class="kv-row"><span class="kv-key">M1 GSHP covers</span><span class="kv-val">${m1.gshp_hours_pct ?? '—'}% hrs · ${m1.gshp_energy_pct ?? '—'}% kWh</span></div>
+        <div class="kv-row"><span class="kv-key">M2 cutoff</span><span class="kv-val">${m2.cutoff_W != null ? (m2.cutoff_W/1000).toFixed(1)+' kW @ '+m2.cutoff_h+' hrs' : '—'}</span></div>
+        <div class="kv-row"><span class="kv-key">M2 GSHP covers</span><span class="kv-val">${m2.gshp_hours_pct ?? '—'}% hrs · ${m2.gshp_energy_pct ?? '—'}% kWh</span></div>
         <div class="kv-row"><span class="kv-key">q_h before</span><span class="kv-val">${s6.q_h_before.toFixed(0)} W</span></div>
-        <div class="kv-row"><span class="kv-key">q_h trimmed</span><span class="kv-val">${s6.q_h_trimmed.toFixed(0)} W</span></div>
         <div class="kv-row"><span class="kv-key">q_m before</span><span class="kv-val">${s6.q_m_before.toFixed(0)} W</span></div>
-        <div class="kv-row"><span class="kv-key">q_m trimmed</span><span class="kv-val">${s6.q_m_trimmed.toFixed(0)} W</span></div>
         <div class="kv-row"><span class="kv-key">q_y before</span><span class="kv-val">${s6.q_y_before.toFixed(0)} W</span></div>
-        <div class="kv-row"><span class="kv-key">q_y trimmed</span><span class="kv-val">${s6.q_y_trimmed.toFixed(0)} W</span></div>
       `;
 
       // Peaker
@@ -1526,40 +1597,48 @@ headline = total_usd / L_ft</div>
         <div class="kv-row"><span class="kv-key">Cool-side</span><span class="kv-val">${s6.peaker_cool_kW.toFixed(1)} kW</span></div>
       `;
 
-      // Sizing before/after
-      const reduction = s6.L_before > 0 ? ((1 - s6.L_after/s6.L_before)*100).toFixed(1) : 0;
-      const costSave = ((s6.cost_before.total_usd - s6.cost_after.total_usd)/1000).toFixed(0);
+      // Sizing before / M1 / M2 comparison
       document.getElementById('s6-sizing-out').innerHTML = `
         <table style="width:100%;border-collapse:collapse;font-size:12px">
           <thead><tr>
             <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border)"></th>
-            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">Without Peaker</th>
-            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">With Peaker</th>
-            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">Reduction</th>
+            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">Baseline</th>
+            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border);color:#6366f1">M1 Hours</th>
+            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border);color:#0ea5e9">M2 Energy</th>
           </tr></thead>
           <tbody>
             <tr><td style="padding:4px 8px">Total length L</td>
                 <td style="text-align:right;padding:4px 8px">${s6.L_before.toLocaleString()} m</td>
-                <td style="text-align:right;padding:4px 8px;color:#10b981">${s6.L_after.toLocaleString()} m</td>
-                <td style="text-align:right;padding:4px 8px;color:#10b981">−${reduction}%</td></tr>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">${m1.L_after?.toLocaleString() ?? '—'} m (−${m1.savings_pct ?? '?'}%)</td>
+                <td style="text-align:right;padding:4px 8px;color:#10b981">${m2.L_after?.toLocaleString() ?? '—'} m (−${m2.savings_pct ?? '?'}%)</td></tr>
             <tr><td style="padding:4px 8px">Depth H</td>
-                <td style="text-align:right;padding:4px 8px">${s6.H_before.toLocaleString()} m</td>
-                <td style="text-align:right;padding:4px 8px;color:#10b981">${s6.H_after.toLocaleString()} m</td>
-                <td style="text-align:right;padding:4px 8px">per borehole</td></tr>
+                <td style="text-align:right;padding:4px 8px">${Math.round(s6.H_before)} m</td>
+                <td style="text-align:right;padding:4px 8px">${m1.H_after != null ? Math.round(m1.H_after)+' m' : '—'}</td>
+                <td style="text-align:right;padding:4px 8px">${m2.H_after != null ? Math.round(m2.H_after)+' m' : '—'}</td></tr>
+            <tr><td style="padding:4px 8px">NB (boreholes)</td>
+                <td style="text-align:right;padding:4px 8px" colspan="3">${s6.NB} &nbsp;·&nbsp; H_min = ${s6.H_min ?? '—'} m</td></tr>
+            <tr><td style="padding:4px 8px">Cutoff load</td>
+                <td style="text-align:right;padding:4px 8px">ASHRAE cap: ${s6.cap_W != null ? (s6.cap_W/1000).toFixed(1)+' kW' : '—'}</td>
+                <td style="text-align:right;padding:4px 8px">${m1.cutoff_W != null ? (m1.cutoff_W/1000).toFixed(1)+' kW' : '—'} (${m1.cutoff_h ?? '?'} hrs)</td>
+                <td style="text-align:right;padding:4px 8px">${m2.cutoff_W != null ? (m2.cutoff_W/1000).toFixed(1)+' kW' : '—'} (${m2.cutoff_h ?? '?'} hrs)</td></tr>
+            <tr><td style="padding:4px 8px">Peaker capacity</td>
+                <td style="text-align:right;padding:4px 8px">${peakerLabel}</td>
+                <td style="text-align:right;padding:4px 8px;color:#f59e0b">${m1.peaker_kW ?? '—'} kW</td>
+                <td style="text-align:right;padding:4px 8px;color:#f59e0b">${m2.peaker_kW ?? '—'} kW</td></tr>
             <tr><td style="padding:4px 8px">Base cost</td>
                 <td style="text-align:right;padding:4px 8px">$${(s6.cost_before.total_usd/1000).toFixed(0)}k</td>
                 <td style="text-align:right;padding:4px 8px;color:#10b981">$${(s6.cost_after.total_usd/1000).toFixed(0)}k</td>
-                <td style="text-align:right;padding:4px 8px;color:#10b981">−$${costSave}k</td></tr>
+                <td style="text-align:right;padding:4px 8px;color:var(--text-muted)">—</td></tr>
           </tbody>
         </table>
       `;
 
       // Chart A: annual hourly profile (full 8760h individual bars)
-      _devChartA(s6.hourly_profile, s6.cutoff_W, s6.dominant_mode);
+      _devChartA(s6.hourly_profile, m1.cutoff_W, m2.cutoff_W, s6.cap_W, s6.dominant_mode);
       // Chart B: LDC curve (downsample to ~876 points: every 10th)
-      _devChartB(s6.hourly_profile, s6.cutoff_W);
-      // Chart C: before/after bars
-      _devChartC(s6);
+      _devChartB(s6.hourly_profile, m1.cutoff_W, m2.cutoff_W, s6.cap_W);
+      // Chart C: baseline vs M1 vs M2 bars
+      _devChartC(s6, m1, m2);
 
       // Full StrategyResult
       const fullKeys = Object.keys(s6).filter(k => k !== 'hourly_profile' && k !== 'hourly_trimmed');
@@ -1582,29 +1661,29 @@ headline = total_usd / L_ft</div>
     });
   });
 
-  function _devChartA(hourlyProfile, cutoffW, dominantMode) {
+  function _devChartA(hourlyProfile, m1CutoffW, m2CutoffW, capW, dominantMode) {
     const n = hourlyProfile.length;
     const colors = hourlyProfile.map(h =>
       h < 0 ? 'rgba(59,130,246,0.7)' : h > 0 ? 'rgba(239,68,68,0.7)' : 'transparent'
     );
 
-    // Cutoff annotation datasets based on dominant mode
     const cutoffDatasets = [];
-    if (dominantMode === 'heating' || dominantMode === 'balanced') {
-      cutoffDatasets.push({
-        type: 'line',
-        label: `−Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
-        data: Array(n).fill(-cutoffW),
-        borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-      });
+    const addLine = (val, sign, color, dash, label) => {
+      if (val == null) return;
+      cutoffDatasets.push({type:'line', label, data: Array(n).fill(sign*val),
+        borderColor: color, borderDash: dash, pointRadius: 0, borderWidth: 1.5});
+    };
+    const heat = dominantMode === 'heating' || dominantMode === 'balanced';
+    const cool = dominantMode === 'cooling' || dominantMode === 'balanced';
+    if (heat) {
+      addLine(capW,      -1, '#dc2626', [2,2], `ASHRAE cap (−${(capW/1000).toFixed(1)} kW)`);
+      addLine(m1CutoffW, -1, '#f59e0b', [6,3], `M1 cutoff (−${(m1CutoffW/1000).toFixed(1)} kW)`);
+      addLine(m2CutoffW, -1, '#0ea5e9', [3,3], `M2 cutoff (−${(m2CutoffW/1000).toFixed(1)} kW)`);
     }
-    if (dominantMode === 'cooling' || dominantMode === 'balanced') {
-      cutoffDatasets.push({
-        type: 'line',
-        label: `+Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
-        data: Array(n).fill(cutoffW),
-        borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0, borderWidth: 1.5,
-      });
+    if (cool) {
+      addLine(capW,       1, '#dc2626', [2,2], `ASHRAE cap (+${(capW/1000).toFixed(1)} kW)`);
+      addLine(m1CutoffW,  1, '#f59e0b', [6,3], `M1 cutoff (+${(m1CutoffW/1000).toFixed(1)} kW)`);
+      addLine(m2CutoffW,  1, '#0ea5e9', [3,3], `M2 cutoff (+${(m2CutoffW/1000).toFixed(1)} kW)`);
     }
 
     const canvas = document.getElementById('s6-dev-chart-a');
@@ -1634,10 +1713,19 @@ headline = total_usd / L_ft</div>
     });
   }
 
-  function _devChartB(hourlyProfile, cutoffW) {
+  function _devChartB(hourlyProfile, m1CutoffW, m2CutoffW, capW) {
     const sorted = [...hourlyProfile].map(Math.abs).sort((a, b) => b - a);
     // Downsample: every 10th point → ~876 points
     const ds = sorted.filter((_, i) => i % 10 === 0);
+    const extra = [];
+    const addHline = (val, color, dash, label) => {
+      if (val == null) return;
+      extra.push({type:'line', data: Array(ds.length).fill(val),
+        borderColor: color, borderDash: dash, pointRadius: 0, borderWidth: 1.5, label});
+    };
+    addHline(capW,      '#dc2626', [2,2], `ASHRAE cap (${(capW/1000).toFixed(1)} kW)`);
+    addHline(m1CutoffW, '#f59e0b', [6,3], `M1 cutoff (${(m1CutoffW/1000).toFixed(1)} kW) — hours`);
+    addHline(m2CutoffW, '#0ea5e9', [3,3], `M2 cutoff (${(m2CutoffW/1000).toFixed(1)} kW) — energy`);
     const canvas = document.getElementById('s6-dev-chart-b');
     if (canvas._ci) canvas._ci.destroy();
     canvas._ci = new Chart(canvas, {
@@ -1645,15 +1733,10 @@ headline = total_usd / L_ft</div>
       data: {
         labels: ds.map((_, i) => i * 10),
         datasets: [
-          {
-            data: ds, borderColor: '#6366f1', borderWidth: 1.5,
-            pointRadius: 0, fill: false, label: '|Load| (W)',
-          },
-          {
-            type: 'line', data: Array(ds.length).fill(cutoffW),
-            borderColor: '#f59e0b', borderDash: [4, 2], pointRadius: 0,
-            borderWidth: 1.5, label: `Cutoff (${(cutoffW/1000).toFixed(1)} kW)`,
-          },
+          {data: ds, borderColor: '#6366f1', borderWidth: 1.5,
+           pointRadius: 0, fill: true,
+           backgroundColor: 'rgba(99,102,241,0.08)', label: '|Load| (W)'},
+          ...extra,
         ],
       },
       options: {
@@ -1667,24 +1750,23 @@ headline = total_usd / L_ft</div>
     });
   }
 
-  function _devChartC(s6) {
+  function _devChartC(s6, m1, m2) {
     const canvas = document.getElementById('s6-dev-chart-c');
     if (canvas._ci) canvas._ci.destroy();
     canvas._ci = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: ['Borefield L (m)', 'Depth H (m/borehole)', 'Base Cost ($k)'],
+        labels: ['Borefield L (m)', 'Depth H (m/borehole)'],
         datasets: [
-          {
-            label: 'Without Peaker',
-            data: [s6.L_before, s6.H_before, s6.cost_before.total_usd / 1000],
-            backgroundColor: 'rgba(99,102,241,0.7)',
-          },
-          {
-            label: 'With Peaker',
-            data: [s6.L_after, s6.H_after, s6.cost_after.total_usd / 1000],
-            backgroundColor: 'rgba(16,185,129,0.7)',
-          },
+          {label: 'Baseline (no peaker)',
+           data: [s6.L_before, Math.round(s6.H_before)],
+           backgroundColor: 'rgba(99,102,241,0.7)'},
+          {label: 'M1 — Hours cutoff',
+           data: [m1.L_after ?? 0, m1.H_after != null ? Math.round(m1.H_after) : 0],
+           backgroundColor: 'rgba(245,158,11,0.75)'},
+          {label: 'M2 — Energy cutoff',
+           data: [m2.L_after ?? 0, m2.H_after != null ? Math.round(m2.H_after) : 0],
+           backgroundColor: 'rgba(14,165,233,0.75)'},
         ],
       },
       options: {
