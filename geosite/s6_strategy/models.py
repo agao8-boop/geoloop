@@ -72,6 +72,10 @@ class StrategyResult:
     nb_min: int | None = None
     nb_max: int | None = None
 
+    # Peaker annual energy [Wh] per cutoff method (professor's LDC-kWh metric)
+    m1_peaker_energy_Wh: float = 0.0
+    m2_peaker_energy_Wh: float = 0.0
+
     def to_dict(self) -> dict:
         return {
             "case": self.case,
@@ -113,6 +117,7 @@ class StrategyResult:
                     "gshp_hours_pct": self.m1_gshp_hours_pct,
                     "gshp_energy_pct": self.m1_gshp_energy_pct,
                     "peaker_kW": round(self.m1_peaker_kW, 1),
+                    "peaker_energy_kwh": round(self.m1_peaker_energy_Wh / 1000.0, 1),
                     "L_after": round(self.m1_L_after),
                     "H_after": round(self.m1_H_after),
                     "savings_pct": round(100.0 * (1 - self.m1_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,
@@ -124,6 +129,7 @@ class StrategyResult:
                     "gshp_hours_pct": self.m2_gshp_hours_pct,
                     "gshp_energy_pct": self.m2_gshp_energy_pct,
                     "peaker_kW": round(self.m2_peaker_kW, 1),
+                    "peaker_energy_kwh": round(self.m2_peaker_energy_Wh / 1000.0, 1),
                     "L_after": round(self.m2_L_after),
                     "H_after": round(self.m2_H_after),
                     "savings_pct": round(100.0 * (1 - self.m2_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,

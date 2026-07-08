@@ -258,4 +258,6 @@ def run_strategy(
         m2_peaker_kW=peaker_kW_m2,
         m2_L_after=L_after_m2,
         m2_H_after=H_after_m2,
+        m1_peaker_energy_Wh=ldc["m1_peaker_energy_Wh"],
+        m2_peaker_energy_Wh=ldc["m2_peaker_energy_Wh"],
     )
