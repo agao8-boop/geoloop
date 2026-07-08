@@ -43,6 +43,9 @@ def test_stage1_returns_site_loads_and_nb_estimate(mock_get, client):
     assert est["nb_min"] == 4 and est["nb_max"] == 15   # small_office proto, B=6.0
     assert est["spacing_m"] == 6.0
     assert est["footprint"]["n_floors"] == 1
+    assert isinstance(est["nb_load_min"], int) and est["nb_load_min"] >= 1
+    assert isinstance(est["nb_load_max"], int) and est["nb_load_max"] >= est["nb_load_min"]
+    assert isinstance(est["capacity_warning"], bool)
 
 
 @patch("geosite.s1_site.geocode.requests.get")

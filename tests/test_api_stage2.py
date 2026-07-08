@@ -33,6 +33,11 @@ def test_stage2_computes_nb_from_footprint(client):
     assert data["NB"] >= 1
     assert data["nb_min"] == 4 and data["nb_max"] == 15
     assert data["H"] == pytest.approx(data["L"] / data["NB"], abs=1.0)
+    # Advisory load-density cross-check (|q_h| = 60 kW at H_min 125):
+    # lo = ceil(60000/8750) = 7; hi = ceil(60000/1875) = 32; 7 <= 15 -> no warning
+    assert data["nb_load_min"] == 7
+    assert data["nb_load_max"] == 32
+    assert data["capacity_warning"] is False
 
 
 def test_stage2_spacing_changes_nb_range(client):
@@ -47,6 +52,8 @@ def test_stage2_expert_override_fixes_nb(client):
     assert data["NB"] == 16
     assert data["nb_source"] == "expert_override"
     assert data["nb_min"] is None and data["nb_max"] is None
+    assert data["nb_load_min"] is None and data["nb_load_max"] is None
+    assert data["capacity_warning"] is None
 
 
 def test_stage2_single_pass_when_mode_split_null(client):

@@ -93,6 +93,34 @@ def test_invalid_inputs_raise():
         compute_nb_range(None, "small_office", spacing_m=0.0)
 
 
+from geosite.s4_sizing.footprint import load_implied_nb_range
+
+
+def test_load_implied_range_heating_peak():
+    # |q_h| = 60 kW at H_min = 125 m:
+    # lo = ceil(60000/(70*125)) = 7; hi = ceil(60000/(15*125)) = 32
+    lo, hi = load_implied_nb_range(-60000.0, 125.0)
+    assert (lo, hi) == (7, 32)
+
+
+def test_load_implied_range_uses_absolute_value():
+    assert load_implied_nb_range(60000.0, 125.0) == load_implied_nb_range(-60000.0, 125.0)
+
+
+def test_load_implied_range_floors_at_one():
+    lo, hi = load_implied_nb_range(0.0, 125.0)
+    assert lo == 1
+    assert hi >= lo
+    lo_tiny, hi_tiny = load_implied_nb_range(-100.0, 125.0)
+    assert lo_tiny == 1
+    assert hi_tiny >= lo_tiny
+
+
+def test_load_implied_range_ordered():
+    lo, hi = load_implied_nb_range(-250000.0, 100.0)
+    assert 1 <= lo <= hi
+
+
 from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s4_sizing.footprint import find_optimal_nb
 

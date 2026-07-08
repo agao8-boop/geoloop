@@ -9,7 +9,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
-from geosite.s4_sizing.footprint import compute_nb_range, find_optimal_nb
+from geosite.s4_sizing.footprint import (
+    compute_nb_range, find_optimal_nb, load_implied_nb_range,
+)
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
 from geosite.s2_simulation.envelope import (
@@ -314,6 +316,25 @@ def _resolve_site_and_loads(data):
     }, None
 
 
+def _load_density_check(q_pulses, H_min, nb_max):
+    """Advisory load-density NB range (15-70 W/m rule) + footprint capacity flag.
+
+    Uses the governing peak magnitude across both modes. Never re-bounds the
+    geometric optimizer range.
+    """
+    q_gov = max(
+        abs(q_pulses.get("q_h_heat") or 0.0),
+        abs(q_pulses.get("q_h_cool") or 0.0),
+        abs(q_pulses["q_h"]),
+    )
+    lo, hi = load_implied_nb_range(q_gov, H_min)
+    return {
+        "nb_load_min": lo,
+        "nb_load_max": hi,
+        "capacity_warning": bool(nb_max is not None and lo > nb_max),
+    }
+
+
 def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
                 floor_area_m2, NB, H_min, B, A, params, data):
     """Shared s4 half. q_pulses = dict with q_h..q_m_cool (None allowed for mode split).
@@ -408,7 +429,14 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
     # Ground cools over time when net annual extraction (q_y < 0); solar thermal can offset
     solar_thermal_recommended = q_y < 0
 
+    if NB is not None:
+        load_check = {"nb_load_min": None, "nb_load_max": None,
+                      "capacity_warning": None}
+    else:
+        load_check = _load_density_check(q_pulses, H_min, nb_max)
+
     return {
+        **load_check,
         "L": round(L),
         "H": round(H),
         "NB": NB_out,
@@ -517,12 +545,15 @@ def calculate_stage1():
         return jsonify({"error": "field", "field": "building_type",
                         "message": str(exc)}), 400
 
+    load_check = _load_density_check(payload["loads"], 125.0, nb_max)
+
     return jsonify({
         "site": payload["site"],
         "loads": payload["loads"],
         "nb_estimate": {
             "nb_min": nb_min, "nb_max": nb_max, "spacing_m": 6.0,
             "footprint": fp_meta,
+            **load_check,
             "note": "estimated at default 6.0 m spacing; recomputed in stage 2",
         },
     })

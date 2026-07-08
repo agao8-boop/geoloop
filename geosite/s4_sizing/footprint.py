@@ -115,6 +115,28 @@ def compute_nb_range(
     return nb_min, nb_max, meta
 
 
+# Sustained peak extraction/rejection per bore-meter. Range spans VDI 4640
+# Blatt 2 guideline values for poor soils (dry sediment, ~15 W/m) to
+# favorable saturated rock with low run-hours (~70 W/m).
+Q_PER_M_MIN = 15.0
+Q_PER_M_MAX = 70.0
+
+
+def load_implied_nb_range(q_h_W: float, H_min: float) -> tuple[int, int]:
+    """NB range the peak load itself implies at H_min, by the W/m rule of thumb.
+
+    Advisory only — informs the footprint-capacity warning; never re-bounds
+    the geometric range fed to find_optimal_nb.
+    """
+    q = abs(q_h_W)
+    lo = max(1, math.ceil(q / (Q_PER_M_MAX * H_min)))
+    hi = max(lo, math.ceil(q / (Q_PER_M_MIN * H_min)))
+    return lo, hi
+
+
+# The objective (minimize total L), the H >= H_min constraint, and the
+# depth-primary fallback below are professor-validated (2026-07-06) and must
+# not change without sign-off. The load-density check above is advisory only.
 def find_optimal_nb(
     nb_min: int,
     nb_max: int,

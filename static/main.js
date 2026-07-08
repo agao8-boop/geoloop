@@ -268,11 +268,21 @@
 
     const est = result.nb_estimate;
     const fp  = est.footprint;
+    const loadCheckLine = (est.nb_load_min != null && est.nb_load_max != null)
+      ? `<br><span style="font-size:11px;color:var(--text-muted)">Load check: this q<sub>h</sub> needs roughly ` +
+        `${est.nb_load_min}–${est.nb_load_max} boreholes at 125 m (15–70 W/m rule of thumb)</span>`
+      : '';
+    const capacityWarn = est.capacity_warning
+      ? `<div class="callout callout-warn" style="margin-top:8px">The peak load likely exceeds what the ` +
+        `building perimeter can host — consider the s6 hybrid strategy, deeper boreholes, ` +
+        `or off-footprint field area.</div>`
+      : '';
     document.getElementById('pipeline-nb').innerHTML =
       `Footprint ${Math.round(fp.footprint_m2).toLocaleString()} m² ` +
       `(${Math.round(fp.length_m)} × ${Math.round(fp.width_m)} m, ${fp.n_floors} floor${fp.n_floors > 1 ? 's' : ''})<br>` +
       `<strong>${est.nb_min}–${est.nb_max} boreholes</strong> fit this footprint at ${est.spacing_m} m spacing<br>` +
-      `<span style="font-size:11px;color:var(--text-muted)">Step 2 optimizes the count within this range — recomputed if you change spacing</span>`;
+      `<span style="font-size:11px;color:var(--text-muted)">Step 2 optimizes the count within this range — recomputed if you change spacing</span>` +
+      loadCheckLine + capacityWarn;
     stage1Panel.classList.remove('hidden');
   }
 
@@ -353,6 +363,13 @@
         `small load — depth-primary sizing chose ${result.NB} (footprint fits ${result.nb_min}–${result.nb_max})`;
     } else {
       nbRange.textContent = `optimal within footprint range ${result.nb_min}–${result.nb_max}`;
+    }
+
+    const capWarnEl = document.getElementById('sres-capacity-warning');
+    if (result.capacity_warning) {
+      capWarnEl.classList.remove('hidden');
+    } else {
+      capWarnEl.classList.add('hidden');
     }
 
     // Two-pass sizing breakdown
