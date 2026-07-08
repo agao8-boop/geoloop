@@ -54,6 +54,15 @@
            ════════════════════════════════════════════ -->
       <section id="panel-smart">
 
+        <!-- ── STEP 1: Site & Building Analysis ── -->
+        <div id="wizard-step1" class="wizard-step">
+          <div class="stage-header">
+            <span class="stage-pill">Step 1</span>
+            <span class="stage-label">Site &amp; Building Analysis</span>
+            <span class="step-status" id="step1-status"></span>
+            <span class="stage-note">Everything the load model needs — no borefield inputs yet</span>
+          </div>
+
         <!-- s1: Site -->
         <div class="stage-header">
           <span class="stage-pill">s1</span>
@@ -174,6 +183,35 @@
           </div>
         </div>
 
+          <div id="stage1-error" class="calc-error hidden"></div>
+          <button type="button" id="stage1-btn" class="calc-btn">Analyze Site &amp; Loads &rarr;</button>
+
+          <!-- Stage 1 results (hidden until success) -->
+          <div id="stage1-result" class="pipeline-panel hidden">
+            <div class="pipeline-step">
+              <div class="pipeline-label">s1 — Site Data</div>
+              <div class="pipeline-values" id="pipeline-s1">—</div>
+            </div>
+            <div class="pipeline-step">
+              <div class="pipeline-label">s2–s3 — Ground Loads</div>
+              <div class="pipeline-values" id="pipeline-s2">—</div>
+            </div>
+            <div class="pipeline-step">
+              <div class="pipeline-label">Footprint — Borehole Capacity</div>
+              <div class="pipeline-values" id="pipeline-nb">—</div>
+            </div>
+          </div>
+        </div><!-- /wizard-step1 -->
+
+        <!-- ── STEP 2: Borefield Sizing (locked until Step 1 completes) ── -->
+        <div id="wizard-step2" class="wizard-step step-locked">
+          <div class="stage-header">
+            <span class="stage-pill">Step 2</span>
+            <span class="stage-label">Borefield Sizing</span>
+            <span class="step-status" id="step2-status">Complete Step 1 to unlock</span>
+            <span class="stage-note">Borehole count is computed — you only set the geometry</span>
+          </div>
+
         <!-- s4: Borefield geometry (still user input) -->
         <div class="stage-header">
           <span class="stage-pill">s4</span>
@@ -181,7 +219,7 @@
         </div>
         <div class="card">
           <div class="field">
-            <label for="s_H_min">Minimum borehole depth <span class="hint-inline">— borehole count is derived from your building footprint; depths shallower than this are rejected</span></label>
+            <label for="s_H_min">Minimum borehole depth <span class="hint-inline">— the primary sizing control; the optimizer picks the borehole count that hits this depth with the least total drilling</span></label>
             <div class="input-row">
               <input type="number" id="s_H_min" name="s_H_min" step="1" min="30" max="300" value="125">
               <span class="unit">m</span>
@@ -224,34 +262,37 @@
                 <span class="unit">kg/s·kW</span>
               </div>
             </div>
-            <div class="field">
-              <label for="s_NB">Borehole count override <span class="hint-inline">(fixes NB and skips the footprint search)</span></label>
-              <div class="input-row">
-                <input type="number" id="s_NB" name="s_NB" min="1" placeholder="auto from footprint">
-                <span class="unit">—</span>
-              </div>
-              <span class="field-error" data-for="s_NB"></span>
-            </div>
           </div>
         </details>
 
-        <div id="smart-error" class="calc-error hidden"></div>
+          <div id="stage2-error" class="calc-error hidden"></div>
+          <button type="button" id="stage2-btn" class="calc-btn" disabled>Size Borefield &rarr;</button>
 
-        <button type="button" id="smart-btn" class="calc-btn">
-          Calculate Borefield Size
-        </button>
-
-        <!-- s1-s3 derived values (shown after calculation) -->
-        <div id="pipeline-panel" class="pipeline-panel hidden">
-          <div class="pipeline-step">
-            <div class="pipeline-label">s1 — Site Data</div>
-            <div class="pipeline-values" id="pipeline-s1">—</div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipeline-label">s2–s3 — Ground Loads</div>
-            <div class="pipeline-values" id="pipeline-s2">—</div>
-          </div>
-        </div>
+          <!-- Expert override — deliberately last, two clicks deep -->
+          <details id="expert-nb-details" class="advanced-details expert-toggle">
+            <summary>Expert: fix borehole count manually (not recommended)</summary>
+            <div class="card" style="margin-top:12px">
+              <div class="callout callout-warn">
+                Fixing NB disables the footprint search and depth optimization. The tool exists
+                to compute this number — only override it if you are validating against an
+                external design.
+              </div>
+              <div class="field">
+                <label>
+                  <input type="checkbox" id="expert-nb-enable"> Enable manual borehole count
+                </label>
+              </div>
+              <div class="field">
+                <label for="s_NB">Borehole count override</label>
+                <div class="input-row">
+                  <input type="number" id="s_NB" name="s_NB" min="1" placeholder="auto from footprint" disabled>
+                  <span class="unit">—</span>
+                </div>
+                <span class="field-error" data-for="s_NB"></span>
+              </div>
+            </div>
+          </details>
+        </div><!-- /wizard-step2 -->
 
         <!-- Smart results -->
         <div id="smart-result" class="result-panel hidden">
@@ -269,7 +310,7 @@
               <span class="stat-value"><span id="sres-H">—</span><span class="stat-unit">m</span></span>
             </div>
             <div class="stat">
-              <span class="stat-label">Boreholes</span>
+              <span class="stat-label">Boreholes (auto-computed)</span>
               <span class="stat-value"><span id="sres-NB">—</span></span>
               <span class="stat-sub" id="sres-NB-range"></span>
             </div>
