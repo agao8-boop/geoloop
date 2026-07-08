@@ -75,89 +75,143 @@
     if (errEl) errEl.textContent = message;
   }
 
-  // ── SMART MODE ────────────────────────────────────────────────────────
-  const smartBtn     = document.getElementById('smart-btn');
-  const smartError   = document.getElementById('smart-error');
-  const pipelinePanel = document.getElementById('pipeline-panel');
+  // ── SMART MODE: staged wizard ─────────────────────────────────────────
+  let stage1Result = null;
+
+  const stage1Btn    = document.getElementById('stage1-btn');
+  const stage2Btn    = document.getElementById('stage2-btn');
+  const stage1Error  = document.getElementById('stage1-error');
+  const stage2Error  = document.getElementById('stage2-error');
+  const step1Status  = document.getElementById('step1-status');
+  const step2Status  = document.getElementById('step2-status');
+  const wizardStep2  = document.getElementById('wizard-step2');
+  const stage1Panel  = document.getElementById('stage1-result');
   const smartResult  = document.getElementById('smart-result');
 
-  function clearSmartErrors() {
-    smartError.textContent = '';
-    smartError.classList.add('hidden');
-    ['zip_code', 'building_type', 's_NB', 's_B', 's_A'].forEach(clearFieldError);
+  const STAGE1_INPUT_IDS = ['zip_code', 'soil_confidence', 'building_type',
+                            'floor_area_m2', 'year_built',
+                            's_wwr', 's_envelope', 's_glazing'];
+
+  function unlockStep2() {
+    wizardStep2.classList.remove('step-locked');
+    stage2Btn.disabled = false;
+    step2Status.textContent = '';
+    step1Status.textContent = 'Complete';
+    step1Status.classList.add('done');
   }
 
-  function showSmartError(msg) {
-    smartError.textContent = msg;
-    smartError.classList.remove('hidden');
+  function lockStep2() {
+    wizardStep2.classList.add('step-locked');
+    stage2Btn.disabled = true;
+    step2Status.textContent = 'Complete Step 1 to unlock';
+    step1Status.textContent = '';
+    step1Status.classList.remove('done');
   }
 
-  smartBtn.addEventListener('click', async () => {
-    clearSmartErrors();
-    pipelinePanel.classList.add('hidden');
+  function invalidateStage1() {
+    if (stage1Result === null) return;
+    stage1Result = null;
+    lockStep2();
+    stage1Panel.classList.add('hidden');
     smartResult.classList.add('hidden');
     document.getElementById('cost-section').classList.add('hidden');
     document.getElementById('s6-section').classList.add('hidden');
-    smartBtn.disabled = true;
-    smartBtn.classList.add('loading');
-    smartBtn.textContent = 'Calculating…';
+  }
 
-    const nbRaw = document.getElementById('s_NB').value.trim();
+  STAGE1_INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', invalidateStage1);
+      el.addEventListener('change', invalidateStage1);
+    }
+  });
+
+  document.getElementById('expert-nb-enable').addEventListener('change', e => {
+    document.getElementById('s_NB').disabled = !e.target.checked;
+    if (!e.target.checked) document.getElementById('s_NB').value = '';
+  });
+
+  function showStage1Error(msg) {
+    stage1Error.textContent = msg;
+    stage1Error.classList.remove('hidden');
+  }
+
+  function showStage2Error(msg) {
+    stage2Error.textContent = msg;
+    stage2Error.classList.remove('hidden');
+  }
+
+  function resetStage1Btn() {
+    stage1Btn.disabled = false;
+    stage1Btn.classList.remove('loading');
+    stage1Btn.textContent = 'Analyze Site & Loads →';
+  }
+
+  function resetStage2Btn() {
+    stage2Btn.disabled = stage1Result === null;
+    stage2Btn.classList.remove('loading');
+    stage2Btn.textContent = 'Size Borefield →';
+  }
+
+  function collectStage1Body() {
     const body = {
       zip_code:        document.getElementById('zip_code').value.trim(),
       building_type:   document.getElementById('building_type').value,
-      B:               parseFloat(document.getElementById('s_B').value),
-      A:               parseFloat(document.getElementById('s_A').value),
-      H_min:           parseFloat(document.getElementById('s_H_min').value) || 125,
       soil_confidence: document.getElementById('soil_confidence').value,
       wwr:             document.getElementById('s_wwr').value,
       envelope:        document.getElementById('s_envelope').value,
       glazing:         document.getElementById('s_glazing').value,
     };
-    if (nbRaw !== '') body.NB = parseInt(nbRaw, 10);
-
-    // optional: floor area scaling
     const floorArea = document.getElementById('floor_area_m2').value.trim();
     if (floorArea) body.floor_area_m2 = parseFloat(floorArea);
-
-    // optional: construction year (0 = new/planned)
     const yearRaw = document.getElementById('year_built').value.trim();
     if (yearRaw !== '') body.year_built = parseInt(yearRaw, 10);
+    return body;
+  }
 
-    // optional overrides
-    const T_in_HP = document.getElementById('s_T_in_HP').value.trim();
-    const mfls    = document.getElementById('s_mfls').value.trim();
-    if (T_in_HP) body.T_in_HP = parseFloat(T_in_HP);
-    if (mfls)    body.mfls    = parseFloat(mfls);
+  async function runStage1() {
+    stage1Error.textContent = '';
+    stage1Error.classList.add('hidden');
+    ['zip_code', 'building_type', 'floor_area_m2', 'year_built'].forEach(clearFieldError);
+    invalidateStage1();
+    stage1Btn.disabled = true;
+    stage1Btn.classList.add('loading');
+    stage1Btn.textContent = 'Analyzing…';
 
     let response, result;
     try {
-      response = await fetch('/calculate/smart', {
+      response = await fetch('/calculate/stage1', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
+        body:    JSON.stringify(collectStage1Body()),
       });
       result = await response.json();
     } catch (err) {
-      showSmartError('Network error: ' + err.message);
-      resetSmartBtn();
+      showStage1Error('Network error: ' + err.message);
+      resetStage1Btn();
       return;
     }
 
     if (!response.ok) {
-      if (result.error === 'field') {
-        // Remap s_NB/s_B/s_A back to their DOM names
-        const fieldMap = { NB: 's_NB', B: 's_B', A: 's_A', H_min: 's_H_min' };
-        const domField = fieldMap[result.field] || result.field;
-        showFieldError(domField, result.message);
+      if (result.error === 'field' && result.field) {
+        showFieldError(result.field, result.message);
       } else {
-        showSmartError(result.message || 'Calculation failed.');
+        showStage1Error(result.message || 'Analysis failed.');
       }
-      resetSmartBtn();
+      resetStage1Btn();
       return;
     }
 
-    // Show pipeline trace (s1 + s2-s3 derived values)
+    stage1Result = result;
+    renderStage1(result);
+    unlockStep2();
+    resetStage1Btn();
+    stage1Panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  stage1Btn.addEventListener('click', runStage1);
+
+  function renderStage1(result) {
     const site  = result.site  || {};
     const loads = result.loads || {};
     const kEff = site.k_effective ?? site.k;
@@ -212,19 +266,93 @@
       `q<sub>y</sub> = ${loads.q_y?.toLocaleString()} W` +
       (notes ? `<br><span style="font-size:11px;color:#666">${notes}</span>` : '');
 
-    pipelinePanel.classList.remove('hidden');
+    const est = result.nb_estimate;
+    const fp  = est.footprint;
+    document.getElementById('pipeline-nb').innerHTML =
+      `Footprint ${Math.round(fp.footprint_m2).toLocaleString()} m² ` +
+      `(${Math.round(fp.length_m)} × ${Math.round(fp.width_m)} m, ${fp.n_floors} floor${fp.n_floors > 1 ? 's' : ''})<br>` +
+      `<strong>${est.nb_min}–${est.nb_max} boreholes</strong> fit this footprint at ${est.spacing_m} m spacing<br>` +
+      `<span style="font-size:11px;color:var(--text-muted)">Step 2 optimizes the count within this range — recomputed if you change spacing</span>`;
+    stage1Panel.classList.remove('hidden');
+  }
 
-    // Show sizing result
+  function collectStage2Body() {
+    const body = {
+      building_type: document.getElementById('building_type').value,
+      site:  stage1Result.site,
+      loads: stage1Result.loads,
+      H_min: parseFloat(document.getElementById('s_H_min').value) || 125,
+      B:     parseFloat(document.getElementById('s_B').value) || 6.0,
+      A:     parseFloat(document.getElementById('s_A').value) || 9.0,
+    };
+    const floorArea = document.getElementById('floor_area_m2').value.trim();
+    if (floorArea) body.floor_area_m2 = parseFloat(floorArea);
+    const T_in_HP = document.getElementById('s_T_in_HP').value.trim();
+    const mfls    = document.getElementById('s_mfls').value.trim();
+    if (T_in_HP) body.T_in_HP = parseFloat(T_in_HP);
+    if (mfls)    body.mfls    = parseFloat(mfls);
+    if (document.getElementById('expert-nb-enable').checked) {
+      const nbRaw = document.getElementById('s_NB').value.trim();
+      if (nbRaw !== '') body.NB = parseInt(nbRaw, 10);
+    }
+    return body;
+  }
+
+  async function runStage2() {
+    if (!stage1Result) return;
+    stage2Error.textContent = '';
+    stage2Error.classList.add('hidden');
+    ['s_H_min', 's_B', 's_A', 's_NB'].forEach(clearFieldError);
+    smartResult.classList.add('hidden');
+    document.getElementById('cost-section').classList.add('hidden');
+    document.getElementById('s6-section').classList.add('hidden');
+    stage2Btn.disabled = true;
+    stage2Btn.classList.add('loading');
+    stage2Btn.textContent = 'Sizing…';
+
+    let response, result;
+    try {
+      response = await fetch('/calculate/stage2', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(collectStage2Body()),
+      });
+      result = await response.json();
+    } catch (err) {
+      showStage2Error('Network error: ' + err.message);
+      resetStage2Btn();
+      return;
+    }
+
+    if (!response.ok) {
+      const fieldMap = { H_min: 's_H_min', B: 's_B', A: 's_A', NB: 's_NB' };
+      if (result.error === 'field' && fieldMap[result.field]) {
+        showFieldError(fieldMap[result.field], result.message);
+      } else {
+        showStage2Error(result.message || 'Sizing failed.');
+      }
+      resetStage2Btn();
+      return;
+    }
+
+    renderStage2(result);
+    resetStage2Btn();
+  }
+
+  stage2Btn.addEventListener('click', runStage2);
+
+  function renderStage2(result) {
     document.getElementById('sres-L').textContent  = fmtInt(result.L);
     document.getElementById('sres-H').textContent  = fmtInt(result.H);
     document.getElementById('sres-NB').textContent = fmtInt(result.NB);
     const nbRange = document.getElementById('sres-NB-range');
-    if (result.nb_min != null && result.nb_max != null) {
-      nbRange.textContent = result.NB < result.nb_min
-        ? `below footprint range ${result.nb_min}–${result.nb_max} (small load — depth-primary fallback)`
-        : `optimal within footprint range ${result.nb_min}–${result.nb_max}`;
+    if (result.nb_source === 'expert_override') {
+      nbRange.textContent = 'expert override — footprint optimization skipped';
+    } else if (result.nb_source === 'depth_fallback') {
+      nbRange.textContent =
+        `small load — depth-primary sizing chose ${result.NB} (footprint fits ${result.nb_min}–${result.nb_max})`;
     } else {
-      nbRange.textContent = 'user override';
+      nbRange.textContent = `optimal within footprint range ${result.nb_min}–${result.nb_max}`;
     }
 
     // Two-pass sizing breakdown
@@ -244,7 +372,7 @@
       if (result.imbalance_m != null) {
         const imbalPct = result.L > 0 ? Math.round(result.imbalance_m / result.L * 100) : 0;
         // Direction of ground temperature drift is determined by annual net load sign
-        const qy = result.loads?.q_y ?? 0;
+        const qy = stage1Result.loads?.q_y ?? 0;
         const direction = qy < 0
           ? 'net annual heat extraction → ground cools over time (thermal depletion)'
           : 'net annual heat injection → ground warms over time (thermal saturation)';
@@ -268,21 +396,17 @@
     smartResult.classList.remove('hidden');
     smartResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    // s5: fetch cost estimate
-    const siteState = result.site && result.site.state_abbrev ? result.site.state_abbrev : null;
+    // s5: fetch cost estimate, sourcing site/loads from stage 1
+    const siteState = stage1Result.site.state_abbrev || null;
     const B_m = parseFloat(document.getElementById('s_B').value) || 6.0;
-    // Attach form-sourced building_type to result for use by s6 strategy call
-    result.building_type = body.building_type;
-    result.NB_user = body.NB ?? null;
-    fetchCostEstimate(result.L, result.NB, B_m, siteState, result);
-
-    resetSmartBtn();
-  });
-
-  function resetSmartBtn() {
-    smartBtn.disabled    = false;
-    smartBtn.classList.remove('loading');
-    smartBtn.textContent = 'Calculate Borefield Size';
+    const smartRes = {
+      ...result,
+      site:  stage1Result.site,
+      loads: stage1Result.loads,
+      building_type: document.getElementById('building_type').value,
+      NB_user: result.nb_source === 'expert_override' ? result.NB : null,
+    };
+    fetchCostEstimate(result.L, result.NB, B_m, siteState, smartRes);
   }
 
   // ── Vintage label helper ─────────────────────────────────────────────
