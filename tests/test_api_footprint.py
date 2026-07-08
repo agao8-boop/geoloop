@@ -35,8 +35,8 @@ def test_smart_without_nb_uses_footprint(mock_get, client):
                        content_type="application/json")
     assert resp.status_code == 200, resp.get_json()
     data = resp.get_json()
-    assert data["nb_min"] == 2      # small_office prototype, spacing 6 m
-    assert data["nb_max"] == 25
+    assert data["nb_min"] == 4      # small_office prototype, spacing 6 m
+    assert data["nb_max"] == 15
     assert data["H_min"] == 125.0
     assert data["NB"] >= 1
     assert data["footprint"]["n_floors"] == 1
@@ -65,7 +65,7 @@ def test_smart_floor_area_changes_range(mock_get, client):
                        content_type="application/json")
     assert resp.status_code == 200, resp.get_json()
     data = resp.get_json()
-    assert (data["nb_min"], data["nb_max"]) == (2, 35)
+    assert (data["nb_min"], data["nb_max"]) == (5, 21)
 
 
 def test_smart_rejects_out_of_range_h_min(client):

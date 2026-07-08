@@ -477,7 +477,7 @@ Data: USGS SSURGO + DS-801</div>
             <div class="step-card">
               <div class="step-label">How it works</div>
               <div class="eq-block">footprint = floor_area / n_floors
-W = sqrt(footprint / 9);  L = 9W
+W = sqrt(footprint / aspect[type]);  L = aspect[type]·W
 nb_min = ceil(W / B)      (short-side line)
 nb_max = floor(2(L+W)/B)  (full perimeter)
 sweep NB in [nb_min, nb_max]:

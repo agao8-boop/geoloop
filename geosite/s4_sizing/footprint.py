@@ -1,10 +1,13 @@
 """Footprint-driven borehole count range.
 
 The borefield is assumed to be placed in/around a rectangular building
-footprint with aspect ratio 9 (long/short), the arrangement that maximizes
-inter-borehole energy efficiency for a line-dominant field:
+footprint with a BUILDING-TYPE-SPECIFIC aspect ratio (long/short) taken from
+the DOE Commercial Prototype scorecard drawings. This building footprint
+aspect is distinct from the borefield ARRAY aspect ratio `A` (a user input,
+default 9.0 in Smart Mode), which describes the borehole arrangement, not
+the building shape:
     footprint = floor_area / n_floors
-    W = sqrt(footprint / 9),  L = 9 * W = 3 * sqrt(footprint)
+    W = sqrt(footprint / aspect),  L = aspect * W
     NB_min = one line of boreholes along the SHORT side  = ceil(W / spacing)
     NB_max = boreholes circling the full perimeter       = floor(2*(L+W) / spacing)
 
@@ -16,7 +19,24 @@ import math
 
 from geosite.s4_sizing.ashrae_sizing import size_borefield, size_borefield_for_depth
 
-FOOTPRINT_ASPECT = 9.0
+# Footprint length/width from the DOE Commercial Prototype scorecard drawings
+# (energycodes.gov, 90.1-2019 set), rounded to one decimal. E-shaped schools
+# use the effective bounding rectangle. Verify against the scorecard PDFs
+# before changing any value.
+BUILDING_ASPECT = {
+    "small_office":          1.5,   # 27.7 x 18.5 m
+    "medium_office":         1.5,   # 49.9 x 33.3 m
+    "large_office":          1.5,   # 73.1 x 48.7 m
+    "standalone_retail":     1.3,   # 54.3 x 42.2 m
+    "primary_school":        1.6,   # E-shape bounding box
+    "secondary_school":      1.6,   # E-shape bounding box
+    "hospital":              1.3,   # 70.1 x 53.3 m
+    "outpatient_healthcare": 1.4,   # scorecard
+    "small_hotel":           3.0,   # 54.9 x 18.3 m
+    "large_hotel":           3.0,   # slab wing
+    "warehouse":             2.2,   # 100.6 x 45.7 m
+    "midrise_apartment":     2.7,   # 46.3 x 16.9 m
+}
 
 BUILDING_FLOORS = {
     "small_office":          1,
@@ -72,9 +92,10 @@ def compute_nb_range(
         raise ValueError("floor_area_m2 must be positive")
 
     n_floors = BUILDING_FLOORS[building_type]
+    aspect = BUILDING_ASPECT[building_type]
     footprint = area / n_floors
-    width = math.sqrt(footprint / FOOTPRINT_ASPECT)
-    length = FOOTPRINT_ASPECT * width
+    width = math.sqrt(footprint / aspect)
+    length = aspect * width
     perimeter = 2.0 * (length + width)
 
     nb_min = max(1, math.ceil(width / spacing_m))
@@ -88,7 +109,7 @@ def compute_nb_range(
         "length_m": length,
         "perimeter_m": perimeter,
         "spacing_m": spacing_m,
-        "aspect": FOOTPRINT_ASPECT,
+        "aspect": aspect,
         "prototype_area_used": prototype_area_used,
     }
     return nb_min, nb_max, meta

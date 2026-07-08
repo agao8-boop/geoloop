@@ -31,14 +31,14 @@ def test_stage2_computes_nb_from_footprint(client):
     data = resp.get_json()
     assert data["nb_source"] in ("optimizer", "depth_fallback")
     assert data["NB"] >= 1
-    assert data["nb_min"] == 2 and data["nb_max"] == 25
+    assert data["nb_min"] == 4 and data["nb_max"] == 15
     assert data["H"] == pytest.approx(data["L"] / data["NB"], abs=1.0)
 
 
 def test_stage2_spacing_changes_nb_range(client):
     resp = _post(client, dict(_BASE, B=3.0))
     data = resp.get_json()
-    assert data["nb_max"] > 25          # tighter spacing fits more boreholes
+    assert data["nb_max"] > 15          # tighter spacing fits more boreholes
 
 
 def test_stage2_expert_override_fixes_nb(client):
