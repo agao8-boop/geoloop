@@ -77,6 +77,9 @@
 
   // ── SMART MODE: staged wizard ─────────────────────────────────────────
   let stage1Result = null;
+  let lastStage2Result = null;
+  let lastCostResult = null;
+  let lastStrategyResult = null;
 
   // Body key → input id for Smart Advanced overrides; blank = server default
   const SMART_ADV_FIELDS = {
@@ -133,11 +136,16 @@
   function invalidateStage1() {
     if (stage1Result === null) return;
     stage1Result = null;
+    lastStage2Result = null;
+    lastCostResult = null;
+    lastStrategyResult = null;
     lockStep2();
     stage1Panel.classList.add('hidden');
     smartResult.classList.add('hidden');
     document.getElementById('cost-section').classList.add('hidden');
     document.getElementById('s6-section').classList.add('hidden');
+    document.getElementById('s7-section').classList.add('hidden');
+    document.getElementById('s7-report').classList.add('hidden');
   }
 
   STAGE1_INPUT_IDS.forEach(id => {
@@ -335,6 +343,8 @@
     smartResult.classList.add('hidden');
     document.getElementById('cost-section').classList.add('hidden');
     document.getElementById('s6-section').classList.add('hidden');
+    document.getElementById('s7-section').classList.add('hidden');
+    document.getElementById('s7-report').classList.add('hidden');
     stage2Btn.disabled = true;
     stage2Btn.classList.add('loading');
     stage2Btn.textContent = 'Sizing…';
@@ -442,7 +452,10 @@
       building_type: document.getElementById('building_type').value,
       NB_user: result.nb_source === 'expert_override' ? result.NB : null,
       NB_computed: result.NB,
+      B: B_m,
+      A: parseFloat(document.getElementById('s_A').value) || 9.0,
     };
+    lastStage2Result = smartRes;
     fetchCostEstimate(result.L, result.NB, B_m, siteState, smartRes);
   }
 
@@ -627,6 +640,7 @@
     })
     .then(r => r.json())
     .then(cost => {
+      lastCostResult = cost;
       document.getElementById('cost-section').classList.remove('hidden');
 
       document.getElementById('cost-region-tag').textContent = cost.region_used;
@@ -779,6 +793,15 @@
     }
 
     _renderS6ChartA('s6-chart-a', res.hourly_profile, m1.cutoff_W, m2.cutoff_W, res.cap_W, res.dominant_mode, 220);
+
+    lastStrategyResult = res;
+    window.__geositeLast = {
+      stage1: stage1Result,
+      stage2: lastStage2Result,
+      cost: lastCostResult,
+      strategy: res,
+    };
+    document.getElementById('s7-section').classList.remove('hidden');
   }
 
   function _renderS6ChartA(canvasId, hourlyProfile, m1CutoffW, m2CutoffW, capW, dominantMode, heightPx) {
@@ -853,5 +876,193 @@
       },
     });
   }
+
+  // ── s7: Report generate / render / copy ──────────────────────────────
+  let s7Sections = null;   // [{title, rows: [[label, value]], bullets: {name: []}}]
+
+  function _rowsHTML(rows) {
+    return rows.map(([label, value]) =>
+      `<div class="report-row"><span class="report-label">${label}</span>` +
+      `<span class="report-value">${value}</span></div>`).join('');
+  }
+
+  function _fmtYears(v) {
+    return v == null ? 'no operating savings' : `${v.toFixed(1)} yr`;
+  }
+
+  function renderReport(data) {
+    const r = data.report;
+    const d = r.design;
+    const sections = [];
+
+    const designRows = [
+      ['Building', `${d.building_type ?? '—'} · climate zone ${d.climate_zone ?? '—'}`],
+      ['Boreholes (NB)', `${fmtInt(d.NB)} — ${d.nb_source ?? '—'}` +
+        (d.nb_min != null ? ` (footprint range ${d.nb_min}–${d.nb_max})` : '')],
+      ['Depth per borehole', `${fmtInt(d.H_m)} m`],
+      ['Total drilled length', `${fmtInt(d.L_m)} m (${fmtInt(d.L_ft)} ft)`],
+      ['Spacing · array aspect', `${d.B_m ?? '—'} m · ${d.A ?? '—'}`],
+      ['Governing mode', d.governing ?? '—'],
+      ['Two-pass L (heat / cool)', `${fmtInt(d.L_heat_m)} / ${fmtInt(d.L_cool_m)} m` +
+        (d.imbalance_m != null ? ` — imbalance ${fmtInt(d.imbalance_m)} m` : '')],
+      ['Footprint', d.footprint_length_m != null
+        ? `${Math.round(d.footprint_length_m)} × ${Math.round(d.footprint_width_m)} m, ${d.n_floors} floor(s)` : '—'],
+      ['Soil', `k_eff ${d.k_effective ?? '—'} W/m·K · α ${d.alpha ?? '—'} m²/day · T_g ${d.T_g ?? '—'} °C`],
+    ];
+    if (d.capacity_warning) designRows.push(['Capacity check', '⚠ peak load may exceed the footprint']);
+    if (d.solar_thermal_recommended) designRows.push(['Thermal balance', 'net extraction — solar thermal supplement recommended']);
+    sections.push({title: 'System Design', rows: designRows});
+
+    const p = r.performance;
+    if (p.available) {
+      sections.push({title: 'Estimated Performance', rows: [
+        ['ASHRAE 99.6% cap', p.cap_kW != null ? `${p.cap_kW.toFixed(1)} kW` : '—'],
+        ['Dominant mode', p.dominant_mode ?? '—'],
+        ['GSHP coverage — M1 (hours)', `${p.m1.gshp_hours_pct ?? '—'}% hrs · ${p.m1.gshp_energy_pct ?? '—'}% kWh`],
+        ['GSHP coverage — M2 (energy)', `${p.m2.gshp_hours_pct ?? '—'}% hrs · ${p.m2.gshp_energy_pct ?? '—'}% kWh`],
+        ['Peaker unit', `${p.peaker_kW ?? '—'} kW ${p.peaker_type ?? ''}`],
+        ['Peaker energy — M1', p.m1.peaker_energy_kwh != null ? `${fmtInt(p.m1.peaker_energy_kwh)} kWh/yr` : '—'],
+        ['Peaker energy — M2', p.m2.peaker_energy_kwh != null ? `${fmtInt(p.m2.peaker_energy_kwh)} kWh/yr` : '—'],
+        ['Borefield after shaving', `M1 ${fmtInt(p.m1.L_after_m)} m (−${p.m1.savings_pct ?? 0}%) · M2 ${fmtInt(p.m2.L_after_m)} m (−${p.m2.savings_pct ?? 0}%)`],
+      ]});
+    } else {
+      sections.push({title: 'Estimated Performance', rows: [['Status', 'unavailable — run the s6 strategy first']]});
+    }
+
+    const c = r.cost_savings;
+    if (c.available) {
+      sections.push({title: 'Cost & Savings', rows: [
+        ['Borefield cost (best / base / worst)', `${fmtUSD(c.borefield_best_usd)} / ${fmtUSD(c.borefield_base_usd)} / ${fmtUSD(c.borefield_worst_usd)}`],
+        ['Heat pump equipment', fmtUSD(c.hp_equipment_usd)],
+        ['GSHP total system', fmtUSD(c.gshp_capex_usd)],
+        ['Conventional system (boiler + chiller)', `${fmtUSD(c.conv_capex_low_usd)}–${fmtUSD(c.conv_capex_high_usd)} (mid ${fmtUSD(c.conv_capex_usd)})`],
+        ['Annual operating — conventional', fmtUSD(c.conv_opex_usd_yr) + '/yr'],
+        ['Annual operating — GSHP', fmtUSD(c.gshp_opex_usd_yr) + '/yr (peaker energy additional)'],
+        ['Annual savings', fmtUSD(c.annual_savings_usd_yr) + '/yr'],
+        ['Simple payback', _fmtYears(c.simple_payback_yr)],
+        ['Note', c.note],
+      ]});
+    } else {
+      sections.push({title: 'Cost & Savings', rows: [['Status', 'unavailable — cost estimate missing']]});
+    }
+
+    document.getElementById('s7-design').innerHTML = _rowsHTML(sections[0].rows);
+    document.getElementById('s7-performance').innerHTML = _rowsHTML(sections[1].rows);
+    document.getElementById('s7-cost').innerHTML = _rowsHTML(sections[2].rows);
+
+    const aiEl = document.getElementById('s7-ai');
+    const ai = data.ai_review;
+    if (ai) {
+      const lists = [['Strengths', ai.strengths], ['Concerns', ai.concerns],
+                     ['Risks', ai.risks], ['Next steps', ai.next_steps]];
+      aiEl.innerHTML =
+        `<p class="report-verdict"><strong>${ai.verdict}</strong></p>` +
+        lists.map(([name, items]) =>
+          `<div class="report-ai-list"><div class="report-label">${name}</div><ul>` +
+          (items || []).map(i => `<li>${i}</li>`).join('') + `</ul></div>`).join('');
+      sections.push({title: 'AI Design Review', rows: [['Verdict', ai.verdict]],
+                     bullets: Object.fromEntries(lists)});
+    } else {
+      const reason = data.ai_error || 'unknown reason';
+      aiEl.innerHTML = `<p class="cost-note">AI review unavailable — ${reason}. ` +
+        `The sections above are computed deterministically and stand alone.</p>`;
+      sections.push({title: 'AI Design Review', rows: [['Status', `unavailable — ${reason}`]]});
+    }
+
+    s7Sections = sections;
+    document.getElementById('s7-report').classList.remove('hidden');
+  }
+
+  function reportAsText() {
+    if (!s7Sections) return '';
+    const lines = ['GeoSite Advisor — Pre-feasibility Report', ''];
+    s7Sections.forEach(sec => {
+      lines.push(sec.title);
+      lines.push('-'.repeat(sec.title.length));
+      sec.rows.forEach(([label, value]) => lines.push(`${label}: ${String(value).replace(/⚠/g, '!')}`));
+      if (sec.bullets) {
+        Object.entries(sec.bullets).forEach(([name, items]) => {
+          lines.push(`${name}:`);
+          (items || []).forEach(i => lines.push(`- ${i}`));
+        });
+      }
+      lines.push('');
+    });
+    lines.push('Pre-feasibility estimate — a licensed engineer and a thermal response test are required before installation.');
+    return lines.join('\n');
+  }
+
+  async function generateReport() {
+    const btn = document.getElementById('s7-generate-btn');
+    const errEl = document.getElementById('s7-error');
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+    if (!stage1Result || !lastStage2Result || !lastStrategyResult) {
+      errEl.textContent = 'Run the full pipeline (Steps 1–2) before generating a report.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    const profile = lastStrategyResult.hourly_profile || [];
+    let heatWh = 0, coolWh = 0;
+    profile.forEach(h => { if (h < 0) heatWh -= h; else coolWh += h; });
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Generating…';
+
+    let resp, data;
+    try {
+      resp = await fetch('/api/report', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          design:   lastStage2Result,
+          site:     stage1Result.site,
+          loads:    stage1Result.loads,
+          cost:     lastCostResult,
+          strategy: lastStrategyResult,
+          annual_heat_kwh_th: heatWh / 1000,
+          annual_cool_kwh_th: coolWh / 1000,
+        }),
+      });
+      data = await resp.json();
+    } catch (err) {
+      errEl.textContent = 'Network error: ' + err.message;
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.textContent = 'Generate Report';
+      return;
+    }
+
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.textContent = 'Generate Report';
+
+    if (!resp.ok) {
+      errEl.textContent = (data && data.message) || 'Report generation failed.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    renderReport(data);
+    document.getElementById('s7-report').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('s7-generate-btn').addEventListener('click', generateReport);
+
+  document.getElementById('s7-copy-btn').addEventListener('click', () => {
+    const btn = document.getElementById('s7-copy-btn');
+    const text = reportAsText();
+    const flash = ok => {
+      btn.textContent = ok ? 'Copied' : 'Copy failed — clipboard blocked';
+      setTimeout(() => { btn.textContent = 'Copy report as text'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => flash(true)).catch(() => flash(false));
+    } else {
+      flash(false);
+    }
+  });
 
 })();

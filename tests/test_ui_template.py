@@ -43,6 +43,9 @@ REQUIRED_IDS = [
     "s6-comparison", "s6-m1-cutoff", "s6-m2-cutoff", "s6-m1-hrs", "s6-m2-hrs",
     "s6-m1-coverage", "s6-m2-coverage", "s6-m1-peaker", "s6-m2-peaker",
     "s6-m1-L", "s6-m2-L", "s6-m1-save", "s6-m2-save",
+    "s7-section", "s7-generate-btn", "s7-error", "s7-report",
+    "s7-design", "s7-performance", "s7-cost", "s7-ai", "s7-ai-badge",
+    "s7-copy-btn",
     "sizing-form", "calc-error", "calc-btn",
     "result-panel", "res-L", "res-H", "res-NB",
 ]

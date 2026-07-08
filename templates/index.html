@@ -26,7 +26,7 @@
           <li class="stage-item active"><a href="#">s4 <span class="stage-name">Sizing</span></a></li>
           <li class="stage-item active-dim">s5 <span class="stage-name">Cost</span></li>
           <li class="stage-item active-dim">s6 <span class="stage-name">Strategy</span></li>
-          <li class="stage-item disabled">s7 <span class="stage-name">Report</span><span class="badge">soon</span></li>
+          <li class="stage-item active-dim">s7 <span class="stage-name">Report</span></li>
         </ul>
       </nav>
       <div class="sidebar-footer">
@@ -548,6 +548,39 @@
           </div>
           <div class="chart-wrap">
             <canvas id="s6-chart-a"></canvas>
+          </div>
+        </div>
+
+        <!-- s7: Report -->
+        <div id="s7-section" class="hidden">
+          <div class="stage-header">
+            <span class="stage-pill">s7</span>
+            <span class="stage-label">Report</span>
+            <span class="stage-note">Fixed-structure summary — design, savings, cost comparison, AI review</span>
+          </div>
+          <button type="button" id="s7-generate-btn" class="calc-btn">Generate Report</button>
+          <div id="s7-error" class="calc-error hidden"></div>
+          <div id="s7-report" class="hidden">
+            <div class="card">
+              <h2 class="card-title">System Design</h2>
+              <div id="s7-design"></div>
+            </div>
+            <div class="card">
+              <h2 class="card-title">Estimated Performance</h2>
+              <div id="s7-performance"></div>
+            </div>
+            <div class="card">
+              <h2 class="card-title">Cost &amp; Savings</h2>
+              <div id="s7-cost"></div>
+            </div>
+            <div class="card">
+              <h2 class="card-title">AI Design Review
+                <span id="s7-ai-badge" class="ai-pill">AI Analysis — claude-haiku-4-5</span>
+              </h2>
+              <p class="hint">Automated review of a pre-feasibility estimate — not an engineering design.</p>
+              <div id="s7-ai"></div>
+            </div>
+            <button type="button" id="s7-copy-btn" class="calc-btn">Copy report as text</button>
           </div>
         </div>
 
