@@ -6,6 +6,9 @@ import pathlib
 sys.path.insert(0, os.path.dirname(__file__))
 
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
@@ -21,6 +24,7 @@ from geosite.s2_simulation.envelope import (
 from geosite.models import SiteData, LoadPulses
 from geosite.s5_cost import estimate_cost
 from geosite.s6_strategy import run_strategy
+from geosite.s7_report import build_report, generate_review
 
 app = Flask(__name__)
 
@@ -1075,6 +1079,49 @@ def strategy_api():
         return jsonify({"error": "calculation", "message": str(exc)}), 500
 
     return jsonify(result.to_dict())
+
+
+@app.route("/api/report", methods=["POST"])
+def report_api():
+    """s7 — fixed-structure report + AI design review.
+
+    Body: {design, site, loads: dict; cost, strategy: dict|null;
+           annual_heat_kwh_th, annual_cool_kwh_th: float}
+    AI failures never 500 the route — the report renders without the review.
+    """
+    data = request.get_json(force=True, silent=True)
+    if data is None:
+        return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
+
+    for field in ("design", "site", "loads"):
+        if not isinstance(data.get(field), dict):
+            return jsonify({"error": "field", "field": field,
+                            "message": f"'{field}' must be an object"}), 400
+    for field in ("cost", "strategy"):
+        if data.get(field) is not None and not isinstance(data[field], dict):
+            return jsonify({"error": "field", "field": field,
+                            "message": f"'{field}' must be an object or null"}), 400
+    for field in ("annual_heat_kwh_th", "annual_cool_kwh_th"):
+        try:
+            data[field] = float(data.get(field, 0.0))
+            if not math.isfinite(data[field]):
+                raise ValueError
+        except (ValueError, TypeError):
+            return jsonify({"error": "field", "field": field,
+                            "message": f"'{field}' must be a number"}), 400
+
+    try:
+        report = build_report(data)
+    except Exception as exc:
+        return jsonify({"error": "calculation", "message": str(exc)}), 500
+
+    try:
+        ai_review, ai_error = generate_review(report)
+    except Exception as exc:
+        ai_review, ai_error = None, f"AI review failed unexpectedly: {exc}"
+
+    return jsonify({"report": report, "ai_review": ai_review,
+                    "ai_error": ai_error})
 
 
 @app.route("/dev")
