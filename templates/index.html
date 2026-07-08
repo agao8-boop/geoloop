@@ -249,9 +249,16 @@
           <summary>Advanced overrides <span class="hint-inline">(uses DOE prototype defaults if not set)</span></summary>
           <div class="card" style="margin-top:12px">
             <div class="field">
-              <label for="s_T_in_HP">HP inlet temperature</label>
+              <label for="s_T_in_HP_heat">HP inlet temp — heating design (min EWT)</label>
               <div class="input-row">
-                <input type="number" id="s_T_in_HP" name="s_T_in_HP" step="0.1" placeholder="5.0 (heating) / 40.2 (cooling)">
+                <input type="number" id="s_T_in_HP_heat" name="s_T_in_HP_heat" step="0.1" placeholder="5.0">
+                <span class="unit">°C</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_T_in_HP_cool">HP inlet temp — cooling design (max EWT)</label>
+              <div class="input-row">
+                <input type="number" id="s_T_in_HP_cool" name="s_T_in_HP_cool" step="0.1" placeholder="40.2">
                 <span class="unit">°C</span>
               </div>
             </div>
@@ -260,6 +267,64 @@
               <div class="input-row">
                 <input type="number" id="s_mfls" name="s_mfls" step="0.001" placeholder="0.05">
                 <span class="unit">kg/s·kW</span>
+              </div>
+            </div>
+            <h2 class="card-title" style="margin-top:16px">Borehole &amp; pipe construction</h2>
+            <p class="hint">Typically fixed by the drilling contractor and pipe SDR — leave blank to use defaults.</p>
+            <div class="field">
+              <label for="s_rbore">Borehole radius <em>(0.05 – 0.1)</em></label>
+              <div class="input-row">
+                <input type="number" id="s_rbore" name="s_rbore" step="0.001" placeholder="0.06">
+                <span class="unit">m</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_kgrout">Grout conductivity</label>
+              <div class="input-row">
+                <input type="number" id="s_kgrout" name="s_kgrout" step="0.01" placeholder="1.5">
+                <span class="unit">W/m·K</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_rpin">Pipe inner radius</label>
+              <div class="input-row">
+                <input type="number" id="s_rpin" name="s_rpin" step="0.00001" placeholder="0.01365">
+                <span class="unit">m</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_rpext">Pipe outer radius</label>
+              <div class="input-row">
+                <input type="number" id="s_rpext" name="s_rpext" step="0.00001" placeholder="0.0167">
+                <span class="unit">m</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_kpipe">Pipe conductivity</label>
+              <div class="input-row">
+                <input type="number" id="s_kpipe" name="s_kpipe" step="0.01" placeholder="0.42">
+                <span class="unit">W/m·K</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_LU">U-tube spacing</label>
+              <div class="input-row">
+                <input type="number" id="s_LU" name="s_LU" step="0.0001" placeholder="0.0511">
+                <span class="unit">m</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_Cp">Fluid heat capacity</label>
+              <div class="input-row">
+                <input type="number" id="s_Cp" name="s_Cp" step="1" placeholder="4200">
+                <span class="unit">J/kg·K</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="s_hconv">Convection coefficient</label>
+              <div class="input-row">
+                <input type="number" id="s_hconv" name="s_hconv" step="1" placeholder="1000">
+                <span class="unit">W/m²·K</span>
               </div>
             </div>
           </div>
@@ -651,6 +716,8 @@
           <div id="tab-advanced" class="tab-panel hidden">
             <div class="card">
               <h2 class="card-title">Borehole &amp; Pipe Details</h2>
+              <p class="hint">Borehole &amp; pipe physical constants — typically fixed by the drilling
+                contractor and pipe SDR; leave at defaults unless you have contractor specs.</p>
               <div class="field">
                 <label for="rbore">Borehole radius <em>(0.05 – 0.1)</em></label>
                 <div class="input-row">

@@ -78,6 +78,28 @@
   // ── SMART MODE: staged wizard ─────────────────────────────────────────
   let stage1Result = null;
 
+  // Body key → input id for Smart Advanced overrides; blank = server default
+  const SMART_ADV_FIELDS = {
+    T_in_HP_heat: 's_T_in_HP_heat',
+    T_in_HP_cool: 's_T_in_HP_cool',
+    mfls:  's_mfls',
+    Cp:    's_Cp',
+    rbore: 's_rbore',
+    rpin:  's_rpin',
+    rpext: 's_rpext',
+    kgrout:'s_kgrout',
+    kpipe: 's_kpipe',
+    LU:    's_LU',
+    hconv: 's_hconv',
+  };
+
+  function applySmartAdvOverrides(body) {
+    Object.entries(SMART_ADV_FIELDS).forEach(([key, id]) => {
+      const raw = document.getElementById(id).value.trim();
+      if (raw !== '') body[key] = parseFloat(raw);
+    });
+  }
+
   const stage1Btn    = document.getElementById('stage1-btn');
   const stage2Btn    = document.getElementById('stage2-btn');
   const stage1Error  = document.getElementById('stage1-error');
@@ -297,10 +319,7 @@
     };
     const floorArea = document.getElementById('floor_area_m2').value.trim();
     if (floorArea) body.floor_area_m2 = parseFloat(floorArea);
-    const T_in_HP = document.getElementById('s_T_in_HP').value.trim();
-    const mfls    = document.getElementById('s_mfls').value.trim();
-    if (T_in_HP) body.T_in_HP = parseFloat(T_in_HP);
-    if (mfls)    body.mfls    = parseFloat(mfls);
+    applySmartAdvOverrides(body);
     if (document.getElementById('expert-nb-enable').checked) {
       const nbRaw = document.getElementById('s_NB').value.trim();
       if (nbRaw !== '') body.NB = parseInt(nbRaw, 10);
@@ -422,6 +441,7 @@
       loads: stage1Result.loads,
       building_type: document.getElementById('building_type').value,
       NB_user: result.nb_source === 'expert_override' ? result.NB : null,
+      NB_computed: result.NB,
     };
     fetchCostEstimate(result.L, result.NB, B_m, siteState, smartRes);
   }
@@ -692,7 +712,9 @@
       year_factor:   smartRes.loads.year_factor || 1.0,
       envelope_factor: smartRes.loads.envelope_factor || 1.0,
     };
-    if (smartRes.NB_user) payload.NB = smartRes.NB_user;
+    applySmartAdvOverrides(payload);
+    // s5/s6 must describe the same borefield stage2 sized
+    payload.NB = smartRes.NB_user ?? smartRes.NB_computed ?? null;
 
     let res;
     try {
