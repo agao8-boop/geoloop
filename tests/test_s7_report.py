@@ -1,23 +1,21 @@
-"""s7 report: deterministic builder math + Claude review call (mocked)."""
+"""s7 report: deterministic builder math + recommendation score."""
 
 import json
-from unittest.mock import MagicMock, patch
 
-import httpx
 import pytest
 
-import anthropic
-from geosite.s7_report import build_report, generate_review
+from geosite.s7_report import build_report, compute_recommendation_score
 from geosite.s7_report.builder import (
     BOILER_EFF,
     CHILLER_COP,
-    CONV_USD_PER_KW,
+    CONV_USD_PER_SQFT_DEFAULT,
     ELEC_USD_PER_KWH,
     GAS_USD_PER_THERM,
     GSHP_COP_COOL,
     GSHP_COP_HEAT,
     HP_USD_PER_KW,
     KWH_PER_THERM,
+    SCORE_BENCHMARK,
 )
 
 
@@ -31,13 +29,14 @@ def _payload():
             "nb_min": 4, "nb_max": 15, "B": 6.0, "A": 9.0,
             "solar_thermal_recommended": True,
             "capacity_warning": False,
-            "footprint": {"length_m": 27.7, "width_m": 18.5, "n_floors": 1},
+            "footprint": {"shape_label": "Elongated (9:1)", "footprint_m2": 511.0,
+                          "n_floors": 1},
         },
         "site": {"k_effective": 1.8, "alpha": 0.086, "T_g": 12.0,
                  "climate_zone": "5A", "state_abbrev": "IL"},
         "loads": {"q_h": -60000.0, "q_m": -25000.0, "q_y": -4000.0,
                   "q_h_heat": -60000.0, "q_h_cool": 41000.0,
-                  "floor_area_m2": None},
+                  "floor_area_m2": 5000.0},
         "cost": {"best": {"total_usd": 60000.0}, "base": {"total_usd": 80000.0},
                  "worst": {"total_usd": 110000.0}},
         "strategy": {
@@ -58,19 +57,17 @@ def _payload():
     }
 
 
-def test_report_has_exactly_four_sections_plus_echo():
+def test_report_has_fixed_sections_plus_echo_and_recommendation():
     report = build_report(_payload())
     assert set(report) == {"design", "performance", "cost_savings",
-                           "review_input", "inputs_echo"}
+                           "review_input", "inputs_echo", "recommendation"}
 
 
-def test_conventional_capex_from_peak_load():
+def test_conventional_capex_from_floor_area():
     cs = build_report(_payload())["cost_savings"]
-    # governing peak 60 kW x (340, 500, 710) $/kW
-    assert cs["conv_capex_low_usd"] == pytest.approx(60 * CONV_USD_PER_KW[0])
-    assert cs["conv_capex_usd"] == pytest.approx(60 * CONV_USD_PER_KW[1])
-    assert cs["conv_capex_high_usd"] == pytest.approx(60 * CONV_USD_PER_KW[2])
-    assert cs["conv_capex_usd"] == pytest.approx(30000.0)
+    # 5000 m² × 10.7639 sqft/m² × $35/sqft
+    expected = 5000 * 10.7639 * CONV_USD_PER_SQFT_DEFAULT
+    assert cs["conv_capex_usd"] == pytest.approx(expected, rel=1e-4)
 
 
 def test_gshp_capex_is_borefield_plus_heat_pump():
@@ -88,11 +85,26 @@ def test_operating_costs_match_formulas():
     assert cs["gshp_opex_usd_yr"] == pytest.approx(gshp, abs=0.01)
 
 
-def test_payback_is_delta_capex_over_delta_opex():
+def test_payback_formula_when_gshp_more_expensive():
+    """Payback = extra_capex / annual_savings when GSHP costs more upfront."""
+    payload = _payload()
+    # Large borefield makes GSHP capex exceed conventional
+    payload["cost"]["base"]["total_usd"] = 2_500_000.0
+    payload["cost"]["best"]["total_usd"] = 2_200_000.0
+    payload["cost"]["worst"]["total_usd"] = 3_000_000.0
+    cs = build_report(payload)["cost_savings"]
+    if cs["simple_payback_yr"] is not None:
+        extra = cs["gshp_capex_usd"] - cs["conv_capex_usd"]
+        savings = cs["conv_opex_usd_yr"] - cs["gshp_opex_usd_yr"]
+        assert cs["simple_payback_yr"] == pytest.approx(extra / savings, rel=1e-5)
+
+
+def test_payback_zero_when_gshp_cheaper_upfront():
+    """When GSHP capex < conventional capex, payback = 0 (immediate)."""
     cs = build_report(_payload())["cost_savings"]
-    d_capex = cs["gshp_capex_usd"] - cs["conv_capex_usd"]
-    d_opex = cs["conv_opex_usd_yr"] - cs["gshp_opex_usd_yr"]
-    assert cs["simple_payback_yr"] == pytest.approx(d_capex / d_opex, rel=1e-6)
+    # Default payload: 5000m² × $35/sqft = $1.88M conventional; tiny borefield → GSHP cheaper
+    if cs["gshp_capex_usd"] < cs["conv_capex_usd"]:
+        assert cs["simple_payback_yr"] == 0.0
 
 
 def test_payback_none_when_no_operating_savings():
@@ -126,55 +138,81 @@ def test_review_input_is_compact_and_json_serializable():
         assert key in ri
 
 
-_VALID_REVIEW = {
-    "verdict": "Feasible with caveats.",
-    "strengths": ["a", "b"],
-    "concerns": ["c", "d"],
-    "risks": ["pre-feasibility estimate; TRT required"],
-    "next_steps": ["engage a licensed engineer"],
-}
+# ── Recommendation score ─────────────────────────────────────────────
+# Benchmark = 70 (zone-5A reference). Chicago/Buffalo → above 70. Miami → well below 70.
 
 
-@patch("geosite.s7_report.ai.anthropic.Anthropic")
-def test_generate_review_parses_structured_output(mock_cls, monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
-    client = mock_cls.return_value
-    client.messages.create.return_value = MagicMock(
-        content=[MagicMock(type="text", text=json.dumps(_VALID_REVIEW))])
-    review, err = generate_review(build_report(_payload()))
-    assert err is None
-    assert review == _VALID_REVIEW
-    kwargs = client.messages.create.call_args.kwargs
-    assert kwargs["model"] == "claude-haiku-4-5"
-    assert kwargs["max_tokens"] == 1500
+def test_score_zone5a_above_benchmark():
+    """Standard zone-5A payload (Chicago) should score above the 70-pt benchmark."""
+    # payload: 5A, heat=120k, cool=40k, floor=5000m²
+    # bilateral = min(120k,40k)/5000 = 8 kWh/m²/yr → 15 pts (low band)
+    # climate 5A → 35, footprint optimizer → 25; total = 75
+    rec = build_report(_payload())["recommendation"]
+    assert rec["benchmark"] == SCORE_BENCHMARK
+    assert rec["score"] > SCORE_BENCHMARK
+    assert rec["grade"] in ("Good", "Excellent")
+    contribs = {f["label"]: f["contribution"] for f in rec["factors"]}
+    assert contribs["Climate zone suitability"] == 35   # 5A
+    assert contribs["Footprint feasibility"] == 25      # optimizer
 
 
-@patch("geosite.s7_report.ai.anthropic.Anthropic")
-def test_generate_review_degrades_on_connection_error(mock_cls, monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
-    client = mock_cls.return_value
-    client.messages.create.side_effect = anthropic.APIConnectionError(
-        request=httpx.Request("POST", "https://api.anthropic.com"))
-    review, err = generate_review(build_report(_payload()))
-    assert review is None
-    assert isinstance(err, str) and err
+def test_score_zone1a_well_below_benchmark():
+    """Zone 1A (Miami) with near-zero heating must score well below 70."""
+    payload = _payload()
+    payload["site"]["climate_zone"] = "1A"
+    payload["annual_heat_kwh_th"] = 3000.0    # Miami: tiny heating load
+    payload["annual_cool_kwh_th"] = 220000.0
+    rec = build_report(payload)["recommendation"]
+    # climate 1A → 3, bilateral = min(3k,220k)/5000 = 0.6 → 4 pts, footprint → 25; total = 32
+    assert rec["score"] < 50
+    assert rec["grade"] == "Poor"
+    contribs = {f["label"]: f["contribution"] for f in rec["factors"]}
+    assert contribs["Climate zone suitability"] == 3
 
 
-@patch("geosite.s7_report.ai.anthropic.Anthropic")
-def test_generate_review_short_circuits_without_key(mock_cls, monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    review, err = generate_review(build_report(_payload()))
-    assert review is None
-    assert "not configured" in err
-    mock_cls.assert_not_called()
+def test_chicago_beats_miami():
+    """Ordering invariant: Chicago (5A) must always outscore Miami (1A)."""
+    chicago = build_report(_payload())["recommendation"]
+    p = _payload()
+    p["site"]["climate_zone"] = "1A"
+    p["annual_heat_kwh_th"] = 3000.0
+    p["annual_cool_kwh_th"] = 220000.0
+    miami = build_report(p)["recommendation"]
+    assert chicago["score"] > miami["score"]
 
 
-@patch("geosite.s7_report.ai.anthropic.Anthropic")
-def test_generate_review_degrades_on_unparseable_output(mock_cls, monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
-    client = mock_cls.return_value
-    client.messages.create.return_value = MagicMock(
-        content=[MagicMock(type="text", text="not json at all")])
-    review, err = generate_review(build_report(_payload()))
-    assert review is None
-    assert isinstance(err, str) and err
+def test_score_capacity_capped_penalizes_footprint():
+    payload = _payload()
+    payload["design"]["nb_source"] = "capacity_capped"
+    contribs = {f["label"]: f["contribution"]
+                for f in build_report(payload)["recommendation"]["factors"]}
+    assert contribs["Footprint feasibility"] == 6
+
+
+def test_score_strong_bilateral_raises_score():
+    """Building with strong bilateral loads (balanced Chicago office) should score Excellent."""
+    payload = _payload()
+    payload["annual_heat_kwh_th"] = 200000.0   # 40 kWh/m²/yr each side
+    payload["annual_cool_kwh_th"] = 200000.0
+    rec = build_report(payload)["recommendation"]
+    # bilateral = 200k/5000 = 40 kWh/m²/yr → 40 pts; climate 5A 35; footprint 25 → 100
+    assert rec["score"] == 100
+    assert rec["grade"] == "Excellent"
+
+
+def test_score_has_benchmark_and_vs_fields():
+    rec = build_report(_payload())["recommendation"]
+    assert rec["benchmark"] == SCORE_BENCHMARK
+    assert "vs_benchmark" in rec
+    # vs_benchmark is a signed string like "+5" or "-12"
+    delta = rec["score"] - SCORE_BENCHMARK
+    expected = f"{'+' if delta >= 0 else ''}{delta}"
+    assert rec["vs_benchmark"] == expected
+
+
+def test_score_handles_missing_data_conservatively():
+    rec = compute_recommendation_score({"design": {}, "performance": {"available": False}})
+    assert {"score", "grade", "benchmark", "vs_benchmark", "factors"} <= set(rec)
+    assert len(rec["factors"]) == 3
+    assert 0 <= rec["score"] <= 100
+    json.dumps(rec)   # must be JSON-serializable

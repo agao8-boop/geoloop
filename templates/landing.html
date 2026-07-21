@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoSite Advisor — Geothermal Feasibility for Buildings</title>
+  <meta name="description" content="Geothermal borefield sizing from real subsurface geology. Enter a ZIP, get a full ASHRAE-method feasibility report in minutes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Tokens ── */
+    :root {
+      --bg:          #070D18;
+      --surface:     #0D1A26;
+      --surface-2:   #102031;
+      --border:      rgba(255,255,255,0.07);
+      --border-lt:   rgba(255,255,255,0.13);
+
+      --text:        #F0F6FF;
+      --muted:       #6B8299;
+      --faint:       #3D5166;
+
+      --green:       #10B981;
+      --green-glow:  rgba(16,185,129,0.14);
+      --green-soft:  rgba(16,185,129,0.10);
+
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       NAV
+    ══════════════════════════════════════ */
+    .ln-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(7,13,24,0.65);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ln-logo {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .ln-logo em { font-style: normal; color: var(--green); }
+
+    .ln-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+    .ln-nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .ln-nav-links a:hover { color: var(--text); }
+
+    .ln-nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #000;
+      background: var(--green);
+      padding: 9px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: opacity .18s, transform .18s;
+    }
+    .ln-nav-cta:hover { opacity: .9; transform: translateY(-1px); }
+
+    /* ══════════════════════════════════════
+       HERO
+    ══════════════════════════════════════ */
+    .ln-hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 130px 24px 96px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    /* Radial glow — negative z-index keeps it behind all flow content */
+    .ln-glow {
+      position: absolute;
+      top: 38%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 960px; height: 640px;
+      background: radial-gradient(ellipse at center,
+        rgba(16,185,129,.13) 0%,
+        rgba(16,185,129,.05) 42%,
+        transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Grain noise overlay */
+    .ln-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      background-size: 300px 300px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Badge */
+    .ln-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid rgba(16,185,129,.22);
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 36px;
+    }
+    .ln-badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .35; }
+    }
+
+    /* H1 */
+    h1.ln-h1 {
+      font-size: clamp(48px, 7.5vw, 92px);
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: .96;
+      color: var(--text);
+      max-width: 860px;
+      margin-bottom: 28px;
+    }
+    h1.ln-h1 em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    /* Sub */
+    .ln-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 500px;
+      margin-bottom: 44px;
+    }
+
+    /* CTAs */
+    .ln-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 80px;
+    }
+
+    .ln-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #000;
+      background: var(--green);
+      padding: 15px 30px;
+      border-radius: 100px;
+      text-decoration: none;
+      box-shadow: 0 0 32px rgba(16,185,129,.32), 0 4px 16px rgba(16,185,129,.18);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .ln-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 48px rgba(16,185,129,.42), 0 8px 28px rgba(16,185,129,.24);
+    }
+
+    .ln-btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 15px 22px;
+      border-radius: 100px;
+      border: 1px solid var(--border-lt);
+      transition: color .2s, border-color .2s, transform .2s;
+    }
+    .ln-btn-ghost:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,.28);
+      transform: translateY(-2px);
+    }
+
+    /* ══════════════════════════════════════
+       DEVICE COMPOSITION
+    ══════════════════════════════════════ */
+    .ln-devices {
+      width: 100%;
+      max-width: 980px;
+      position: relative;
+      margin-bottom: 72px;
+      animation: float-mac 5.5s ease-in-out infinite;
+    }
+    @keyframes float-mac {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    /* ── MacBook ── */
+    .ln-mac {
+      width: 100%;
+      filter:
+        drop-shadow(0 48px 96px rgba(0,0,0,.72))
+        drop-shadow(0 0 64px rgba(16,185,129,.09));
+    }
+
+    .ln-mac-lid {
+      background: linear-gradient(140deg, #2e2e42 0%, #1c1c2c 100%);
+      border-radius: 18px 18px 4px 4px;
+      padding: 14px 14px 7px;
+      border: 1.5px solid rgba(255,255,255,.13);
+    }
+
+    .ln-mac-camera {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #2a2a3a;
+      margin: 0 auto 10px;
+    }
+
+    .ln-mac-screen {
+      background: #050a10;
+      border-radius: 8px;
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ln-mac-base {
+      background: linear-gradient(180deg, #2b2b3d 0%, #22222e 100%);
+      height: 24px;
+      border-radius: 0 0 8px 8px;
+      border: 1.5px solid rgba(255,255,255,.08);
+      border-top: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ln-mac-trackpad {
+      width: 110px; height: 11px;
+      background: rgba(255,255,255,.06);
+      border-radius: 4px;
+    }
+
+    /* ── Screen UI ── */
+    .ln-ui {
+      display: flex;
+      height: 100%;
+      font-size: 8.5px;
+      font-family: var(--font);
+    }
+
+    .ln-ui-sidebar {
+      width: 148px;
+      flex-shrink: 0;
+      background: #0f1d29;
+      border-right: 1px solid rgba(255,255,255,.05);
+      padding: 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ln-ui-brand {
+      padding: 0 14px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      margin-bottom: 8px;
+    }
+    .ln-ui-brand em { font-style: normal; color: #10B981; }
+
+    .ln-ui-nav {
+      padding: 5px 14px;
+      font-size: 8.5px;
+      font-weight: 500;
+      color: #4a6378;
+    }
+    .ln-ui-nav.active {
+      background: rgba(16,185,129,.14);
+      color: #fff;
+    }
+
+    .ln-ui-main {
+      flex: 1;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .ln-ui-page-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #F0F6FF;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .ln-ui-page-sub {
+      font-size: 7.5px;
+      color: #4a6378;
+      margin-top: 2px;
+    }
+
+    .ln-ui-card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    .ln-ui-card-title {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #4a6378;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 8px;
+    }
+
+    .ln-ui-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 3px;
+      padding: 5px 8px;
+      margin-bottom: 5px;
+      font-size: 8.5px;
+      color: #6B8299;
+    }
+    .ln-ui-field strong {
+      color: #D0E4F0;
+      font-weight: 600;
+    }
+
+    .ln-ui-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 8px;
+      font-weight: 700;
+      background: #10B981;
+      color: #000;
+      padding: 4px 10px;
+      border-radius: 100px;
+      margin-top: 4px;
+    }
+
+    /* Result card */
+    .ln-ui-result {
+      background: rgba(16,185,129,.06);
+      border: 1px solid rgba(16,185,129,.22);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .ln-ui-result-label {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #10B981;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+    }
+    .ln-ui-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+    .ln-ui-stat-val {
+      font-size: 16px;
+      font-weight: 900;
+      color: #F0F6FF;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .ln-ui-stat-lbl {
+      font-size: 7px;
+      color: #4a6378;
+    }
+
+    /* ── iPhone ── */
+    .ln-phone {
+      position: absolute;
+      bottom: -28px;
+      right: -16px;
+      width: 175px;
+      background: linear-gradient(140deg, #2a2a3e 0%, #1a1a2c 100%);
+      border-radius: 34px;
+      border: 1.5px solid rgba(255,255,255,.13);
+      padding: 10px 7px 14px;
+      box-shadow:
+        0 28px 72px rgba(0,0,0,.65),
+        0 0 44px rgba(16,185,129,.09);
+      animation: float-phone 5.5s ease-in-out .5s infinite;
+    }
+    @keyframes float-phone {
+      0%, 100% { transform: rotate(3deg) translateY(0); }
+      50%       { transform: rotate(3deg) translateY(-9px); }
+    }
+
+    .ln-phone-island {
+      width: 64px; height: 18px;
+      background: #000;
+      border-radius: 20px;
+      margin: 0 auto 8px;
+    }
+
+    .ln-phone-screen {
+      background: #050a10;
+      border-radius: 22px;
+      padding: 12px 10px;
+      min-height: 272px;
+      font-family: var(--font);
+    }
+
+    .ln-phone-top {
+      font-size: 10px;
+      font-weight: 800;
+      color: #F0F6FF;
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .ln-phone-score-box {
+      background: rgba(16,185,129,.1);
+      border: 1px solid rgba(16,185,129,.25);
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .ln-phone-score-num {
+      font-size: 32px;
+      font-weight: 900;
+      color: #10B981;
+      line-height: 1;
+    }
+    .ln-phone-score-denom {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(16,185,129,.5);
+    }
+    .ln-phone-score-grade {
+      font-size: 9px;
+      font-weight: 600;
+      color: #10B981;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-top: 4px;
+    }
+
+    .ln-phone-rows { display: flex; flex-direction: column; gap: 5px; }
+    .ln-phone-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.05);
+      border-radius: 7px;
+      padding: 6px 9px;
+      font-family: var(--font);
+    }
+    .ln-phone-key { font-size: 8px; color: #4a6378; }
+    .ln-phone-val { font-size: 9px; font-weight: 700; color: #D0E4F0; }
+
+    /* ══════════════════════════════════════
+       STATS BAR
+    ══════════════════════════════════════ */
+    .ln-stats {
+      display: flex;
+      align-items: stretch;
+      flex-wrap: wrap;
+      justify-content: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.015);
+    }
+    .ln-stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 40px;
+      gap: 4px;
+    }
+    .ln-stat-item:not(:last-child) {
+      border-right: 1px solid var(--border);
+    }
+    .ln-stat-num {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.03em;
+    }
+    .ln-stat-desc {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════
+       FEATURES
+    ══════════════════════════════════════ */
+    .ln-features {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 32px;
+    }
+
+    .ln-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .ln-section-title {
+      font-size: clamp(32px, 4vw, 50px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.08;
+      text-align: center;
+      color: var(--text);
+      max-width: 620px;
+      margin: 0 auto 60px;
+    }
+
+    .ln-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .ln-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: border-color .2s, transform .22s;
+    }
+    .ln-card:hover {
+      border-color: rgba(16,185,129,.3);
+      transform: translateY(-5px);
+    }
+
+    .ln-card-icon {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      background: var(--green-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+
+    .ln-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+
+    .ln-card-desc {
+      font-size: 14px;
+      line-height: 1.68;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════
+       METHODOLOGY STRIP
+    ══════════════════════════════════════ */
+    .ln-method {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 32px;
+      text-align: center;
+    }
+    .ln-method-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .ln-method-title {
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .ln-method-sub {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 32px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .ln-method-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .ln-method-pill {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border-lt);
+      padding: 7px 16px;
+      border-radius: 100px;
+    }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 36px 48px;
+    }
+    .ln-footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .ln-footer-brand {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .ln-footer-brand em { font-style: normal; color: var(--green); }
+    .ln-footer-links {
+      display: flex;
+      gap: 28px;
+    }
+    .ln-footer-links a {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .ln-footer-links a:hover { color: var(--text); }
+    .ln-footer-copy {
+      font-size: 12px;
+      color: var(--faint);
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .ln-nav-links { display: none; }
+      .ln-nav { padding: 16px 20px; }
+      .ln-phone {
+        position: static;
+        width: 150px;
+        margin: -50px auto 0;
+        transform: rotate(3deg);
+        animation: none;
+      }
+      .ln-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .ln-grid { grid-template-columns: 1fr; }
+      .ln-stat-item { padding: 18px 24px; }
+      .ln-stat-item:not(:last-child) { border-right: none; border-bottom: 1px solid var(--border); }
+      .ln-footer { flex-direction: column; align-items: flex-start; }
+      .ln-hero { padding: 100px 16px 72px; }
+      .ln-actions { flex-direction: column; width: 100%; }
+      .ln-btn-primary, .ln-btn-ghost { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════ NAV ══════════════════ -->
+  <nav class="ln-nav">
+    <a href="/landing" class="ln-logo">GeoSite<em>Advisor</em></a>
+    <ul class="ln-nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="/references">Methodology</a></li>
+      <li><a href="/dev">Dev Dashboard</a></li>
+    </ul>
+    <a href="/" class="ln-nav-cta">Open Tool →</a>
+  </nav>
+
+  <!-- ══════════════════ HERO ══════════════════ -->
+  <section class="ln-hero">
+    <div class="ln-glow"></div>
+
+    <div class="ln-badge">
+      <div class="ln-badge-dot"></div>
+      ASHRAE · Philippe et al. 2010 · 3,221 Counties
+    </div>
+
+    <h1 class="ln-h1">Know the ground<br>before the <em>drill</em>.</h1>
+
+    <p class="ln-sub">
+      Geothermal borefield sizing from real subsurface geology.
+      Enter a ZIP — get a full feasibility report in minutes.
+    </p>
+
+    <div class="ln-actions">
+      <a href="/" class="ln-btn-primary">Size Your Building →</a>
+      <a href="/references" class="ln-btn-ghost">View Methodology ↗</a>
+    </div>
+
+    <!-- Device composition -->
+    <div class="ln-devices">
+
+      <!-- MacBook mockup -->
+      <div class="ln-mac">
+        <div class="ln-mac-lid">
+          <div class="ln-mac-camera"></div>
+          <div class="ln-mac-screen">
+            <div class="ln-ui">
+
+              <!-- Sidebar -->
+              <div class="ln-ui-sidebar">
+                <div class="ln-ui-brand">GeoSite<em>Advisor</em></div>
+                <div class="ln-ui-nav">s1 Site</div>
+                <div class="ln-ui-nav">s2 Simulation</div>
+                <div class="ln-ui-nav">s3 Loads</div>
+                <div class="ln-ui-nav active">s4 Sizing</div>
+                <div class="ln-ui-nav">s5 Cost</div>
+                <div class="ln-ui-nav">s6 Strategy</div>
+                <div class="ln-ui-nav">s7 Report</div>
+              </div>
+
+              <!-- Main content -->
+              <div class="ln-ui-main">
+                <div>
+                  <div class="ln-ui-page-title">Borefield Sizing</div>
+                  <div class="ln-ui-page-sub">Vertical closed-loop · ASHRAE three-pulse method (Philippe et al. 2010)</div>
+                </div>
+
+                <div class="ln-ui-card">
+                  <div class="ln-ui-card-title">Site &amp; Building</div>
+                  <div class="ln-ui-field"><span>ZIP Code</span><strong>60601</strong></div>
+                  <div class="ln-ui-field"><span>Building Type</span><strong>Small Office</strong></div>
+                  <div class="ln-ui-field"><span>Floor Area</span><strong>4,982 m²</strong></div>
+                  <div class="ln-ui-field"><span>Soil Confidence</span><strong>Medium</strong></div>
+                  <div class="ln-ui-pill">Analyze Site &amp; Loads →</div>
+                </div>
+
+                <div class="ln-ui-result">
+                  <div class="ln-ui-result-label">Sizing Result · Chicago IL · Cooling governs</div>
+                  <div class="ln-ui-stat-row">
+                    <div>
+                      <div class="ln-ui-stat-val">1,847</div>
+                      <div class="ln-ui-stat-lbl">Total length (m)</div>
+                    </div>
+                    <div>
+                      <div class="ln-ui-stat-val">115</div>
+                      <div class="ln-ui-stat-lbl">Depth per borehole (m)</div>
+                    </div>
+                    <div>
+                      <div class="ln-ui-stat-val">16</div>
+                      <div class="ln-ui-stat-lbl">Boreholes</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ln-mac-base">
+          <div class="ln-mac-trackpad"></div>
+        </div>
+      </div>
+
+      <!-- iPhone mockup -->
+      <div class="ln-phone">
+        <div class="ln-phone-island"></div>
+        <div class="ln-phone-screen">
+          <div class="ln-phone-top">Feasibility Report</div>
+          <div class="ln-phone-score-box">
+            <div class="ln-phone-score-num">74<span class="ln-phone-score-denom">/100</span></div>
+            <div class="ln-phone-score-grade">Good Candidate</div>
+          </div>
+          <div class="ln-phone-rows">
+            <div class="ln-phone-row">
+              <span class="ln-phone-key">Borefield length</span>
+              <span class="ln-phone-val">1,847 m</span>
+            </div>
+            <div class="ln-phone-row">
+              <span class="ln-phone-key">Depth per hole</span>
+              <span class="ln-phone-val">115 m</span>
+            </div>
+            <div class="ln-phone-row">
+              <span class="ln-phone-key">Cost (base)</span>
+              <span class="ln-phone-val">$548k</span>
+            </div>
+            <div class="ln-phone-row">
+              <span class="ln-phone-key">Ground k</span>
+              <span class="ln-phone-val">2.41 W/m·K</span>
+            </div>
+            <div class="ln-phone-row">
+              <span class="ln-phone-key">Climate zone</span>
+              <span class="ln-phone-val">5A — Chicago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ln-devices -->
+
+    <!-- Stats bar -->
+    <div class="ln-stats">
+      <div class="ln-stat-item">
+        <div class="ln-stat-num">3,221</div>
+        <div class="ln-stat-desc">Counties with deep thermal data</div>
+      </div>
+      <div class="ln-stat-item">
+        <div class="ln-stat-num">100 m</div>
+        <div class="ln-stat-desc">Borehole midpoint depth</div>
+      </div>
+      <div class="ln-stat-item">
+        <div class="ln-stat-num">7</div>
+        <div class="ln-stat-desc">Automated pipeline stages</div>
+      </div>
+      <div class="ln-stat-item">
+        <div class="ln-stat-num">379</div>
+        <div class="ln-stat-desc">Validated test assertions</div>
+      </div>
+    </div>
+
+  </section><!-- /ln-hero -->
+
+
+  <!-- ══════════════════ FEATURES ══════════════════ -->
+  <section class="ln-features" id="features">
+    <div class="ln-section-label">Why GeoSite Advisor</div>
+    <h2 class="ln-section-title">From ZIP code to full report — automatically.</h2>
+
+    <div class="ln-grid">
+      <div class="ln-card">
+        <div class="ln-card-icon">🌍</div>
+        <div class="ln-card-title">Real subsurface geology</div>
+        <div class="ln-card-desc">County-level thermal conductivity from SMU heat-flow measurements and SGMC rock classifications. Blackwell &amp; Richards (2004) IDW interpolation — not a generic lookup table.</div>
+      </div>
+      <div class="ln-card">
+        <div class="ln-card-icon">📐</div>
+        <div class="ln-card-title">ASHRAE-verified sizing</div>
+        <div class="ln-card-desc">Philippe et al. (2010) three-pulse method with iterative Tp correction. Every intermediate step verified against the reference Excel spreadsheet — not an approximation.</div>
+      </div>
+      <div class="ln-card">
+        <div class="ln-card-icon">💰</div>
+        <div class="ln-card-title">Regional cost in 3 scenarios</div>
+        <div class="ln-card-desc">Best, base, and worst-case drilling cost by Census division. Line-item breakdown covering mobilization, rock drilling, grouting, pipe, and trench — ready for contractor comparison.</div>
+      </div>
+      <div class="ln-card">
+        <div class="ln-card-icon">⚡</div>
+        <div class="ln-card-title">Hybrid peaker strategy</div>
+        <div class="ln-card-desc">Load-duration curve analysis identifies optimal GSHP baseload sizing plus supplemental peak capacity. Energy-based (M2) cutoff — ASHRAE 99.6% cap removes top ~35 extreme peak hours before cutoff.</div>
+      </div>
+      <div class="ln-card">
+        <div class="ln-card-icon">🏢</div>
+        <div class="ln-card-title">DOE prototype building loads</div>
+        <div class="ln-card-desc">8,760h EnergyPlus ground loads for 12 commercial building types across 16 ASHRAE climate zones — Deru et al. (2011) NREL prototypes with area and vintage scaling.</div>
+      </div>
+      <div class="ln-card">
+        <div class="ln-card-icon">📋</div>
+        <div class="ln-card-title">Structured feasibility score</div>
+        <div class="ln-card-desc">5-factor GSHP score (0–100) covering load dominance, thermal imbalance, coverage, geology quality, and footprint fit — with AI-powered design advisor Q&amp;A.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ METHOD STRIP ══════════════════ -->
+  <section class="ln-method">
+    <div class="ln-method-inner">
+      <div class="ln-section-label">Grounded in peer-reviewed science</div>
+      <h2 class="ln-method-title">Every number traceable to a source.</h2>
+      <p class="ln-method-sub">No black boxes. Every sizing coefficient, thermal property, and cost rate is derived from published literature or official datasets — fully auditable.</p>
+      <div class="ln-method-pills">
+        <span class="ln-method-pill">Philippe et al. (2010) ASHRAE</span>
+        <span class="ln-method-pill">Blackwell &amp; Richards (2004) SMU IDW</span>
+        <span class="ln-method-pill">Clauser &amp; Huenges (1995) SGMC</span>
+        <span class="ln-method-pill">Deru et al. (2011) NREL DOE</span>
+        <span class="ln-method-pill">ASHRAE 90.1 vintage multipliers</span>
+        <span class="ln-method-pill">SSURGO USDA shallow soil</span>
+        <span class="ln-method-pill">Census 2020 county FIPS</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ FOOTER ══════════════════ -->
+  <footer>
+    <div class="ln-footer">
+      <a href="/landing" class="ln-footer-brand">GeoSite<em>Advisor</em></a>
+      <div class="ln-footer-links">
+        <a href="/">Open Tool</a>
+        <a href="/references">References</a>
+        <a href="/dev">Dev Dashboard</a>
+      </div>
+      <div class="ln-footer-copy">CEE299 · Stanford · ASHRAE · Philippe et al. 2010</div>
+    </div>
+  </footer>
+
+</body>
+</html>

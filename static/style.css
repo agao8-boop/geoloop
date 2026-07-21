@@ -26,6 +26,8 @@
   --accent-hover: #0a6448;
   --accent-active: #084f39;
   --accent-soft: #e6f4ee;
+  --accent-dark: #084f39;
+  --accent-light: #e6f4ee;
 
   --heat: #2563eb;
   --cool: #dc2626;
@@ -885,3 +887,71 @@ body {
 #s7-report .report-ai-list ul { margin: 4px 0 0 18px; }
 #s7-report .report-ai-list li { margin-bottom: 3px; }
 #s7-copy-btn { margin-top: 4px; }
+
+/* ── Borefield layout plan card (index + dev) ── */
+.plan-card {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-top: 16px;
+}
+.plan-card h3 {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.plan-card canvas { max-width: 100%; }
+
+/* ── s7 recommendation score card ── */
+.score-card {
+  background: var(--accent-dark);
+  color: white;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+/* score header row */
+.score-header { display: flex; align-items: center; gap: 18px; margin-bottom: 4px; }
+.score-number { font-size: 3rem; font-weight: 700; line-height: 1; flex-shrink: 0; }
+.score-grade-badge {
+  display: inline-block; padding: 3px 12px; border-radius: 20px;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.02em;
+}
+.grade-excellent { background: #166534; }
+.grade-good      { background: #1e3a8a; }
+.grade-fair      { background: #92400e; }
+.grade-poor      { background: #7f1d1d; }
+.score-vs-bench  { font-size: 0.8rem; opacity: 0.7; margin-top: 3px; }
+.score-label {
+  font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase;
+  opacity: 0.7; margin-bottom: 4px;
+}
+.score-benchmark-line {
+  font-size: 0.72rem; opacity: 0.55;
+  border-top: 1px solid rgba(255,255,255,0.18);
+  padding-top: 8px; margin: 8px 0 12px;
+}
+/* factor rows */
+.factor-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,0.1); }
+.factor-bar-wrap { width: 80px; flex-shrink: 0; background: rgba(255,255,255,0.15); border-radius: 3px; height: 5px; }
+.factor-bar-fill { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.80); transition: width 0.4s ease; }
+.factor-info { flex: 1; min-width: 0; }
+.factor-name { font-size: 0.78rem; font-weight: 600; }
+.factor-value { font-size: 0.68rem; opacity: 0.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.factor-pts { font-size: 0.82rem; font-weight: 700; flex-shrink: 0; opacity: 0.9; }
+/* legacy — kept for any remnant references */
+.score-factors { display: flex; flex-wrap: wrap; gap: 6px; }
+.score-chip { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; }
+
+/* ── s7 FAQ design advisor chatbot ── */
+.faq-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 20px; margin-top: 16px; }
+.faq-intro { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+.faq-topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.faq-btn { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; }
+.faq-btn:hover { background: var(--accent); color: white; }
+.faq-answer { margin-top: 14px; background: #f5f9f5; border-radius: 8px; padding: 14px 16px; }
+.faq-answer-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-dark); margin-bottom: 6px; }
+.faq-close-btn { background: none; border: none; color: var(--accent-dark); font-size: 0.8rem; cursor: pointer; margin-top: 8px; padding: 0; }

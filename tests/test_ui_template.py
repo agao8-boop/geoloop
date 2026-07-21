@@ -14,7 +14,7 @@ def client():
 REQUIRED_IDS = [
     "btn-smart", "btn-manual", "panel-smart", "panel-manual",
     "zip_code", "soil_confidence", "building_type", "floor_area_m2",
-    "year_built", "proto-area-hint", "year-factor-hint",
+    "building_age", "borehole_config", "proto-area-hint", "year-factor-hint",
     "s_B", "s_A", "s_T_in_HP_heat", "s_T_in_HP_cool", "s_mfls",
     "s_Cp", "s_rbore", "s_rpin", "s_rpext", "s_kgrout", "s_kpipe",
     "s_LU", "s_hconv",
@@ -40,12 +40,16 @@ REQUIRED_IDS = [
     "s6-after-L", "s6-after-cost", "s6-peaker-kw", "s6-peaker-type",
     "s6-chart-a",
     "s6-cap-note", "s6-cap-kw", "s6-nb-val", "s6-h-val",
-    "s6-comparison", "s6-m1-cutoff", "s6-m2-cutoff", "s6-m1-hrs", "s6-m2-hrs",
-    "s6-m1-coverage", "s6-m2-coverage", "s6-m1-peaker", "s6-m2-peaker",
-    "s6-m1-L", "s6-m2-L", "s6-m1-save", "s6-m2-save",
+    "s6-comparison", "s6-m2-cutoff", "s6-m2-hrs",
+    "s6-m2-coverage", "s6-m2-peaker",
+    "s6-m2-L", "s6-m2-save",
     "s7-section", "s7-generate-btn", "s7-error", "s7-report",
-    "s7-design", "s7-performance", "s7-cost", "s7-ai", "s7-ai-badge",
+    "s7-design", "s7-performance", "s7-cost",
     "s7-copy-btn",
+    "r-score-card",
+    "borehole-plan", "borehole-plan-report",
+    "r-faq-card", "faq-topics", "faq-answer", "faq-answer-label",
+    "faq-answer-text",
     "sizing-form", "calc-error", "calc-btn",
     "result-panel", "res-L", "res-H", "res-NB",
 ]
@@ -73,7 +77,8 @@ def test_geometry_input_present(index_html):
 
 
 DEV_REQUIRED_IDS = ["t-run", "t-hmin", "t-nb", "s4a-in", "s4a-out",
-                    "s1a-out", "s1b-out", "s2-out", "s4-out", "s5-out"]
+                    "s1a-out", "s1b-out", "s2-out", "s4-out", "s5-out",
+                    "borehole-plan-dev"]
 
 
 @pytest.fixture(scope="module")
@@ -94,3 +99,17 @@ def test_references_renders(client):
 
 def test_dev_renders(client):
     assert client.get("/dev").status_code == 200
+
+
+def test_new_building_types_in_dropdown(index_html):
+    """All 4 newly-enabled building types must appear in the main UI dropdown."""
+    for val in ("retail_stripmall", "restaurant_fastfood",
+                "restaurant_sitdown", "highrise_apartment"):
+        assert f'value="{val}"' in index_html, f"building type '{val}' missing from dropdown"
+
+
+def test_new_building_types_in_dev(dev_html):
+    """All 4 newly-enabled building types must appear in the dev trace tool."""
+    for val in ("retail_stripmall", "restaurant_fastfood",
+                "restaurant_sitdown", "highrise_apartment"):
+        assert f'value="{val}"' in dev_html, f"building type '{val}' missing from dev dropdown"

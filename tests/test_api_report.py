@@ -1,7 +1,6 @@
-"""API tests: POST /api/report — contract + AI degradation paths."""
+"""API tests: POST /api/report — deterministic report + recommendation score."""
 
 import json
-from unittest.mock import patch
 
 import pytest
 
@@ -21,7 +20,7 @@ _BODY = {
                "capacity_warning": False},
     "site": {"k_effective": 1.8, "alpha": 0.086, "T_g": 12.0,
              "climate_zone": "5A"},
-    "loads": {"q_h": -60000.0, "q_m": -25000.0, "q_y": -4000.0},
+    "loads": {"q_h": -60000.0, "q_m": -25000.0, "q_y": -4000.0, "floor_area_m2": 511.0},
     "cost": {"best": {"total_usd": 60000.0}, "base": {"total_usd": 80000.0},
              "worst": {"total_usd": 110000.0}},
     "strategy": {"peaker_kW": 12.0, "peaker_type": "electric_heater",
@@ -30,54 +29,45 @@ _BODY = {
     "annual_cool_kwh_th": 40000.0,
 }
 
-_REVIEW = {"verdict": "ok", "strengths": ["a", "b"], "concerns": ["c", "d"],
-           "risks": ["pre-feasibility"], "next_steps": ["hire an engineer"]}
-
 
 def _post(client, body):
     return client.post("/api/report", data=json.dumps(body),
                        content_type="application/json")
 
 
-@patch("app.generate_review", return_value=(_REVIEW, None))
-def test_report_returns_report_and_review(mock_gen, client):
+def test_report_returns_report_and_recommendation(client):
     resp = _post(client, _BODY)
     assert resp.status_code == 200, resp.get_json()
     data = resp.get_json()
-    assert set(data) == {"report", "ai_review", "ai_error"}
-    assert data["ai_review"] == _REVIEW
-    assert data["ai_error"] is None
+    assert set(data) == {"report", "recommendation"}
     assert data["report"]["design"]["NB"] == 15
     assert data["report"]["cost_savings"]["available"] is True
+    rec = data["recommendation"]
+    assert {"score", "grade", "factors"} <= set(rec)
+    assert 0 <= rec["score"] <= 100
+    assert rec["grade"] in ("Excellent", "Good", "Fair", "Poor")
+    assert len(rec["factors"]) == 3
+    for f in rec["factors"]:
+        assert {"label", "value", "contribution", "note"} <= set(f)
+    # recommendation is also embedded in the report itself
+    assert data["report"]["recommendation"] == rec
 
 
-@patch("app.generate_review", return_value=(None, "timeout"))
-def test_report_degrades_when_ai_fails(mock_gen, client):
+def test_report_has_no_ai_keys(client):
     resp = _post(client, _BODY)
-    assert resp.status_code == 200
     data = resp.get_json()
-    assert data["ai_review"] is None
-    assert data["ai_error"] == "timeout"
-    assert data["report"]["design"]["NB"] == 15
+    assert "ai_review" not in data
+    assert "ai_error" not in data
 
 
-@patch("app.generate_review", side_effect=RuntimeError("boom"))
-def test_report_never_500s_on_ai_exception(mock_gen, client):
-    resp = _post(client, _BODY)
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert data["ai_review"] is None
-    assert isinstance(data["ai_error"], str)
-
-
-@patch("app.generate_review", return_value=(_REVIEW, None))
-def test_report_allows_null_cost_and_strategy(mock_gen, client):
+def test_report_allows_null_cost_and_strategy(client):
     body = dict(_BODY, cost=None, strategy=None)
     resp = _post(client, body)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["report"]["cost_savings"]["available"] is False
     assert data["report"]["performance"]["available"] is False
+    assert 0 <= data["recommendation"]["score"] <= 100
 
 
 def test_report_rejects_missing_design(client):

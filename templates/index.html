@@ -99,7 +99,7 @@
         <div class="stage-header">
           <span class="stage-pill">s2</span>
           <span class="stage-label">Building</span>
-          <span class="stage-note">Matches DOE Commercial Prototype Building Models (ASHRAE 90.1-2019)</span>
+          <span class="stage-note">Matches DOE Commercial Prototype Building Models (ASHRAE 90.1-2019) · Ideal Loads simulation: space loads only — HVAC system loads (ventilation, economizer) not captured</span>
         </div>
         <div class="card">
           <div class="field">
@@ -107,24 +107,43 @@
             <div class="input-row">
               <select id="building_type" name="building_type">
                 <option value="">— select —</option>
-                <option value="small_office">Small Office</option>
-                <option value="medium_office">Medium Office</option>
-                <option value="large_office">Large Office</option>
-                <option value="standalone_retail">Stand-alone Retail</option>
-                <option value="primary_school">Primary School</option>
-                <option value="secondary_school">Secondary School</option>
-                <option value="hospital">Hospital</option>
-                <option value="outpatient_healthcare">Outpatient Healthcare</option>
-                <option value="small_hotel">Small Hotel</option>
-                <option value="large_hotel">Large Hotel</option>
-                <option value="warehouse">Warehouse</option>
-                <option value="midrise_apartment">Mid-rise Apartment</option>
+                <optgroup label="Offices">
+                  <option value="small_office">Small Office</option>
+                  <option value="medium_office">Medium Office</option>
+                  <option value="large_office">Large Office</option>
+                </optgroup>
+                <optgroup label="Schools">
+                  <option value="primary_school">Primary School</option>
+                  <option value="secondary_school">Secondary School</option>
+                </optgroup>
+                <optgroup label="Retail &amp; Warehouse">
+                  <option value="standalone_retail">Stand-alone Retail</option>
+                  <option value="retail_stripmall">Strip Mall</option>
+                  <option value="warehouse">Warehouse</option>
+                </optgroup>
+                <optgroup label="Hospitality &amp; Residential">
+                  <option value="small_hotel" disabled>Small Hotel (coming soon)</option>
+                  <option value="large_hotel" disabled>Large Hotel (coming soon)</option>
+                  <option value="midrise_apartment" disabled>Mid-rise Apartment (coming soon)</option>
+                  <option value="highrise_apartment" disabled>High-rise Apartment (coming soon)</option>
+                </optgroup>
+                <optgroup label="Healthcare">
+                  <option value="hospital" disabled>Hospital (coming soon)</option>
+                  <option value="outpatient_healthcare">Outpatient Healthcare</option>
+                </optgroup>
+                <optgroup label="Restaurants">
+                  <option value="restaurant_fastfood" disabled>Quick-Service Restaurant (coming soon)</option>
+                  <option value="restaurant_sitdown" disabled>Full-Service Restaurant (coming soon)</option>
+                </optgroup>
               </select>
+            </div>
+            <div id="dhw-warning" class="callout callout-warn hidden">
+              This calculation does not include domestic hot water. GSHP sizing covers space heating &amp; cooling only — DHW is treated as a separate system.
             </div>
             <span class="field-error" data-for="building_type"></span>
           </div>
           <div class="field">
-            <label for="floor_area_m2">Floor Area <span class="hint-inline">(leave blank to use DOE prototype area)</span></label>
+            <label for="floor_area_m2">Floor Area <span class="hint-inline">— Total conditioned floor area across all floors — footprint = area ÷ floors. Blank uses DOE prototype total.</span></label>
             <div class="input-row">
               <input type="number" id="floor_area_m2" name="floor_area_m2" min="10" step="1" placeholder="e.g. 2000">
               <span class="unit">m²</span>
@@ -132,29 +151,72 @@
             <span class="field-hint" id="proto-area-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
             <span class="field-error" data-for="floor_area_m2"></span>
           </div>
-          <div class="field">
-            <label for="year_built">Year Built <span class="hint-inline">— enter 0 for new construction / planned</span></label>
+          <div class="input-group field">
+            <label for="num_floors">Number of Floors
+              <span class="input-hint hint-inline">— leave blank to use DOE prototype floor count</span>
+            </label>
             <div class="input-row">
-              <input type="number" id="year_built" name="year_built" min="0" max="2025" step="1" placeholder="e.g. 2005, or 0 if new">
+              <input type="number" id="num_floors" name="num_floors" min="1" max="50" step="1" placeholder="e.g. 3">
+            </div>
+            <div class="input-note field-hint" id="num-floors-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px"></div>
+            <span class="field-error" data-for="num_floors"></span>
+          </div>
+          <div class="input-group field">
+            <label for="footprint_shape">Building Footprint Shape
+              <span class="input-hint hint-inline">— affects layout perimeter and NB range</span>
+            </label>
+            <div class="input-row">
+              <select id="footprint_shape" name="footprint_shape">
+                <option value="square">Square (1:1)</option>
+                <option value="rect_2_1">Rectangle (2:1) — standard commercial</option>
+                <option value="l_shape">L-shape — wing + connector</option>
+                <option value="u_shape">U-shape — courtyard plan</option>
+                <option value="elongated" selected>Elongated (9:1) — hotel / linear wing</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="footprint_shape"></span>
+          </div>
+          <div class="field">
+            <label for="borehole_config">Borehole Field Location
+              <span class="hint-inline">— where the boreholes will be drilled</span>
+            </label>
+            <div class="input-row">
+              <select id="borehole_config" name="borehole_config">
+                <option value="perimeter" selected>Around building perimeter</option>
+                <option value="parking_lot" disabled>Parking lot (coming soon)</option>
+                <option value="under_building" disabled>Under building — new construction (coming soon)</option>
+              </select>
+            </div>
+            <span class="field-error" data-for="borehole_config"></span>
+          </div>
+          <div class="field">
+            <label for="building_age">Building Age</label>
+            <div class="input-row">
+              <select id="building_age" name="building_age">
+                <option value="new">New / planned (&lt; 5 years)</option>
+                <option value="recent">Recent (5–15 years)</option>
+                <option value="existing" selected>Existing (15–30 years)</option>
+                <option value="old">Older (30+ years)</option>
+              </select>
             </div>
             <span class="field-hint" id="year-factor-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
           </div>
         </div>
 
-        <!-- s2b: Building Design (efficiency multipliers — neutral until calibrated) -->
+        <!-- s2b: Building Design (calibrated peak-load multipliers) -->
         <div class="stage-header">
           <span class="stage-pill">s2</span>
           <span class="stage-label">Building Design</span>
-          <span class="stage-note">Efficiency multipliers pending calibration — all options currently neutral (×1.00)</span>
+          <span class="stage-note">Peak-load multipliers applied to borefield sizing</span>
         </div>
         <div class="card">
           <div class="field">
             <label for="s_wwr">Window-Wall Ratio <span class="hint-inline">— share of wall area that is glass</span></label>
             <div class="input-row">
               <select id="s_wwr" name="s_wwr">
-                <option value="low">Low (&le; 20%)</option>
-                <option value="medium" selected>Medium (30&ndash;40%, prototype baseline)</option>
-                <option value="high">High (&ge; 50%)</option>
+                <option value="low">Low (20–40%) &times;0.85</option>
+                <option value="medium" selected>Medium (40–60%, prototype baseline) &times;1.00</option>
+                <option value="high">High (60–80%) &times;1.20</option>
               </select>
             </div>
             <span class="field-error" data-for="s_wwr"></span>
@@ -163,20 +225,21 @@
             <label for="s_envelope">Envelope Efficiency <span class="hint-inline">— insulation and air sealing</span></label>
             <div class="input-row">
               <select id="s_envelope" name="s_envelope">
-                <option value="high">High performance</option>
-                <option value="standard" selected>Standard (code baseline)</option>
-                <option value="low">Low performance</option>
+                <option value="high">High performance &times;0.90</option>
+                <option value="standard" selected>Standard (code baseline) &times;1.00</option>
+                <option value="low">Low performance &times;1.10</option>
               </select>
             </div>
             <span class="field-error" data-for="s_envelope"></span>
           </div>
           <div class="field">
-            <label for="s_glazing">Glazing Type <span class="hint-inline">— glass quality</span></label>
+            <label for="s_glazing">Glazing Type <span class="hint-inline">— bundles U-factor + SHGC; SHGC dominates in warm climates (Miami, Atlanta)</span></label>
             <div class="input-row">
               <select id="s_glazing" name="s_glazing">
-                <option value="triple">Triple-pane</option>
-                <option value="double" selected>Double-pane (standard)</option>
-                <option value="single">Single-pane</option>
+                <option value="triple">Triple-pane low-E (post-2010)</option>
+                <option value="double" selected>Double-pane low-E (post-2000)</option>
+                <option value="double_legacy">Double-pane clear (pre-2000)</option>
+                <option value="single">Single-pane (pre-1980)</option>
               </select>
             </div>
             <span class="field-error" data-for="s_glazing"></span>
@@ -219,9 +282,9 @@
         </div>
         <div class="card">
           <div class="field">
-            <label for="s_H_min">Minimum borehole depth <span class="hint-inline">— the primary sizing control; the optimizer picks the borehole count that hits this depth with the least total drilling</span></label>
+            <label for="s_H_min">Target borehole depth <span class="hint-inline">— preferred depth per borehole (default 125 m). The optimizer may go deeper if the footprint is constrained. Minimum 100 m.</span></label>
             <div class="input-row">
-              <input type="number" id="s_H_min" name="s_H_min" step="1" min="30" max="300" value="125">
+              <input type="number" id="s_H_min" name="s_H_min" step="1" min="100" max="300" value="125">
               <span class="unit">m</span>
             </div>
             <span class="field-error" data-for="s_H_min"></span>
@@ -409,6 +472,10 @@
               to rebalance annual heat flux and reduce required borefield length.
             </div>
           </div>
+          <div class="plan-card">
+            <h3>Borefield Layout Plan</h3>
+            <canvas id="borehole-plan" width="700" height="450" style="width:100%;height:auto"></canvas>
+          </div>
         </div>
 
         <!-- s5: Cost Estimate (populated after sizing) -->
@@ -477,7 +544,7 @@
           <div class="stage-header">
             <span class="stage-pill">s6</span>
             <span class="stage-label">Hybrid System Strategy</span>
-            <span class="stage-note">Load-duration-curve peak shaving</span>
+            <span class="stage-note">Load-duration-curve peak shaving (M2 method: energy-based cutoff) · ASHRAE 99.6%: top ~35 extreme peak hrs removed before cutoff</span>
           </div>
           <div id="s6-headline" class="strategy-headline">Calculating…</div>
           <div class="stat-grid stat-grid-3">
@@ -487,7 +554,7 @@
               <span class="stat-sub" id="s6-before-cost">—</span>
             </div>
             <div class="stat stat-accent">
-              <span class="stat-label">With peaker (M1)</span>
+              <span class="stat-label">With peaker (M2)</span>
               <span class="stat-value" id="s6-after-L">—</span>
               <span class="stat-sub" id="s6-after-cost">—</span>
             </div>
@@ -503,44 +570,37 @@
             H: <strong id="s6-h-val">—</strong> m each
           </div>
           <div id="s6-comparison" class="compare-block hidden">
-            <div class="compare-title">Cutoff method comparison</div>
+            <div class="compare-title">M2 method (energy-based cutoff)</div>
             <table class="files-table">
               <thead>
                 <tr>
                   <th></th>
-                  <th class="num col-m1">M1 — Hours (top 10% hrs)</th>
-                  <th class="num col-m2">M2 — Energy (top 10% kWh)</th>
+                  <th class="num">Value</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Cutoff load</td>
-                  <td id="s6-m1-cutoff" class="num">—</td>
                   <td id="s6-m2-cutoff" class="num">—</td>
                 </tr>
                 <tr>
                   <td>Peaker hours</td>
-                  <td id="s6-m1-hrs" class="num">—</td>
                   <td id="s6-m2-hrs" class="num">—</td>
                 </tr>
                 <tr>
                   <td>GSHP covers</td>
-                  <td id="s6-m1-coverage" class="num">—</td>
                   <td id="s6-m2-coverage" class="num">—</td>
                 </tr>
                 <tr>
                   <td>Peaker size</td>
-                  <td id="s6-m1-peaker" class="num val-warn">—</td>
                   <td id="s6-m2-peaker" class="num val-warn">—</td>
                 </tr>
                 <tr>
                   <td>Borefield L</td>
-                  <td id="s6-m1-L" class="num val-good">—</td>
                   <td id="s6-m2-L" class="num val-good">—</td>
                 </tr>
                 <tr>
                   <td>Savings vs baseline</td>
-                  <td id="s6-m1-save" class="num val-good">—</td>
                   <td id="s6-m2-save" class="num val-good">—</td>
                 </tr>
               </tbody>
@@ -556,11 +616,23 @@
           <div class="stage-header">
             <span class="stage-pill">s7</span>
             <span class="stage-label">Report</span>
-            <span class="stage-note">Fixed-structure summary — design, savings, cost comparison, AI review</span>
+            <span class="stage-note">Fixed-structure summary — design, savings, cost comparison, design advisor</span>
+          </div>
+          <div class="field field-inline" style="max-width:480px;margin-bottom:16px">
+            <label for="conv_cost_per_sqft">Conventional system cost <span class="hint-inline">— heating+cooling plant only, excl. distribution (air handlers, ductwork). Research range: $20–45/sqft US commercial; $35 = mid-upper (CA / full scope). Override with project-specific figure.</span></label>
+            <div class="input-row">
+              <input type="number" id="conv_cost_per_sqft" value="35" min="10" max="200" step="1">
+              <span class="unit">$/sqft</span>
+            </div>
           </div>
           <button type="button" id="s7-generate-btn" class="calc-btn">Generate Report</button>
           <div id="s7-error" class="calc-error hidden"></div>
           <div id="s7-report" class="hidden">
+            <div class="score-card hidden" id="r-score-card"></div>
+            <div class="plan-card">
+              <h3>Borefield Layout</h3>
+              <canvas id="borehole-plan-report" width="700" height="450" style="width:100%;height:auto"></canvas>
+            </div>
             <div class="card">
               <h2 class="card-title">System Design</h2>
               <div id="s7-design"></div>
@@ -573,12 +645,22 @@
               <h2 class="card-title">Cost &amp; Savings</h2>
               <div id="s7-cost"></div>
             </div>
-            <div class="card">
-              <h2 class="card-title">AI Design Review
-                <span id="s7-ai-badge" class="ai-pill">AI Analysis — claude-haiku-4-5</span>
-              </h2>
-              <p class="hint">Automated review of a pre-feasibility estimate — not an engineering design.</p>
-              <div id="s7-ai"></div>
+            <div class="faq-card" id="r-faq-card">
+              <div class="r-section-label">DESIGN ADVISOR</div>
+              <p class="faq-intro">Select a topic to learn more about this GSHP design:</p>
+              <div class="faq-topics" id="faq-topics">
+                <button class="faq-btn" data-topic="0">Why these boreholes?</button>
+                <button class="faq-btn" data-topic="1">Heating vs cooling?</button>
+                <button class="faq-btn" data-topic="2">How does cost compare?</button>
+                <button class="faq-btn" data-topic="3">What is the peaker?</button>
+                <button class="faq-btn" data-topic="4">Is the soil good?</button>
+                <button class="faq-btn" data-topic="5">Next steps?</button>
+              </div>
+              <div class="faq-answer" id="faq-answer" style="display:none">
+                <div class="faq-answer-label" id="faq-answer-label"></div>
+                <p id="faq-answer-text"></p>
+                <button class="faq-close-btn" onclick="closeFaqAnswer()">&larr; back to topics</button>
+              </div>
             </div>
             <button type="button" id="s7-copy-btn" class="calc-btn">Copy report as text</button>
           </div>
@@ -641,9 +723,9 @@
                 <label for="wwr">Window-Wall Ratio</label>
                 <div class="input-row">
                   <select id="wwr" name="wwr">
-                    <option value="low">Low (&le; 20%)</option>
-                    <option value="medium" selected>Medium (30&ndash;40%)</option>
-                    <option value="high">High (&ge; 50%)</option>
+                    <option value="low">Low (20&ndash;40%) &times;0.85</option>
+                    <option value="medium" selected>Medium (40&ndash;60%, prototype baseline) &times;1.00</option>
+                    <option value="high">High (60&ndash;80%) &times;1.20</option>
                   </select>
                 </div>
                 <span class="field-error" data-for="wwr"></span>
@@ -663,9 +745,10 @@
                 <label for="glazing">Glazing Type</label>
                 <div class="input-row">
                   <select id="glazing" name="glazing">
-                    <option value="triple">Triple-pane</option>
-                    <option value="double" selected>Double-pane (standard)</option>
-                    <option value="single">Single-pane</option>
+                    <option value="triple">Triple-pane low-E (post-2010)</option>
+                    <option value="double" selected>Double-pane low-E (post-2000)</option>
+                    <option value="double_legacy">Double-pane clear (pre-2000)</option>
+                    <option value="single">Single-pane (pre-1980)</option>
                   </select>
                 </div>
                 <span class="field-error" data-for="glazing"></span>
@@ -846,6 +929,7 @@
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="/static/borehole_plan.js"></script>
   <script src="/static/main.js"></script>
 </body>
 </html>
