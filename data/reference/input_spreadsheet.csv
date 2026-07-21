@@ -1,0 +1,66 @@
+Input,Description,Pull-down Option,Option Code,Energy Multiplier,Notes
+ZIP Code,5-digit US postal code for site location (geocoding + thermal lookup),Free text entry,—,—,Required
+Building Type,DOE prototype building — sets base 8760h load profile,Small Office,small_office,1.00 (base),~511 m² / 1 floor
+,,,Medium Office,medium_office,1.00 (base),"~4,982 m² / 3 floors"
+,,,Large Office,large_office,1.00 (base),"~46,320 m² / 12 floors"
+,,,High-Rise Apartment,highrise_apartment,1.00 (base),"~16,722 m² / 12 floors"
+,,,Mid-Rise Apartment,midrise_apartment,1.00 (base),"~3,135 m² / 4 floors"
+,,,Small Hotel,small_hotel,1.00 (base),"~4,014 m² / 4 floors"
+,,,Large Hotel,large_hotel,1.00 (base),"~11,345 m² / 6 floors"
+,,,Hospital,hospital,1.00 (base),"~22,422 m² / 5 floors"
+,,,Outpatient Healthcare,outpatient_healthcare,1.00 (base),"~3,804 m² / 3 floors"
+,,,Primary School,primary_school,1.00 (base),"~6,871 m² / 1 floor"
+,,,Secondary School,secondary_school,1.00 (base),"~19,592 m² / 2 floors"
+,,,Retail Strip Mall,retail_stripmall,1.00 (base),"~2,090 m² / 1 floor"
+,,,Standalone Retail,standalone_retail,1.00 (base),"~2,294 m² / 1 floor"
+,,,Fast Food Restaurant,restaurant_fastfood,1.00 (base),~232 m² / 1 floor
+,,,Sit-Down Restaurant,restaurant_sitdown,1.00 (base),~511 m² / 1 floor
+,,,Warehouse,warehouse,1.00 (base),"~4,835 m² / 1 floor"
+Building Age,Construction era maps to ASHRAE 90.1 standard in effect — scales all loads,2020 or newer (90.1-2019),2020,1.00,Prototype baseline
+,,,2015 – 2019 (90.1-2016),2017,1.03,
+,,,2010 – 2014 (90.1-2013),2014,1.07,
+,,,2005 – 2009 (90.1-2007/10),2008,1.18,
+,,,2000 – 2004 (90.1-2001),2000,1.30,
+,,,1995 – 1999 (90.1-1989),1995,1.35,
+,,,1980 – 1994 (ASHRAE 90-1980),1980,1.42,
+,,,Pre-1980 (no energy code),1960,1.50,
+Number of Floors,Above-grade floor count — used to compute total conditioned area when floor area not provided,1 floor,1,—,Area = prototype_area × floors
+,,,2 floors,2,—,
+,,,3 floors,3,—,
+,,,4 floors,4,—,
+,,,5 floors,5,—,
+,,,10 floors,10,—,
+Floor Area (optional),Total conditioned floor area — overrides the prototype × floors estimate,Custom entry in m²,—,—,Leave blank to use prototype default
+Window-to-Wall Ratio (WWR),Share of exterior wall that is glazed — affects heating and cooling loads,"Low (≤ 20% — minimal glazing)",low,0.84,"EnergyPlus-derived (medium_office, Denver CZ5B)"
+,,,"Medium (~20% — DOE prototype default)",medium,1.00,Prototype baseline
+,,,High (≥ 50% — curtain wall),high,1.12,"EnergyPlus-derived (medium_office, Denver CZ5B)"
+Envelope Tightness,Insulation level and air-sealing quality,High Performance (low leakage),high,0.97,"EnergyPlus-derived (medium_office, Denver CZ5B)"
+,,,Standard / Code Minimum,standard,1.00,Prototype baseline
+,,,Low Performance / Leaky,low,1.05,"EnergyPlus-derived (medium_office, Denver CZ5B)"
+Glazing Quality,Thermal resistance of window assemblies,Triple pane (U ≤ 0.20),triple,0.77,"EnergyPlus-derived (medium_office, Denver CZ5B)"
+,,,Double pane / Low-e (DOE baseline U ≈ 0.30),double,1.00,Prototype baseline
+,,,Single pane (U ≈ 0.80),single,1.44,"EnergyPlus-derived (medium_office, Denver CZ5B)"
+Borehole Depth Target,Target depth H per borehole — NB count is back-calculated as ⌈L_total / H⌉,100 m (shallow — constrained sites),100,—,Shorter boreholes → more boreholes
+,,,125 m (standard — default),125,—,Default; professor-recommended
+,,,150 m (deep — high-k geology),150,—,Fewer boreholes; requires confirming contractor depth
+Borehole Spacing,Center-to-center distance between boreholes — affects thermal interference,5 m (tight — urban lots),5,—,More interference; acceptable for <10 boreholes
+,,,6 m (standard — default),6,—,Default
+,,,7 m (open — suburban),7,—,Lower interference
+,,,8 m (spacious),8,—,Lowest interference
+Soil Data Confidence,Quality of the subsurface k dataset for this site — adjusts k conservatively,High (site investigation / test bore),high,k × 1.10,+10% on k → shorter borefield
+,,,Medium (county-level estimate — default),medium,k × 1.00,Default
+,,,Low (geology uncertain),low,k × 0.83,−17% on k → ~20% longer borefield
+ASHRAE Peak Cap,Top % of hours ignored as extreme design outliers (ASHRAE 99.6% condition),0.2 % — conservative (top 17 h capped),0.2,—,Smallest cap; most of peak load shaved by peaker
+,,,0.4 % — standard (top 35 h capped — default),0.4,—,Default; ASHRAE 99.6% design condition
+,,,0.6 % — lenient (top 53 h capped),0.6,—,Borefield absorbs more peak; peaker smaller
+LDC Cutoff %,Fraction of peak load shifted to supplemental peaker for hybrid sizing,5 % (small peaker),5,—,Larger GSHP borefield
+,,,10 % (standard — default),10,—,Default; professor-reviewed
+,,,15 % (aggressive peak-shaving),15,—,Smaller borefield; larger peaker capacity
+,,,20 % (large peaker),20,—,Minimum borefield size
+
+Notes:
+- Multipliers are combined_peak (max of heating and cooling peak multiplied together); building-type-specific values are loaded at runtime from EnergyPlus sensitivity study results when available.
+- Reference multipliers shown use medium_office / Denver (Climate Zone 5B) as a proxy for building types whose sensitivity runs are still completing.
+- Building types with completed sensitivity studies (all 4 reference cities): large_office, medium_office, small_office, highrise_apartment, midrise_apartment, small_hotel, retail_standalone, retail_stripmall, warehouse.
+- Building types using medium_office fallback until sensitivity study completes: hospital, outpatient_healthcare, primary_school, secondary_school, large_hotel, restaurant_fastfood, restaurant_sitdown.
+- Combined envelope factor = WWR_factor × Glazing_factor × Infiltration_factor; applied multiplicatively to all load pulses (q_h / q_m / q_y) and the full 8760h strategy profile.

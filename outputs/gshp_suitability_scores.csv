@@ -1,0 +1,11 @@
+City,Climate_Zone,Annual_Heat_kWh,Annual_Cool_kWh,Floor_Area_m2,Bilateral_kWh_m2_yr,F1_Climate_pts,F2_Bilateral_pts,F3_Footprint_pts,Total_Score,Grade,vs_Benchmark_70
+Chicago,5A,150000,80000,5000,16.0,35,28,25,88,Excellent,+18
+Buffalo,5A,200000,60000,5000,12.0,35,15,25,75,Good,+5
+Denver,5B,130000,70000,5000,14.0,33,15,25,73,Good,+3
+New York,4A,100000,60000,5000,12.0,28,15,25,68,Fair,-2
+Seattle,4C,70000,45000,5000,9.0,22,15,25,62,Fair,-8
+Atlanta,3A,60000,150000,5000,12.0,18,15,25,58,Fair,-12
+San Diego,3C,15000,50000,5000,3.0,12,4,25,41,Poor,-29
+Tampa,2A,8000,180000,5000,1.6,8,4,25,37,Poor,-33
+Miami,1A,3000,220000,5000,0.6,3,4,25,32,Poor,-38
+Intl Falls,7,250000,30000,5000,6.0,25,15,25,65,Fair,-5

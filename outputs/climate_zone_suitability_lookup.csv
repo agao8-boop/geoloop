@@ -1,0 +1,18 @@
+Climate_Zone,Suitability_pts,Max_pts,Notes
+1A,3,35,"Hot-humid, extreme cooling dominant, ground warms over time"
+1B,3,35,"Hot-dry, extreme cooling dominant"
+2A,8,35,"Hot-humid, cooling dominant"
+2B,7,35,"Hot-dry, cooling dominant"
+3A,18,35,"Warm-humid, moderate imbalance"
+3B,17,35,Warm-dry
+3C,12,35,"Marine mild, small loads, weak economics"
+4A,28,35,"Mixed-humid, near-balanced"
+4B,26,35,Mixed-dry
+4C,22,35,"Marine, near-balanced"
+5A,35,35,"Cold-humid, balanced, GSHP excels"
+5B,33,35,"Cold-dry, near-balanced, GSHP excels"
+5C,30,35,Cold-marine
+6A,30,35,"Very cold, heating-dominant but large loads"
+6B,29,35,Very cold-dry
+7,25,35,"Subarctic, heavily heating-dominant"
+8,20,35,Arctic

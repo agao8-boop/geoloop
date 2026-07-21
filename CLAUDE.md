@@ -30,6 +30,13 @@ closed-loop systems only.
 - data/reference/390geothermal_calc.xlsx: integrated version     excel including subsurface geologies and same calculation methods with the ground truth for s4_sizing
 
 ## Stack
-- Python 3.11, venv at ./venv
+- Python 3.12 (system), no venv — run directly with `python3` or `flask`
 - Main package: geosite/
 - Tests: pytest in tests/
+
+## Startup (run every session)
+At the start of every session, check if Flask is running and start it if not:
+```
+lsof -i :5001 | grep LISTEN || (cd /Users/agao/Downloads/CEE299/geosite_advisor && FLASK_APP=app.py PORT=5001 flask run --host=127.0.0.1 --port=5001 &)
+```
+URLs: http://127.0.0.1:5001 (Flask API + UI)  |  http://127.0.0.1:5501 (Live Server landing page)
