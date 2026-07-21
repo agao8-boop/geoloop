@@ -1,0 +1,202 @@
+{
+  "building_type": "medium_office",
+  "city": "buffalo",
+  "climate_zone": "5A",
+  "idf": "ASHRAE901_OfficeMedium_STD2022_Buffalo.idf",
+  "epw": "USA_NY_Buffalo.Niagara.Intl.AP.725280_TMY3.epw",
+  "study": "shgc_u_sensitivity",
+  "baseline_label": "shgcu_baseline",
+  "baseline_u_factor": 2.06120838,
+  "baseline_shgc": 0.378,
+  "raw_metrics": {
+    "shgcu_baseline": {
+      "peak_heat_kW": 179.44,
+      "peak_cool_kW": 159.11,
+      "annual_heat_MWh": 39.781,
+      "annual_cool_MWh": 212.424
+    },
+    "shgcu_shgc_020": {
+      "peak_heat_kW": 182.22,
+      "peak_cool_kW": 137.17,
+      "annual_heat_MWh": 51.204,
+      "annual_cool_MWh": 161.804
+    },
+    "shgcu_shgc_030": {
+      "peak_heat_kW": 180.69,
+      "peak_cool_kW": 149.82,
+      "annual_heat_MWh": 44.391,
+      "annual_cool_MWh": 189.738
+    },
+    "shgcu_shgc_040": {
+      "peak_heat_kW": 179.04,
+      "peak_cool_kW": 161.66,
+      "annual_heat_MWh": 38.565,
+      "annual_cool_MWh": 218.95
+    },
+    "shgcu_shgc_055": {
+      "peak_heat_kW": 177.26,
+      "peak_cool_kW": 180.95,
+      "annual_heat_MWh": 31.485,
+      "annual_cool_MWh": 264.364
+    },
+    "shgcu_shgc_070": {
+      "peak_heat_kW": 175.15,
+      "peak_cool_kW": 200.34,
+      "annual_heat_MWh": 25.94,
+      "annual_cool_MWh": 311.865
+    },
+    "shgcu_u_080": {
+      "peak_heat_kW": 162.93,
+      "peak_cool_kW": 159.28,
+      "annual_heat_MWh": 15.671,
+      "annual_cool_MWh": 256.219
+    },
+    "shgcu_u_140": {
+      "peak_heat_kW": 171.99,
+      "peak_cool_kW": 158.5,
+      "annual_heat_MWh": 26.327,
+      "annual_cool_MWh": 230.864
+    },
+    "shgcu_u_270": {
+      "peak_heat_kW": 186.46,
+      "peak_cool_kW": 158.79,
+      "annual_heat_MWh": 53.796,
+      "annual_cool_MWh": 197.552
+    },
+    "shgcu_u_400": {
+      "peak_heat_kW": 203.86,
+      "peak_cool_kW": 162.11,
+      "annual_heat_MWh": 80.66,
+      "annual_cool_MWh": 182.792
+    },
+    "shgcu_u_580": {
+      "peak_heat_kW": 230.39,
+      "peak_cool_kW": 166.4,
+      "annual_heat_MWh": 114.669,
+      "annual_cool_MWh": 171.539
+    }
+  },
+  "multipliers": {
+    "shgcu_baseline": {
+      "param": "baseline",
+      "level": "baseline",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "peak_heat": 1.0,
+      "peak_cool": 1.0,
+      "annual_heat": 1.0,
+      "annual_cool": 1.0,
+      "combined_peak": 1.0
+    },
+    "shgcu_shgc_020": {
+      "param": "shgc_sweep",
+      "level": "shgc_020",
+      "u_factor": 2.06120838,
+      "shgc": 0.2,
+      "peak_heat": 1.0155,
+      "peak_cool": 0.8621,
+      "annual_heat": 1.2872,
+      "annual_cool": 0.7617,
+      "combined_peak": 0.9357
+    },
+    "shgcu_shgc_030": {
+      "param": "shgc_sweep",
+      "level": "shgc_030",
+      "u_factor": 2.06120838,
+      "shgc": 0.3,
+      "peak_heat": 1.007,
+      "peak_cool": 0.9416,
+      "annual_heat": 1.1159,
+      "annual_cool": 0.8932,
+      "combined_peak": 0.9737
+    },
+    "shgcu_shgc_040": {
+      "param": "shgc_sweep",
+      "level": "shgc_040",
+      "u_factor": 2.06120838,
+      "shgc": 0.4,
+      "peak_heat": 0.9978,
+      "peak_cool": 1.0161,
+      "annual_heat": 0.9694,
+      "annual_cool": 1.0307,
+      "combined_peak": 1.0069
+    },
+    "shgcu_shgc_055": {
+      "param": "shgc_sweep",
+      "level": "shgc_055",
+      "u_factor": 2.06120838,
+      "shgc": 0.55,
+      "peak_heat": 0.9879,
+      "peak_cool": 1.1373,
+      "annual_heat": 0.7914,
+      "annual_cool": 1.2445,
+      "combined_peak": 1.06
+    },
+    "shgcu_shgc_070": {
+      "param": "shgc_sweep",
+      "level": "shgc_070",
+      "u_factor": 2.06120838,
+      "shgc": 0.7,
+      "peak_heat": 0.9761,
+      "peak_cool": 1.2591,
+      "annual_heat": 0.6521,
+      "annual_cool": 1.4681,
+      "combined_peak": 1.1086
+    },
+    "shgcu_u_080": {
+      "param": "u_sweep",
+      "level": "u_080",
+      "u_factor": 0.8,
+      "shgc": 0.378,
+      "peak_heat": 0.908,
+      "peak_cool": 1.0011,
+      "annual_heat": 0.3939,
+      "annual_cool": 1.2062,
+      "combined_peak": 0.9534
+    },
+    "shgcu_u_140": {
+      "param": "u_sweep",
+      "level": "u_140",
+      "u_factor": 1.4,
+      "shgc": 0.378,
+      "peak_heat": 0.9585,
+      "peak_cool": 0.9961,
+      "annual_heat": 0.6618,
+      "annual_cool": 1.0868,
+      "combined_peak": 0.9771
+    },
+    "shgcu_u_270": {
+      "param": "u_sweep",
+      "level": "u_270",
+      "u_factor": 2.7,
+      "shgc": 0.378,
+      "peak_heat": 1.0391,
+      "peak_cool": 0.998,
+      "annual_heat": 1.3523,
+      "annual_cool": 0.93,
+      "combined_peak": 1.0183
+    },
+    "shgcu_u_400": {
+      "param": "u_sweep",
+      "level": "u_400",
+      "u_factor": 4.0,
+      "shgc": 0.378,
+      "peak_heat": 1.1361,
+      "peak_cool": 1.0189,
+      "annual_heat": 2.0276,
+      "annual_cool": 0.8605,
+      "combined_peak": 1.0759
+    },
+    "shgcu_u_580": {
+      "param": "u_sweep",
+      "level": "u_580",
+      "u_factor": 5.8,
+      "shgc": 0.378,
+      "peak_heat": 1.2839,
+      "peak_cool": 1.0458,
+      "annual_heat": 2.8825,
+      "annual_cool": 0.8075,
+      "combined_peak": 1.1588
+    }
+  }
+}

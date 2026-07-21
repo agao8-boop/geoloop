@@ -1,0 +1,128 @@
+{
+  "building_type": "large_office",
+  "city": "miami",
+  "climate_zone": "1A",
+  "status": "partial",
+  "metrics_collected": {
+    "wwr_20pct": {
+      "peak_heat_kW": 21.34,
+      "peak_cool_kW": 1865.12,
+      "annual_heat_MWh": 0.062,
+      "annual_cool_MWh": 6981.497
+    },
+    "glaz_double_low_e": {
+      "peak_heat_kW": 21.34,
+      "peak_cool_kW": 1865.12,
+      "annual_heat_MWh": 0.062,
+      "annual_cool_MWh": 6981.497
+    },
+    "infil_standard": {
+      "peak_heat_kW": 21.34,
+      "peak_cool_kW": 1865.12,
+      "annual_heat_MWh": 0.062,
+      "annual_cool_MWh": 6981.497
+    },
+    "equip_high": {
+      "peak_heat_kW": 5.77,
+      "peak_cool_kW": 2143.42,
+      "annual_heat_MWh": 0.014,
+      "annual_cool_MWh": 8412.371
+    },
+    "equip_low": {
+      "peak_heat_kW": 38.56,
+      "peak_cool_kW": 1722.77,
+      "annual_heat_MWh": 0.131,
+      "annual_cool_MWh": 6274.149
+    },
+    "glaz_double_pane": {
+      "peak_heat_kW": 43.36,
+      "peak_cool_kW": 2180.35,
+      "annual_heat_MWh": 0.126,
+      "annual_cool_MWh": 7890.281
+    },
+    "glaz_single_pane": {
+      "peak_heat_kW": 134.2,
+      "peak_cool_kW": 2372.02,
+      "annual_heat_MWh": 0.819,
+      "annual_cool_MWh": 8327.492
+    },
+    "glaz_triple_low_e": {
+      "peak_heat_kW": 5.32,
+      "peak_cool_kW": 1716.6,
+      "annual_heat_MWh": 0.012,
+      "annual_cool_MWh": 6504.158
+    },
+    "infil_leaky": {
+      "peak_heat_kW": 61.32,
+      "peak_cool_kW": 1890.99,
+      "annual_heat_MWh": 0.233,
+      "annual_cool_MWh": 7041.361
+    },
+    "infil_tight": {
+      "peak_heat_kW": 8.41,
+      "peak_cool_kW": 1851.89,
+      "annual_heat_MWh": 0.027,
+      "annual_cool_MWh": 6939.267
+    },
+    "lighting_high": {
+      "peak_heat_kW": 16.39,
+      "peak_cool_kW": 2166.69,
+      "annual_heat_MWh": 0.049,
+      "annual_cool_MWh": 8546.325
+    },
+    "lighting_low": {
+      "peak_heat_kW": 26.44,
+      "peak_cool_kW": 1565.78,
+      "annual_heat_MWh": 0.079,
+      "annual_cool_MWh": 5417.907
+    },
+    "people_high": {
+      "peak_heat_kW": 17.3,
+      "peak_cool_kW": 2130.26,
+      "annual_heat_MWh": 0.05,
+      "annual_cool_MWh": 7721.1
+    },
+    "people_low": {
+      "peak_heat_kW": 23.28,
+      "peak_cool_kW": 1732.62,
+      "annual_heat_MWh": 0.069,
+      "annual_cool_MWh": 6612.121
+    },
+    "sched_5day": {
+      "peak_heat_kW": 31.75,
+      "peak_cool_kW": 1717.29,
+      "annual_heat_MWh": 0.101,
+      "annual_cool_MWh": 6411.476
+    },
+    "sched_extended": {
+      "peak_heat_kW": 14.06,
+      "peak_cool_kW": 1922.86,
+      "annual_heat_MWh": 0.04,
+      "annual_cool_MWh": 7318.24
+    },
+    "wwr_10pct": {
+      "peak_heat_kW": 12.99,
+      "peak_cool_kW": 1677.43,
+      "annual_heat_MWh": 0.057,
+      "annual_cool_MWh": 6355.592
+    },
+    "wwr_30pct": {
+      "peak_heat_kW": 16.04,
+      "peak_cool_kW": 1753.77,
+      "annual_heat_MWh": 0.055,
+      "annual_cool_MWh": 6617.05
+    },
+    "wwr_50pct": {
+      "peak_heat_kW": 19.37,
+      "peak_cool_kW": 1832.49,
+      "annual_heat_MWh": 0.059,
+      "annual_cool_MWh": 6879.65
+    },
+    "wwr_70pct": {
+      "peak_heat_kW": 24.37,
+      "peak_cool_kW": 1917.4,
+      "annual_heat_MWh": 0.069,
+      "annual_cool_MWh": 7143.329
+    }
+  }
+}

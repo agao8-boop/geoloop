@@ -1,0 +1,128 @@
+{
+  "building_type": "medium_office",
+  "city": "atlanta",
+  "climate_zone": "3A",
+  "status": "partial",
+  "metrics_collected": {
+    "wwr_20pct": {
+      "peak_heat_kW": 121.71,
+      "peak_cool_kW": 175.41,
+      "annual_heat_MWh": 7.715,
+      "annual_cool_MWh": 345.865
+    },
+    "glaz_double_low_e": {
+      "peak_heat_kW": 121.71,
+      "peak_cool_kW": 175.41,
+      "annual_heat_MWh": 7.715,
+      "annual_cool_MWh": 345.865
+    },
+    "infil_standard": {
+      "peak_heat_kW": 121.71,
+      "peak_cool_kW": 175.41,
+      "annual_heat_MWh": 7.715,
+      "annual_cool_MWh": 345.865
+    },
+    "equip_high": {
+      "peak_heat_kW": 81.97,
+      "peak_cool_kW": 210.94,
+      "annual_heat_MWh": 2.91,
+      "annual_cool_MWh": 508.6
+    },
+    "equip_low": {
+      "peak_heat_kW": 164.04,
+      "peak_cool_kW": 156.81,
+      "annual_heat_MWh": 13.609,
+      "annual_cool_MWh": 269.183
+    },
+    "glaz_double_pane": {
+      "peak_heat_kW": 124.37,
+      "peak_cool_kW": 215.43,
+      "annual_heat_MWh": 7.229,
+      "annual_cool_MWh": 454.381
+    },
+    "glaz_single_pane": {
+      "peak_heat_kW": 156.17,
+      "peak_cool_kW": 242.78,
+      "annual_heat_MWh": 15.592,
+      "annual_cool_MWh": 486.15
+    },
+    "glaz_triple_low_e": {
+      "peak_heat_kW": 96.51,
+      "peak_cool_kW": 151.94,
+      "annual_heat_MWh": 4.69,
+      "annual_cool_MWh": 303.539
+    },
+    "infil_leaky": {
+      "peak_heat_kW": 138.54,
+      "peak_cool_kW": 177.42,
+      "annual_heat_MWh": 11.381,
+      "annual_cool_MWh": 338.026
+    },
+    "infil_tight": {
+      "peak_heat_kW": 111.89,
+      "peak_cool_kW": 174.39,
+      "annual_heat_MWh": 6.034,
+      "annual_cool_MWh": 350.252
+    },
+    "lighting_high": {
+      "peak_heat_kW": 116.67,
+      "peak_cool_kW": 182.07,
+      "annual_heat_MWh": 6.671,
+      "annual_cool_MWh": 370.532
+    },
+    "lighting_low": {
+      "peak_heat_kW": 126.84,
+      "peak_cool_kW": 168.74,
+      "annual_heat_MWh": 8.988,
+      "annual_cool_MWh": 321.583
+    },
+    "people_high": {
+      "peak_heat_kW": 114.17,
+      "peak_cool_kW": 204.07,
+      "annual_heat_MWh": 6.074,
+      "annual_cool_MWh": 419.668
+    },
+    "people_low": {
+      "peak_heat_kW": 125.93,
+      "peak_cool_kW": 161.1,
+      "annual_heat_MWh": 8.888,
+      "annual_cool_MWh": 310.222
+    },
+    "sched_5day": {
+      "peak_heat_kW": 134.92,
+      "peak_cool_kW": 157.99,
+      "annual_heat_MWh": 11.13,
+      "annual_cool_MWh": 287.338
+    },
+    "sched_extended": {
+      "peak_heat_kW": 110.77,
+      "peak_cool_kW": 182.52,
+      "annual_heat_MWh": 5.88,
+      "annual_cool_MWh": 381.766
+    },
+    "wwr_10pct": {
+      "peak_heat_kW": 117.13,
+      "peak_cool_kW": 142.67,
+      "annual_heat_MWh": 7.894,
+      "annual_cool_MWh": 264.375
+    },
+    "wwr_30pct": {
+      "peak_heat_kW": 117.5,
+      "peak_cool_kW": 160.52,
+      "annual_heat_MWh": 7.652,
+      "annual_cool_MWh": 307.736
+    },
+    "wwr_50pct": {
+      "peak_heat_kW": 122.12,
+      "peak_cool_kW": 177.51,
+      "annual_heat_MWh": 7.723,
+      "annual_cool_MWh": 350.914
+    },
+    "wwr_70pct": {
+      "peak_heat_kW": 126.7,
+      "peak_cool_kW": 194.51,
+      "annual_heat_MWh": 8.011,
+      "annual_cool_MWh": 393.812
+    }
+  }
+}

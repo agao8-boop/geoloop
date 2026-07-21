@@ -1,0 +1,252 @@
+{
+  "building_type": "medium_office",
+  "city": "rochester",
+  "climate_zone": "6A",
+  "idf": "ASHRAE901_OfficeMedium_STD2022_Rochester.idf",
+  "epw": "USA_MN_Rochester.Intl.AP.726440_TMY3.epw",
+  "baseline_label": "wwr_20pct",
+  "baseline_wwr": 0.2,
+  "baseline_u_factor": 2.06120838,
+  "baseline_infil_rate": 0.000569572250459736,
+  "raw_metrics": {
+    "wwr_20pct": {
+      "peak_heat_kW": 217.42,
+      "peak_cool_kW": 167.88,
+      "annual_heat_MWh": 73.592,
+      "annual_cool_MWh": 204.93
+    },
+    "glaz_single_pane": {
+      "peak_heat_kW": 274.61,
+      "peak_cool_kW": 236.57,
+      "annual_heat_MWh": 138.376,
+      "annual_cool_MWh": 287.846
+    },
+    "glaz_triple_low_e": {
+      "peak_heat_kW": 186.82,
+      "peak_cool_kW": 141.55,
+      "annual_heat_MWh": 45.375,
+      "annual_cool_MWh": 185.501
+    },
+    "infil_leaky": {
+      "peak_heat_kW": 241.16,
+      "peak_cool_kW": 168.88,
+      "annual_heat_MWh": 102.644,
+      "annual_cool_MWh": 191.645
+    },
+    "infil_tight": {
+      "peak_heat_kW": 203.06,
+      "peak_cool_kW": 167.35,
+      "annual_heat_MWh": 60.128,
+      "annual_cool_MWh": 213.14
+    },
+    "wwr_10pct": {
+      "peak_heat_kW": 191.49,
+      "peak_cool_kW": 126.33,
+      "annual_heat_MWh": 51.631,
+      "annual_cool_MWh": 157.261
+    },
+    "wwr_30pct": {
+      "peak_heat_kW": 205.64,
+      "peak_cool_kW": 149.38,
+      "annual_heat_MWh": 62.899,
+      "annual_cool_MWh": 182.321
+    },
+    "wwr_50pct": {
+      "peak_heat_kW": 218.43,
+      "peak_cool_kW": 170.5,
+      "annual_heat_MWh": 74.775,
+      "annual_cool_MWh": 208.011
+    },
+    "wwr_70pct": {
+      "peak_heat_kW": 230.7,
+      "peak_cool_kW": 190.34,
+      "annual_heat_MWh": 87.137,
+      "annual_cool_MWh": 234.037
+    },
+    "wwr_90pct": {
+      "peak_heat_kW": 242.22,
+      "peak_cool_kW": 209.42,
+      "annual_heat_MWh": 99.83,
+      "annual_cool_MWh": 260.321
+    },
+    "glaz_double_pane": {
+      "peak_heat_kW": 223.63,
+      "peak_cool_kW": 210.48,
+      "annual_heat_MWh": 79.094,
+      "annual_cool_MWh": 280.259
+    }
+  },
+  "multipliers": {
+    "wwr_20pct": {
+      "param": "wwr",
+      "level": "wwr_20pct",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.2,
+      "peak_heat": 1.0,
+      "peak_cool": 1.0,
+      "annual_heat": 1.0,
+      "annual_cool": 1.0,
+      "combined_peak": 1.0
+    },
+    "glaz_single_pane": {
+      "param": "glazing",
+      "level": "single_pane",
+      "u_factor": 5.8,
+      "shgc": 0.86,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.2,
+      "peak_heat": 1.263,
+      "peak_cool": 1.4092,
+      "annual_heat": 1.8803,
+      "annual_cool": 1.4046,
+      "combined_peak": 1.3341
+    },
+    "glaz_triple_low_e": {
+      "param": "glazing",
+      "level": "triple_low_e",
+      "u_factor": 0.85,
+      "shgc": 0.2,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.2,
+      "peak_heat": 0.8592,
+      "peak_cool": 0.8431,
+      "annual_heat": 0.6166,
+      "annual_cool": 0.9052,
+      "combined_peak": 0.8512
+    },
+    "infil_leaky": {
+      "param": "infiltration",
+      "level": "leaky",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.00114,
+      "wwr_scale": 0.2,
+      "peak_heat": 1.1092,
+      "peak_cool": 1.006,
+      "annual_heat": 1.3948,
+      "annual_cool": 0.9352,
+      "combined_peak": 1.0563
+    },
+    "infil_tight": {
+      "param": "infiltration",
+      "level": "tight",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000285,
+      "wwr_scale": 0.2,
+      "peak_heat": 0.9339,
+      "peak_cool": 0.9968,
+      "annual_heat": 0.817,
+      "annual_cool": 1.0401,
+      "combined_peak": 0.9649
+    },
+    "wwr_10pct": {
+      "param": "wwr",
+      "level": "wwr_10pct",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.1,
+      "peak_heat": 0.8807,
+      "peak_cool": 0.7525,
+      "annual_heat": 0.7016,
+      "annual_cool": 0.7674,
+      "combined_peak": 0.8141
+    },
+    "wwr_30pct": {
+      "param": "wwr",
+      "level": "wwr_30pct",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.3,
+      "peak_heat": 0.9458,
+      "peak_cool": 0.8898,
+      "annual_heat": 0.8547,
+      "annual_cool": 0.8897,
+      "combined_peak": 0.9174
+    },
+    "wwr_50pct": {
+      "param": "wwr",
+      "level": "wwr_50pct",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.5,
+      "peak_heat": 1.0046,
+      "peak_cool": 1.0156,
+      "annual_heat": 1.0161,
+      "annual_cool": 1.015,
+      "combined_peak": 1.0101
+    },
+    "wwr_70pct": {
+      "param": "wwr",
+      "level": "wwr_70pct",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.7,
+      "peak_heat": 1.0611,
+      "peak_cool": 1.1338,
+      "annual_heat": 1.1841,
+      "annual_cool": 1.142,
+      "combined_peak": 1.0968
+    },
+    "wwr_90pct": {
+      "param": "wwr",
+      "level": "wwr_90pct",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.9,
+      "peak_heat": 1.114,
+      "peak_cool": 1.2475,
+      "annual_heat": 1.3565,
+      "annual_cool": 1.2703,
+      "combined_peak": 1.1789
+    },
+    "glaz_double_low_e": {
+      "param": "glazing",
+      "level": "double_low_e",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.2,
+      "peak_heat": 1.0,
+      "peak_cool": 1.0,
+      "annual_heat": 1.0,
+      "annual_cool": 1.0,
+      "combined_peak": 1.0,
+      "is_baseline_marker": true
+    },
+    "infil_standard": {
+      "param": "infiltration",
+      "level": "standard",
+      "u_factor": 2.06120838,
+      "shgc": 0.378,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.2,
+      "peak_heat": 1.0,
+      "peak_cool": 1.0,
+      "annual_heat": 1.0,
+      "annual_cool": 1.0,
+      "combined_peak": 1.0,
+      "is_baseline_marker": true
+    },
+    "glaz_double_pane": {
+      "param": "glazing",
+      "level": "double_pane",
+      "u_factor": 3.0,
+      "shgc": 0.7,
+      "infil_rate": 0.000569572250459736,
+      "wwr_scale": 0.2,
+      "peak_heat": 1.0286,
+      "peak_cool": 1.2537,
+      "annual_heat": 1.0748,
+      "annual_cool": 1.3676,
+      "combined_peak": 1.1356
+    }
+  }
+}
