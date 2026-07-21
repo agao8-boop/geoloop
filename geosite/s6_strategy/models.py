@@ -109,6 +109,7 @@ class StrategyResult:
             "H_min": self.H_min,
             "nb_min": self.nb_min,
             "nb_max": self.nb_max,
+            "wells_saved_pct": round(100.0 * (1 - self.m2_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,
             "comparison": {
                 "m1": {
                     "method": "hours",

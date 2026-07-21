@@ -228,14 +228,19 @@ def size_borefield(
     # in ~23 iterations with ~2 m error vs true fixed-point (~1773 m).
     if B is not None and NB is not None:
         for _ in range(max_iter):
-            Tp = _peak_correction(q_y, k, L, B, NB, A, alpha)
-            L_new = numer / (T_m - T_g - Tp)
+            Tp = _peak_correction(q_y, k, max(abs(L), 1.0), B, NB, A, alpha)
+            denom = T_m - T_g - Tp
+            if abs(denom) < 1e-9:   # denominator collapsed — keep last L
+                break
+            L_new = numer / denom
+            if not math.isfinite(L_new):
+                break
             if abs(L_new - L) < tol:
                 L = L_new
                 break
             L = L_new
 
-    return L
+    return max(0.0, L)
 
 
 def size_borefield_for_depth(

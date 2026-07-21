@@ -1,4 +1,4 @@
-"""Endpoint wiring for building-design parameters (all factors 1.0)."""
+"""Endpoint wiring for building-design parameters."""
 
 import json
 from unittest.mock import patch, MagicMock
@@ -53,20 +53,26 @@ def test_smart_accepts_design_fields_and_echoes_factor(mock_get, client):
     assert loads["wwr"] == "high"
     assert loads["envelope"] == "low"
     assert loads["glazing"] == "single"
-    assert loads["envelope_factor"] == 1.0
+    # New API: returns separate heat_factor and cool_factor (climate-specific lookup)
+    assert "heat_factor" in loads
+    assert "cool_factor" in loads
+    assert loads["heat_factor"] > 1.0   # high-WWR + leaky + single-pane increases loads
+    assert loads["cool_factor"] > 1.0
 
 
 @patch("geosite.s1_site.geocode.requests.get")
-def test_smart_result_identical_with_and_without_fields(mock_get, client):
+def test_smart_low_factors_reduce_borefield(mock_get, client):
+    """Efficient envelope (low/high/triple) must produce a smaller borefield than default."""
     mock_get.side_effect = _make_geocode_mocks("17031320101")
-    r1 = client.post("/calculate/smart", data=json.dumps(_SMART),
-                     content_type="application/json").get_json()
+    r_default = client.post("/calculate/smart", data=json.dumps(_SMART),
+                            content_type="application/json").get_json()
     mock_get.side_effect = _make_geocode_mocks("17031320101")
     body = dict(_SMART, wwr="low", envelope="high", glazing="triple")
-    r2 = client.post("/calculate/smart", data=json.dumps(body),
-                     content_type="application/json").get_json()
-    assert r1["L"] == r2["L"]
-    assert r1["H"] == r2["H"]
+    r_efficient = client.post("/calculate/smart", data=json.dumps(body),
+                              content_type="application/json").get_json()
+    # efficient envelope (low WWR + tight + triple) should shrink borefield
+    assert r_efficient["loads"]["heat_factor"] < 1.0
+    assert r_efficient["L"] < r_default["L"]
 
 
 def test_smart_rejects_unknown_wwr(client):
@@ -77,7 +83,7 @@ def test_smart_rejects_unknown_wwr(client):
     assert resp.get_json()["field"] == "wwr"
 
 
-def test_manual_accepts_design_fields_identity(client):
+def test_manual_accepts_design_fields(client):
     base = client.post("/calculate", data=json.dumps(_MANUAL),
                        content_type="application/json").get_json()
     body = dict(_MANUAL, wwr="high", envelope="low", glazing="single")
@@ -85,8 +91,9 @@ def test_manual_accepts_design_fields_identity(client):
                        content_type="application/json")
     assert resp.status_code == 200, resp.get_json()
     data = resp.get_json()
-    assert data["L"] == base["L"]
-    assert data["envelope_factor"] == 1.0
+    # high × low × single increases loads → borefield grows
+    assert data["envelope_factor"] > 1.0
+    assert data["L"] > base["L"]
 
 
 def test_manual_rejects_unknown_glazing(client):

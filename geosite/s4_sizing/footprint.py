@@ -1,15 +1,15 @@
 """Footprint-driven borehole count range.
 
-The borefield is assumed to be placed in/around a rectangular building
-footprint with a BUILDING-TYPE-SPECIFIC aspect ratio (long/short) taken from
-the DOE Commercial Prototype scorecard drawings. This building footprint
-aspect is distinct from the borefield ARRAY aspect ratio `A` (a user input,
-default 9.0 in Smart Mode), which describes the borehole arrangement, not
-the building shape:
+PROTOTYPE_AREAS_M2 values are total conditioned floor areas across all
+floors (EnergyPlus DOE prototype, 90.1-2019). Footprint = total_area / n_floors.
+
+The building footprint is modeled as one of the BUILDING_SHAPES polygons
+(normalized to unit grid squares, scaled so the polygon area equals the
+per-floor footprint):
     footprint = floor_area / n_floors
-    W = sqrt(footprint / aspect),  L = aspect * W
-    NB_min = one line of boreholes along the SHORT side  = ceil(W / spacing)
-    NB_max = boreholes circling the full perimeter       = floor(2*(L+W) / spacing)
+    scale = sqrt(footprint / area_units)   # one grid unit in metres
+    NB_min = one line of boreholes along the SHORT side  = ceil(scale / spacing)
+    NB_max = boreholes circling the full perimeter       = floor(perimeter / spacing)
 
 Floor counts are the DOE Commercial Prototype Building Models (90.1-2019)
 story counts; areas are the prototype conditioned floor areas.
@@ -18,25 +18,6 @@ story counts; areas are the prototype conditioned floor areas.
 import math
 
 from geosite.s4_sizing.ashrae_sizing import size_borefield, size_borefield_for_depth
-
-# Footprint length/width from the DOE Commercial Prototype scorecard drawings
-# (energycodes.gov, 90.1-2019 set), rounded to one decimal. E-shaped schools
-# use the effective bounding rectangle. Verify against the scorecard PDFs
-# before changing any value.
-BUILDING_ASPECT = {
-    "small_office":          1.5,   # 27.7 x 18.5 m
-    "medium_office":         1.5,   # 49.9 x 33.3 m
-    "large_office":          1.5,   # 73.1 x 48.7 m
-    "standalone_retail":     1.3,   # 54.3 x 42.2 m
-    "primary_school":        1.6,   # E-shape bounding box
-    "secondary_school":      1.6,   # E-shape bounding box
-    "hospital":              1.3,   # 70.1 x 53.3 m
-    "outpatient_healthcare": 1.4,   # scorecard
-    "small_hotel":           3.0,   # 54.9 x 18.3 m
-    "large_hotel":           3.0,   # slab wing
-    "warehouse":             2.2,   # 100.6 x 45.7 m
-    "midrise_apartment":     2.7,   # 46.3 x 16.9 m
-}
 
 BUILDING_FLOORS = {
     "small_office":          1,
@@ -51,6 +32,10 @@ BUILDING_FLOORS = {
     "large_hotel":           6,
     "warehouse":             1,
     "midrise_apartment":     4,
+    "highrise_apartment":    12,
+    "retail_stripmall":      1,
+    "restaurant_fastfood":   1,
+    "restaurant_sitdown":    1,
 }
 
 PROTOTYPE_AREAS_M2 = {
@@ -66,50 +51,119 @@ PROTOTYPE_AREAS_M2 = {
     "large_hotel":           11345.0,
     "warehouse":             4835.0,
     "midrise_apartment":     3135.0,
+    "highrise_apartment":    16722.0,
+    "retail_stripmall":      2090.0,
+    "restaurant_fastfood":   232.3,
+    "restaurant_sitdown":    511.1,
 }
+
+# Normalized footprint polygons in grid units; one grid unit = `scale` metres
+# where scale = sqrt(footprint_m2 / area_units).
+BUILDING_SHAPES = {
+    "square": {
+        "label": "Square",
+        "polygon": [(0, 0), (1, 0), (1, 1), (0, 1)],   # area = 1 sq unit
+        "area_units": 1.0,
+        "description": "1:1 footprint",
+    },
+    "rect_2_1": {
+        "label": "Rectangle (2:1)",
+        "polygon": [(0, 0), (2, 0), (2, 1), (0, 1)],   # area = 2 sq units
+        "area_units": 2.0,
+        "description": "Standard commercial rectangle",
+    },
+    "l_shape": {
+        "label": "L-shape",
+        # 2×2 grid minus top-right 1×1 → area = 3 sq units
+        "polygon": [(0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (0, 2)],
+        "area_units": 3.0,
+        "description": "L-shape (3/4 of 2×2 grid)",
+    },
+    "u_shape": {
+        "label": "U-shape",
+        # 3×2 outer minus center-top 1×1 cutout → area = 5 sq units
+        "polygon": [(0, 0), (3, 0), (3, 2), (2, 2), (2, 1), (1, 1), (1, 2), (0, 2)],
+        "area_units": 5.0,
+        "description": "U-shape / courtyard plan",
+    },
+    "elongated": {
+        "label": "Elongated (9:1)",
+        "polygon": [(0, 0), (9, 0), (9, 1), (0, 1)],   # area = 9 sq units
+        "area_units": 9.0,
+        "description": "Long linear plan — hotel / wing layout",
+    },
+}
+DEFAULT_SHAPE = "elongated"   # keeps existing NB behavior for back-compat
+
+
+def _polygon_perimeter(pts):
+    n = len(pts)
+    return sum(
+        math.hypot(pts[(i + 1) % n][0] - pts[i][0], pts[(i + 1) % n][1] - pts[i][1])
+        for i in range(n)
+    )
+
+
+def shape_geometry(footprint_m2: float, shape_key: str) -> dict:
+    """Return actual polygon vertices in metres and perimeter for the given shape."""
+    sh = BUILDING_SHAPES[shape_key]
+    scale = math.sqrt(footprint_m2 / sh["area_units"])
+    pts = [(x * scale, y * scale) for x, y in sh["polygon"]]
+    perimeter = _polygon_perimeter(pts)
+    return {"scale": scale, "pts": pts, "perimeter_m": perimeter}
 
 
 def compute_nb_range(
     floor_area_m2: float | None,
     building_type: str,
     spacing_m: float = 6.0,
+    shape: str = DEFAULT_SHAPE,
+    num_floors: int | None = None,
 ) -> tuple[int, int, dict]:
     """Return (nb_min, nb_max, meta) from the building footprint geometry.
 
     floor_area_m2=None uses the DOE prototype area for the building type.
+    num_floors=None uses the DOE prototype floor count for the building type.
     """
     if building_type not in BUILDING_FLOORS:
         raise KeyError(
             f"'{building_type}' not in footprint table. "
             f"Available: {sorted(BUILDING_FLOORS)}"
         )
+    if shape not in BUILDING_SHAPES:
+        raise KeyError(
+            f"'{shape}' not in shape table. Available: {sorted(BUILDING_SHAPES)}"
+        )
     if spacing_m <= 0:
         raise ValueError("spacing_m must be positive")
+    if num_floors is not None and num_floors < 1:
+        raise ValueError("num_floors must be >= 1")
 
     prototype_area_used = floor_area_m2 is None
     area = PROTOTYPE_AREAS_M2[building_type] if prototype_area_used else float(floor_area_m2)
     if area <= 0:
         raise ValueError("floor_area_m2 must be positive")
 
-    n_floors = BUILDING_FLOORS[building_type]
-    aspect = BUILDING_ASPECT[building_type]
+    n_floors = num_floors if num_floors else BUILDING_FLOORS[building_type]
     footprint = area / n_floors
-    width = math.sqrt(footprint / aspect)
-    length = aspect * width
-    perimeter = 2.0 * (length + width)
+    geom = shape_geometry(footprint, shape)
+    perimeter = geom["perimeter_m"]
 
-    nb_min = max(1, math.ceil(width / spacing_m))
+    # nb_min: one line of boreholes along the "short" side (= one grid unit)
+    short_side = geom["scale"]
+    nb_min = max(1, math.ceil(short_side / spacing_m))
     nb_max = max(nb_min, math.floor(perimeter / spacing_m))
 
     meta = {
         "footprint_m2": footprint,
         "n_floors": n_floors,
         "floor_area_m2": area,
-        "width_m": width,
-        "length_m": length,
         "perimeter_m": perimeter,
         "spacing_m": spacing_m,
-        "aspect": aspect,
+        "shape": shape,
+        "shape_label": BUILDING_SHAPES[shape]["label"],
+        "pts": geom["pts"],      # polygon vertices in metres — sent to frontend for canvas
+        "scale_m": geom["scale"],
         "prototype_area_used": prototype_area_used,
     }
     return nb_min, nb_max, meta

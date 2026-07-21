@@ -65,3 +65,23 @@ def test_get_loads_envelope_factor_nan_safe():
     # cross-mode fields either scale or stay NaN — never crash
     for v in (loads.q_h_heat, loads.q_h_cool):
         assert (v != v) or isinstance(v, float)
+
+
+def test_new_building_types_load():
+    """All 4 newly-enabled building types must resolve for at least one zone."""
+    from geosite.s2_simulation import get_loads
+    for bt in ("retail_stripmall", "restaurant_fastfood", "restaurant_sitdown", "highrise_apartment"):
+        loads = get_loads(bt, "5B")
+        assert loads.q_h > 0, f"{bt}: q_h should be positive"
+        assert loads.q_m > 0, f"{bt}: q_m should be positive"
+
+
+def test_legacy_building_types_fall_back_to_hourly():
+    """Legacy types (3 pre-computed zones) fall back to hourly profile for other zones."""
+    from geosite.s2_simulation import get_loads
+    for bt in ("hospital", "primary_school", "warehouse", "standalone_retail",
+               "large_hotel", "small_hotel", "midrise_apartment"):
+        loads = get_loads(bt, "5B")   # 5B (Denver) not in pre-computed table
+        assert loads.q_h != 0.0, f"{bt}: q_h should be nonzero"
+        assert len([v for v in (loads.q_h, loads.q_m, loads.q_y) if v == v]) == 3, \
+            f"{bt}: all three pulses should be finite"

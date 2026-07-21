@@ -82,7 +82,7 @@ def lookup_by_geoid(
     (data/public/deep_thermal_by_county.csv). Falls back to the
     SSURGO shallow tract dataset if the deep dataset is unavailable.
     """
-    climate = pd.read_csv(climate_csv, dtype={"geoid": str})
+    climate = _load_climate() if climate_csv == _CLIMATE_CSV else pd.read_csv(climate_csv, dtype={"geoid": str})
     c_row = climate[climate["geoid"] == geoid]
     climate_zone = str(c_row.iloc[0]["climate_zone"]) if not c_row.empty else ""
 
@@ -106,11 +106,15 @@ def lookup_by_geoid(
             k_shallow = float(sc["k_wmpk"]) if pd.notna(sc["k_wmpk"]) else float("nan")
 
     # ── Primary: deep borehole county dataset ────────────────────────────
-    if deep_csv is not None and deep_csv.exists():
-        deep = pd.read_csv(deep_csv, dtype={"county_fips": str})
-        deep["county_fips"] = deep["county_fips"].str.zfill(5)
-        d_row = deep[deep["county_fips"] == county_fips]
-        if not d_row.empty:
+    if deep_csv is not None:
+        deep = _load_deep() if deep_csv == _DEEP_COUNTY_CSV else (
+            pd.read_csv(deep_csv, dtype={"county_fips": str})
+            .assign(county_fips=lambda df: df["county_fips"].str.zfill(5))
+            if deep_csv.exists() else None
+        )
+        if deep is not None:
+            d_row = deep[deep["county_fips"] == county_fips]
+        if deep is not None and not d_row.empty:
             d = d_row.iloc[0]
             k     = float(d["k_wmpk"])     if pd.notna(d["k_wmpk"])     else float("nan")
             alpha = float(d["alpha_m2day"]) if pd.notna(d["alpha_m2day"]) else float("nan")
@@ -136,7 +140,7 @@ def lookup_by_geoid(
                 )
 
     # ── Fallback: shallow SSURGO tract dataset ───────────────────────────
-    thermal = pd.read_csv(thermal_csv, dtype={"geoid": str})
+    thermal = _load_shallow() if thermal_csv == _SHALLOW_TRACT_CSV else pd.read_csv(thermal_csv, dtype={"geoid": str})
     t_row = thermal[thermal["geoid"] == geoid]
     if t_row.empty or c_row.empty:
         return SiteData(

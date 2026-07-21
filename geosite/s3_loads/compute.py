@@ -42,19 +42,48 @@ def compute_pulses(
     # Determine dominant mode by annual energy
     heating_dominant = q_heat.sum() >= q_cool.sum()
 
-    # Peak hourly load (q_h): worst single hour in dominant direction
-    q_h = float(ground.min() if heating_dominant else ground.max())
-
-    # Monthly averages
+    # Monthly averages (used for both modes)
     monthly_avg = _monthly_averages(ground)
-
-    # Peak monthly average (q_m): worst month in dominant direction
-    q_m = float(monthly_avg.min() if heating_dominant else monthly_avg.max())
 
     # Annual average (q_y)
     q_y = float(ground.mean())
 
-    return LoadPulses(q_h=q_h, q_m=q_m, q_y=q_y)
+    # Dominant-mode peaks (backward-compatible q_h / q_m)
+    q_h = float(ground.min() if heating_dominant else ground.max())
+    q_m = float(monthly_avg.min() if heating_dominant else monthly_avg.max())
+
+    # Both-mode peaks for two-pass sizing (always extracted from full 8760h series)
+    q_h_heat = float(ground.min())          # most negative hour (peak extraction)
+    q_m_heat = float(monthly_avg.min())     # worst heating month
+    q_h_cool = float(ground.max())          # most positive hour (peak injection)
+    q_m_cool = float(monthly_avg.max())     # worst cooling month
+
+    return LoadPulses(
+        q_h=q_h, q_m=q_m, q_y=q_y,
+        q_h_heat=q_h_heat, q_m_heat=q_m_heat,
+        q_h_cool=q_h_cool, q_m_cool=q_m_cool,
+    )
+
+
+def compute_pulses_from_ground(ground_W) -> LoadPulses:
+    """Compute three-pulse LoadPulses from an 8760h net ground load array.
+
+    ground_W: positive = cooling (heat injection), negative = heating (extraction).
+    Used as a fallback when pre-computed three-pulse data is unavailable.
+    """
+    g = np.asarray(ground_W, dtype=float)
+    if len(g) != 8760:
+        raise ValueError(f"Expected 8760 values, got {len(g)}")
+    monthly_avg = _monthly_averages(g)
+    q_y = float(g.mean())
+    heating_dominant = g.sum() <= 0
+    q_h = float(g.min() if heating_dominant else g.max())
+    q_m = float(monthly_avg.min() if heating_dominant else monthly_avg.max())
+    return LoadPulses(
+        q_h=q_h, q_m=q_m, q_y=q_y,
+        q_h_heat=float(g.min()), q_m_heat=float(monthly_avg.min()),
+        q_h_cool=float(g.max()), q_m_cool=float(monthly_avg.max()),
+    )
 
 
 def _monthly_averages(ground: np.ndarray) -> np.ndarray:

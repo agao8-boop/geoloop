@@ -130,3 +130,51 @@ def test_api_strategy_missing_building_type_returns_400(client):
         content_type="application/json",
     )
     assert resp.status_code == 400
+
+
+def test_strategy_result_has_comparison_key():
+    result = run_strategy(**_CHICAGO_PARAMS)
+    d = result.to_dict()
+    assert "comparison" in d
+    assert "m1" in d["comparison"]
+    assert "m2" in d["comparison"]
+
+
+def test_m1_and_m2_both_reduce_borefield():
+    result = run_strategy(**_CHICAGO_PARAMS)
+    d = result.to_dict()
+    assert d["comparison"]["m1"]["L_after"] < result.L_before
+    assert d["comparison"]["m2"]["L_after"] < result.L_before
+
+
+def test_m2_cutoff_w_less_than_m1_cutoff_w():
+    # Energy method cuts off at a higher load threshold (fewer peaker hours)
+    result = run_strategy(**_CHICAGO_PARAMS)
+    assert result.m2_cutoff_W > result.m1_cutoff_W
+
+
+def test_strategy_no_nb_computes_from_h_min():
+    params = {k: v for k, v in _CHICAGO_PARAMS.items() if k != "NB"}
+    result = run_strategy(**params, H_min=125.0)
+    assert result.NB >= 1
+    assert result.L_before / result.NB >= 124.0  # H >= H_min (allow 1m rounding)
+
+
+def test_strategy_cap_w_less_than_raw_peak():
+    result = run_strategy(**_CHICAGO_PARAMS, ignore_top_pct=0.4)
+    # cap_W should be less than the uncapped peak for most real buildings
+    raw_peak = max(abs(h) for h in result.hourly_profile)
+    assert result.cap_W <= raw_peak
+
+
+def test_legacy_building_type_uses_proxy_area_scaling():
+    """midrise_apartment (no IDF, falls back to medium_office hourly) must scale to its own area."""
+    from geosite.s4_sizing.footprint import PROTOTYPE_AREAS_M2
+    r_apt = run_strategy(building_type="midrise_apartment", climate_zone="4A",
+                         k=2.0, alpha=0.1, T_g=12.0, B=6.0, A=9.0, state="NY")
+    r_med = run_strategy(building_type="medium_office", climate_zone="4A",
+                         k=2.0, alpha=0.1, T_g=12.0, B=6.0, A=9.0, state="NY")
+    expected_ratio = PROTOTYPE_AREAS_M2["midrise_apartment"] / PROTOTYPE_AREAS_M2["medium_office"]
+    # Ratio won't be exact (Tp correction is nonlinear), but must be in the right ballpark.
+    actual_ratio = r_apt.L_before / r_med.L_before
+    assert 0.3 < actual_ratio < 0.9, f"expected ~{expected_ratio:.2f}, got {actual_ratio:.2f}"

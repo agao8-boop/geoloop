@@ -1,3 +1,4 @@
+import csv as csv_mod
 import sys
 import os
 import json
@@ -13,18 +14,20 @@ from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s4_sizing.footprint import (
+    BUILDING_SHAPES, DEFAULT_SHAPE,
     compute_nb_range, find_optimal_nb, load_implied_nb_range,
 )
 from geosite.s4_sizing.defaults import ADVANCED_DEFAULTS, T_IN_HP_DEFAULTS
 from geosite.s1_site import get_site_data
 from geosite.s2_simulation import get_loads
 from geosite.s2_simulation.envelope import (
-    WWR_OPTIONS, ENVELOPE_OPTIONS, GLAZING_OPTIONS, compute_envelope_factor,
+    WWR_OPTIONS, ENVELOPE_OPTIONS, GLAZING_OPTIONS,
+    compute_envelope_factor, get_envelope_factors,
 )
 from geosite.models import SiteData, LoadPulses
 from geosite.s5_cost import estimate_cost
 from geosite.s6_strategy import run_strategy
-from geosite.s7_report import build_report, generate_review
+from geosite.s7_report import build_report
 
 app = Flask(__name__)
 
@@ -33,6 +36,16 @@ _PUBLIC_DATA = pathlib.Path(__file__).parent / "data" / "public"
 
 @app.route("/")
 def index():
+    return render_template("index.html")
+
+
+@app.route("/landing")
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/tool")
+def tool():
     return render_template("index.html")
 
 
@@ -147,6 +160,31 @@ def _parse_advanced_params(data):
     return params, None
 
 
+def _parse_footprint_opts(data):
+    """Parse optional footprint controls: num_floors and footprint_shape.
+
+    Returns ((num_floors, shape), None) or (None, flask_error_tuple).
+    num_floors is None when blank/absent (DOE prototype floor count used).
+    """
+    num_floors = None
+    raw = data.get("num_floors")
+    if raw is not None and str(raw).strip() != "":
+        try:
+            num_floors = int(raw)
+        except (ValueError, TypeError):
+            return None, (jsonify({"error": "field", "field": "num_floors",
+                                   "message": "Number of floors must be an integer"}), 400)
+        if num_floors < 1:
+            return None, (jsonify({"error": "field", "field": "num_floors",
+                                   "message": "Number of floors must be >= 1"}), 400)
+
+    shape = str(data.get("footprint_shape") or DEFAULT_SHAPE).strip().lower()
+    if shape not in BUILDING_SHAPES:
+        return None, (jsonify({"error": "field", "field": "footprint_shape",
+                               "message": f"'footprint_shape' must be one of {sorted(BUILDING_SHAPES)}"}), 400)
+    return (num_floors, shape), None
+
+
 def _parse_design_fields(data):
     """Return (wwr, envelope, glazing, envelope_factor) or a Flask 400 tuple."""
     wwr      = str(data.get("wwr", "medium")).strip().lower()
@@ -174,6 +212,17 @@ _VINTAGE_BP = [
     (1980, 1.42),  # ASHRAE 90-1980
     (1960, 1.50),  # pre-energy-code era
 ]
+
+# 3–4 tier shorthand for the UI dropdown (maps to a representative year_built)
+VINTAGE_TIERS = {
+    "new":      2022,   # < ~5 years old
+    "recent":   2010,   # ~5–15 years old
+    "existing": 1998,   # ~15–30 years old
+    "old":      1975,   # 30+ years old
+}
+
+# Borehole field layout configurations; only "perimeter" is implemented in v1
+BOREHOLE_CONFIGS = {"perimeter", "parking_lot", "under_building"}
 
 
 def _year_to_load_factor(year_built: int) -> float:
@@ -229,7 +278,14 @@ def _resolve_site_and_loads(data):
             return None, (jsonify({"error": "field", "field": "floor_area_m2",
                                    "message": "Floor area must be a number"}), 400)
 
+    # Optional: number of floors + footprint shape
+    fp_opts, err = _parse_footprint_opts(data)
+    if err:
+        return None, err
+    num_floors, footprint_shape = fp_opts
+
     # Optional: construction year → continuous load factor vs 90.1-2019 prototype
+    # Also accepts building_age tier ("new"/"recent"/"existing"/"old"); year_built takes precedence.
     year_built = 2020  # default: prototype baseline
     if "year_built" in data and str(data["year_built"]).strip() != "":
         try:
@@ -240,6 +296,11 @@ def _resolve_site_and_loads(data):
         except (ValueError, TypeError):
             return None, (jsonify({"error": "field", "field": "year_built",
                                    "message": "Year must be an integer"}), 400)
+    elif "building_age" in data and str(data.get("building_age", "")).strip():
+        tier = str(data["building_age"]).strip().lower()
+        if tier in VINTAGE_TIERS:
+            year_built = VINTAGE_TIERS[tier]
+        # unknown tier → silently fall back to default 2020
     year_factor = _year_to_load_factor(year_built)
 
     # Optional: soil confidence → safety factor on k
@@ -253,10 +314,28 @@ def _resolve_site_and_loads(data):
         soil_confidence = "medium"
     k_factor = _CONFIDENCE_K_FACTORS[soil_confidence]
 
-    design, err = _parse_design_fields(data)
+    # Infer glazing/envelope defaults from building age when user omits them.
+    # Pre-1985: likely single pane + leaky; 1985+ standard double pane.
+    _data = dict(data)
+    if not str(_data.get("glazing", "")).strip():
+        _data["glazing"] = "single" if year_built < 1985 else "double"
+    if not str(_data.get("envelope", "")).strip():
+        _data["envelope"] = "low" if year_built < 1985 else "standard"
+
+    design, err = _parse_design_fields(_data)
     if err:
         return None, err
     wwr, envelope, glazing, envelope_factor = design
+
+    # Optional: borehole field layout configuration
+    borehole_config = str(data.get("borehole_config", "perimeter")).strip().lower()
+    if borehole_config not in BOREHOLE_CONFIGS:
+        return None, (jsonify({"error": "field", "field": "borehole_config",
+                               "message": f"must be one of {sorted(BOREHOLE_CONFIGS)}"}), 400)
+    if borehole_config != "perimeter":
+        return None, (jsonify({"error": "field", "field": "borehole_config",
+                               "message": f"'{borehole_config}' layout not yet implemented; "
+                                          "only 'perimeter' is supported in v1"}), 400)
 
     # --- s1: get site data ---
     try:
@@ -274,10 +353,14 @@ def _resolve_site_and_loads(data):
         }), 422)
 
     # --- s2: get building loads (with optional area scaling) ---
+    # Use climate-specific heat/cool split factors now that climate_zone is known.
+    heat_f, cool_f = get_envelope_factors(
+        site.climate_zone, building_type, wwr, glazing, envelope
+    )
     try:
         loads: LoadPulses = get_loads(building_type, site.climate_zone,
                                       floor_area_m2=floor_area_m2,
-                                      envelope_factor=envelope_factor)
+                                      heat_factor=heat_f, cool_factor=cool_f)
     except KeyError as exc:
         return None, (jsonify({"error": "field", "field": "building_type",
                                "message": str(exc)}), 400)
@@ -346,10 +429,14 @@ def _resolve_site_and_loads(data):
             "wwr": wwr,
             "envelope": envelope,
             "glazing": glazing,
-            "envelope_factor": envelope_factor,
+            "heat_factor": heat_f,
+            "cool_factor": cool_f,
         },
         "building_type": building_type,
         "floor_area_m2": floor_area_m2,
+        "num_floors": num_floors,
+        "footprint_shape": footprint_shape,
+        "borehole_config": borehole_config,
         "effective_k": effective_k,
         "loads_obj": loads,
     }, None
@@ -384,15 +471,34 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
     q_h, q_m, q_y = q_pulses["q_h"], q_pulses["q_m"], q_pulses["q_y"]
     mode = "heating" if q_h < 0 else "cooling"
 
+    fp_opts, err = _parse_footprint_opts(data)
+    if err:
+        return None, err
+    num_floors, footprint_shape = fp_opts
+
     nb_min = nb_max = None
     fp_meta = None
+    capacity_capped = False
     if NB is None:
         try:
             nb_min, nb_max, fp_meta = compute_nb_range(
-                floor_area_m2, building_type, spacing_m=B)
+                floor_area_m2, building_type, spacing_m=B,
+                shape=footprint_shape, num_floors=num_floors)
         except (KeyError, ValueError) as exc:
             return None, (jsonify({"error": "field", "field": "building_type",
                                    "message": str(exc)}), 400)
+        # Capacity check: when the load physically cannot fit in the footprint
+        # (nb_load_min > nb_max), clamp NB to nb_max and let the boreholes go
+        # deeper than H_min — intentional; we cannot fit more holes.
+        load_check = _load_density_check(q_pulses, H_min, nb_max)
+        capacity_capped = bool(load_check["capacity_warning"])
+    else:
+        load_check = {"nb_load_min": None, "nb_load_max": None,
+                      "capacity_warning": None}
+
+    # NB_fixed is set for both expert overrides and capacity-capped fields:
+    # both size at a fixed count instead of running the optimizer sweep.
+    NB_fixed = NB if NB is not None else (nb_max if capacity_capped else None)
 
     # --- s4: two-pass borefield sizing ---
     # Run for both heating and cooling; the mode requiring more borefield governs.
@@ -404,20 +510,20 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
         if _has_both:
             T_heat = float(data.get("T_in_HP_heat", _T_IN_HP_DEFAULTS["heating"]))
             T_cool = float(data.get("T_in_HP_cool", _T_IN_HP_DEFAULTS["cooling"]))
-            if NB is not None:
+            if NB_fixed is not None:
                 L_heat = size_borefield(
                     q_h=q_pulses["q_h_heat"], q_m=q_pulses["q_m_heat"], q_y=q_y,
                     k=effective_k, alpha=alpha, T_g=T_g,
-                    T_in_HP=T_heat, B=B, NB=NB, A=A, **params,
+                    T_in_HP=T_heat, B=B, NB=NB_fixed, A=A, **params,
                 )
                 L_cool = size_borefield(
                     q_h=q_pulses["q_h_cool"], q_m=q_pulses["q_m_cool"], q_y=q_y,
                     k=effective_k, alpha=alpha, T_g=T_g,
-                    T_in_HP=T_cool, B=B, NB=NB, A=A, **params,
+                    T_in_HP=T_cool, B=B, NB=NB_fixed, A=A, **params,
                 )
                 governing = "heating" if L_heat >= L_cool else "cooling"
                 L = max(L_heat, L_cool)
-                NB_out, H = NB, L / NB
+                NB_out, H = NB_fixed, L / NB_fixed
             else:
                 NB_h, L_heat, H_h = find_optimal_nb(
                     nb_min, nb_max,
@@ -439,13 +545,13 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
             L_heat = None
             L_cool = None
             governing = mode
-            if NB is not None:
+            if NB_fixed is not None:
                 L = size_borefield(
                     q_h=q_h, q_m=q_m, q_y=q_y,
                     k=effective_k, alpha=alpha, T_g=T_g,
-                    T_in_HP=T_in_HP, B=B, NB=NB, A=A, **params,
+                    T_in_HP=T_in_HP, B=B, NB=NB_fixed, A=A, **params,
                 )
-                NB_out, H = NB, L / NB
+                NB_out, H = NB_fixed, L / NB_fixed
             else:
                 NB_out, L, H = find_optimal_nb(
                     nb_min, nb_max,
@@ -458,6 +564,8 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
 
     if NB is not None:
         nb_source = "expert_override"
+    elif capacity_capped:
+        nb_source = "capacity_capped"
     elif NB_out < nb_min:
         nb_source = "depth_fallback"
     else:
@@ -468,12 +576,6 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
     # Ground cools over time when net annual extraction (q_y < 0); solar thermal can offset
     solar_thermal_recommended = q_y < 0
 
-    if NB is not None:
-        load_check = {"nb_load_min": None, "nb_load_max": None,
-                      "capacity_warning": None}
-    else:
-        load_check = _load_density_check(q_pulses, H_min, nb_max)
-
     return {
         **load_check,
         "L": round(L),
@@ -482,7 +584,8 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
         "nb_min": nb_min,
         "nb_max": nb_max,
         "H_min": None if NB is not None else H_min,
-        "footprint": fp_meta,
+        "footprint": ({**fp_meta, "nb_min": nb_min, "nb_max": nb_max}
+                      if fp_meta is not None else None),
         "nb_source": nb_source,
         "governing": governing,
         "L_heat": round(L_heat) if L_heat is not None else None,
@@ -533,9 +636,9 @@ def calculate_smart():
     except (ValueError, TypeError):
         return jsonify({"error": "field", "field": "H_min",
                         "message": "H_min must be a number"}), 400
-    if not (30.0 <= H_min <= 300.0):
+    if not (100.0 <= H_min <= 300.0):
         return jsonify({"error": "field", "field": "H_min",
-                        "message": "H_min must be between 30 and 300 m"}), 400
+                        "message": "Target depth must be between 100 and 300 m"}), 400
 
     if NB is not None and NB < 1:
         return jsonify({"error": "field", "field": "NB",
@@ -581,7 +684,8 @@ def calculate_stage1():
 
     try:
         nb_min, nb_max, fp_meta = compute_nb_range(
-            payload["floor_area_m2"], payload["building_type"], spacing_m=6.0)
+            payload["floor_area_m2"], payload["building_type"], spacing_m=6.0,
+            shape=payload["footprint_shape"], num_floors=payload["num_floors"])
     except (KeyError, ValueError) as exc:
         return jsonify({"error": "field", "field": "building_type",
                         "message": str(exc)}), 400
@@ -592,6 +696,7 @@ def calculate_stage1():
         "site": payload["site"],
         "loads": payload["loads"],
         "nb_estimate": {
+            **fp_meta,                     # pts, shape_label, n_floors, spacing_m, …
             "nb_min": nb_min, "nb_max": nb_max, "spacing_m": 6.0,
             "footprint": fp_meta,
             **load_check,
@@ -668,9 +773,9 @@ def calculate_stage2():
     except (ValueError, TypeError):
         return jsonify({"error": "field", "field": "H_min",
                         "message": "H_min must be a number"}), 400
-    if not (30.0 <= H_min <= 300.0):
+    if not (100.0 <= H_min <= 300.0):
         return jsonify({"error": "field", "field": "H_min",
-                        "message": "H_min must be between 30 and 300 m"}), 400
+                        "message": "Target depth must be between 100 and 300 m"}), 400
 
     try:
         B = float(data.get("B", 6.0))
@@ -730,7 +835,6 @@ def county_thermal_api():
     NOTE: This data covers shallow soil only (0–2 m). Intended for horizontal closed-loop
     system screening. NOT suitable for vertical borehole sizing (requires 30–150 m data).
     """
-    import csv as csv_mod
     csv_path = _RESEARCH_SUBSURFACE / "horizontal_shallow_thermal_by_county.csv"
     data = {}
     if csv_path.exists():
@@ -762,9 +866,6 @@ def county_thermal_api():
     return jsonify(data)
 
 
-_PUBLIC_DATA = pathlib.Path(__file__).parent / "data" / "public"
-
-
 @app.route("/api/deep_thermal")
 def deep_thermal_api():
     """Return county-level deep borehole thermal properties (k, α, T_g) for vertical sizing.
@@ -776,7 +877,6 @@ def deep_thermal_api():
 
     Response: JSON dict keyed by 5-digit county FIPS.
     """
-    import csv as csv_mod
     csv_path = _PUBLIC_DATA / "deep_thermal_by_county.csv"
     data = {}
     if csv_path.exists():
@@ -808,39 +908,6 @@ def deep_thermal_api():
     })
 
 
-@app.route("/api/ml/thermal")
-def ml_thermal_api():
-    """[DEPRECATED] Bootstrap ML thermal predictions — scientifically invalid.
-
-    Labels were derived from SSURGO shallow soil data (0-2 m) misapplied to
-    150 m depth. CV RMSE is circular. Uncertainty ±0.5-1.0 W/m·K.
-    Use /api/deep_thermal instead (SMU IDW + Clauser & Huenges 1995).
-    Retained for reference only.
-    """
-    import csv as csv_mod
-    csv_path = _PUBLIC_DATA / "ml_thermal_by_county.csv"
-    data = {}
-    if csv_path.exists():
-        with open(csv_path, newline="", encoding="utf-8") as f:
-            for row in csv_mod.DictReader(f):
-                fips = row.get("county_fips", "")
-                if not fips:
-                    continue
-                data[fips] = {
-                    "k_wmpk":      row.get("k_wmpk") or None,
-                    "T_g_C":       row.get("T_g_C")  or None,
-                    "alpha_m2day": row.get("alpha_m2day") or None,
-                    "rock_class":  row.get("rock_class") or None,
-                    "stage":       row.get("stage", "1_bootstrap"),
-                    "state_abbrev":row.get("state_abbrev", ""),
-                }
-    return jsonify({
-        "counties": data, "model_stage": "1_bootstrap_DEPRECATED",
-        "total": len(data), "data_quality": "INVALID_shallow_proxy",
-        "warning": "Use /api/deep_thermal — this endpoint uses invalid bootstrap labels",
-    })
-
-
 @app.route("/api/smuhf/points")
 def smuhf_points_api():
     """Return SMU Heat Flow database quality A+B measured thermal conductivity points.
@@ -860,7 +927,6 @@ def openloop_wells_api():
     Data source: USGS Water Quality Portal (WQP) groundwater temperature + well depth measurements.
     Suitable for open-loop geothermal system screening.
     """
-    import csv as csv_mod
     csv_path = _RESEARCH_SUBSURFACE / "openloop_wells_by_county.csv"
     data = {}
     if csv_path.exists():
@@ -1083,11 +1149,10 @@ def strategy_api():
 
 @app.route("/api/report", methods=["POST"])
 def report_api():
-    """s7 — fixed-structure report + AI design review.
+    """s7 — fixed-structure deterministic report + recommendation score.
 
     Body: {design, site, loads: dict; cost, strategy: dict|null;
            annual_heat_kwh_th, annual_cool_kwh_th: float}
-    AI failures never 500 the route — the report renders without the review.
     """
     data = request.get_json(force=True, silent=True)
     if data is None:
@@ -1115,16 +1180,16 @@ def report_api():
     except Exception as exc:
         return jsonify({"error": "calculation", "message": str(exc)}), 500
 
-    try:
-        ai_review, ai_error = generate_review(report)
-    except Exception as exc:
-        ai_review, ai_error = None, f"AI review failed unexpectedly: {exc}"
-
-    return jsonify({"report": report, "ai_review": ai_review,
-                    "ai_error": ai_error})
+    return jsonify({"report": report,
+                    "recommendation": report["recommendation"]})
 
 
 @app.route("/dev")
 def developer():
     """Developer-only pipeline dashboard — not linked from the public UI."""
     return render_template("dev.html")
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="127.0.0.1", port=port, debug=False)

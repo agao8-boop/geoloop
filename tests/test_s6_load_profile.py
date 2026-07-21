@@ -41,3 +41,20 @@ def test_scale_factor_one_returns_same_values():
     profile = load_hourly_profile("small_office", "5A", _HOURLY_JSON)
     scaled = scale_profile(profile, 1.0)
     assert scaled == pytest.approx(profile)
+
+
+def test_fallback_building_types_return_8760_profile():
+    """Building types without dedicated hourly data fall back to a similar type."""
+    for bt in ("hospital", "primary_school", "warehouse", "standalone_retail",
+               "large_hotel", "small_hotel", "midrise_apartment",
+               "outpatient_healthcare", "secondary_school"):
+        p = load_hourly_profile(bt, "5B", _HOURLY_JSON)
+        assert len(p) == 8760, f"{bt}: expected 8760 hours"
+
+
+def test_new_building_types_have_direct_profiles():
+    """Newly added types must have their own dedicated hourly profiles."""
+    for bt in ("highrise_apartment", "restaurant_fastfood",
+               "restaurant_sitdown", "retail_stripmall"):
+        p = load_hourly_profile(bt, "5B", _HOURLY_JSON)
+        assert len(p) == 8760, f"{bt}: expected 8760 hours"

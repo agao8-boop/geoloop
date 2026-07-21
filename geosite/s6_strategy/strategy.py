@@ -5,7 +5,7 @@ from geosite.s4_sizing.footprint import (
     find_optimal_nb,
 )
 from geosite.s5_cost import estimate_cost
-from geosite.s6_strategy.load_profile import load_hourly_profile, scale_profile
+from geosite.s6_strategy.load_profile import load_hourly_profile, scale_profile, _HOURLY_FALLBACK
 from geosite.s6_strategy.ldc import (
     compute_ldc,
     trim_profile,
@@ -72,11 +72,12 @@ def run_strategy(
     adv = {k_: sizing_params.get(k_, v) for k_, v in _ADVANCED_DEFAULTS.items()}
 
     # --- Load and scale profile ---
+    # Profile is stored at the proxy type's prototype area; always normalize to target area.
+    proxy_type = _HOURLY_FALLBACK.get(building_type, building_type)
+    proxy_area = float(_PROTOTYPE_AREAS_M2.get(proxy_type, 1.0))
+    target_area = float(floor_area_m2) if floor_area_m2 is not None else float(_PROTOTYPE_AREAS_M2.get(building_type, proxy_area))
     raw_profile = load_hourly_profile(building_type, climate_zone)
-    scale = year_factor * envelope_factor
-    if floor_area_m2 is not None:
-        proto_area = _PROTOTYPE_AREAS_M2[building_type]
-        scale *= floor_area_m2 / proto_area
+    scale = year_factor * envelope_factor * (target_area / proxy_area)
     profile = scale_profile(raw_profile, scale)
 
     # --- LDC: ASHRAE cap + both cutoff methods ---
@@ -150,7 +151,7 @@ def run_strategy(
         q_h_t1 = min(q_h_t1, cap_W)
     else:
         q_h_t1 = max(q_h_t1, -cap_W)
-    L_after_m1 = _do_size(q_h_t1, q_m_t1, q_y_t1, k, alpha, T_g, before_mode, NB, B, A, adv)
+    L_after_m1 = min(_do_size(q_h_t1, q_m_t1, q_y_t1, k, alpha, T_g, before_mode, NB, B, A, adv), L_before)
     H_after_m1 = L_after_m1 / NB
 
     # Peakers m1
@@ -170,7 +171,7 @@ def run_strategy(
         q_h_t2 = min(q_h_t2, cap_W)
     else:
         q_h_t2 = max(q_h_t2, -cap_W)
-    L_after_m2 = _do_size(q_h_t2, q_m_t2, q_y_t2, k, alpha, T_g, before_mode, NB, B, A, adv)
+    L_after_m2 = min(_do_size(q_h_t2, q_m_t2, q_y_t2, k, alpha, T_g, before_mode, NB, B, A, adv), L_before)
     H_after_m2 = L_after_m2 / NB
 
     # Peakers m2
@@ -183,20 +184,20 @@ def run_strategy(
         peaker_cool_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "cooling")
         peaker_kW_m2 = max(peaker_heat_kW_m2, peaker_cool_kW_m2)
 
-    # --- Backward-compat legacy peaker fields (use M1) ---
+    # --- Default peaker fields use M2 (energy-based, professor-preferred method) ---
     if case == 1:
         if dominant_mode == "heating":
-            peaker_kW = peaker_kW_m1
+            peaker_kW = peaker_kW_m2
             peaker_type = "electric_heater"
         else:
-            peaker_kW = peaker_kW_m1
+            peaker_kW = peaker_kW_m2
             peaker_type = "chiller"
     else:
-        peaker_kW = peaker_kW_m1
+        peaker_kW = peaker_kW_m2
         peaker_type = "electric_heater+chiller"
 
-    peaker_heat_kW = peaker_heat_kW_m1
-    peaker_cool_kW = peaker_cool_kW_m1
+    peaker_heat_kW = peaker_heat_kW_m2
+    peaker_cool_kW = peaker_cool_kW_m2
 
     # --- Costs ---
     def _cost(L_m: float) -> dict:
@@ -209,7 +210,7 @@ def run_strategy(
         }
 
     cost_before = _cost(L_before)
-    cost_after  = _cost(L_after_m1)   # backward compat: legacy cost_after = M1
+    cost_after  = _cost(L_after_m2)   # M2 (energy-based) is the primary method
 
     return StrategyResult(
         case=case,
@@ -218,7 +219,7 @@ def run_strategy(
         L_h=L_h,
         L_c=L_c,
         ldc_cutoff_pct=ldc_cutoff_pct,
-        cutoff_W=m1_cutoff_W,            # backward compat
+        cutoff_W=m2_cutoff_W,
         peaker_kW=peaker_kW,
         peaker_type=peaker_type,
         peaker_heat_kW=peaker_heat_kW,
@@ -226,18 +227,18 @@ def run_strategy(
         q_h_before=q_h_before,
         q_m_before=q_m_before,
         q_y_before=q_y_before,
-        q_h_trimmed=q_h_t1,             # backward compat: M1 trimmed pulses
-        q_m_trimmed=q_m_t1,
-        q_y_trimmed=q_y_t1,
+        q_h_trimmed=q_h_t2,
+        q_m_trimmed=q_m_t2,
+        q_y_trimmed=q_y_t2,
         L_before=L_before,
         H_before=H_before,
-        L_after=L_after_m1,             # backward compat: M1
-        H_after=H_after_m1,
+        L_after=L_after_m2,
+        H_after=H_after_m2,
         NB=NB,
         cost_before=cost_before,
         cost_after=cost_after,
         hourly_profile=profile,
-        hourly_trimmed=trimmed_m1,      # backward compat: M1 trim
+        hourly_trimmed=trimmed_m2,
         # New fields
         cap_W=cap_W,
         ignore_top_pct=ignore_top_pct,

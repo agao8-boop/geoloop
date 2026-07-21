@@ -35,9 +35,9 @@ def test_to_dict_has_range_keys():
 
 def test_floor_area_scaling_uses_full_area_table():
     # hospital was missing from the old 3-entry table (scale blew up to
-    # floor_area/1.0); strategy must now use the full 12-type table
+    # floor_area/1.0); strategy must now use the full 16-type table
     from geosite.s6_strategy.strategy import _PROTOTYPE_AREAS_M2
-    assert len(_PROTOTYPE_AREAS_M2) == 12
+    assert len(_PROTOTYPE_AREAS_M2) == 16
     assert _PROTOTYPE_AREAS_M2["hospital"] == 22422.0
     # at prototype area the scale must be ~1.0 (no hourly profile data exists
     # for hospital yet, so exercise the path with a type that has one)

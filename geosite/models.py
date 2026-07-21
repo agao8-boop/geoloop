@@ -28,7 +28,16 @@ class LoadPulses:
     Sign convention (same as s4_sizing.size_borefield):
         negative → heat extraction from ground (heating mode)
         positive → heat injection into ground  (cooling mode)
+
+    q_h / q_m / q_y are the dominant-mode peaks (backward-compatible).
+    The four _heat / _cool fields support the rigorous two-pass sizing check:
+    size for both modes independently, take the larger result.
     """
-    q_h: float   # peak hourly ground load [W]
-    q_m: float   # peak monthly average ground load [W]
-    q_y: float   # annual average ground load [W]
+    q_h: float   # peak hourly ground load [W] — dominant mode
+    q_m: float   # peak monthly average ground load [W] — dominant mode
+    q_y: float   # annual average ground load [W] (positive = net cooling)
+    # Both-mode peaks for two-pass sizing (nan when not available)
+    q_h_heat: float = float("nan")   # peak heating extraction hour [W] (≤ 0)
+    q_m_heat: float = float("nan")   # worst heating month average [W] (≤ 0)
+    q_h_cool: float = float("nan")   # peak cooling injection hour [W] (≥ 0)
+    q_m_cool: float = float("nan")   # worst cooling month average [W] (≥ 0)

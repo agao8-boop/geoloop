@@ -31,10 +31,10 @@ def test_stage2_computes_nb_from_footprint(client):
     data = resp.get_json()
     assert data["nb_source"] in ("optimizer", "depth_fallback")
     assert data["NB"] >= 1
-    assert data["nb_min"] == 4 and data["nb_max"] == 15
+    assert data["nb_min"] == 2 and data["nb_max"] == 25
     assert data["H"] == pytest.approx(data["L"] / data["NB"], abs=1.0)
     # Advisory load-density cross-check (|q_h| = 60 kW at H_min 125):
-    # lo = ceil(60000/8750) = 7; hi = ceil(60000/1875) = 32; 7 <= 15 -> no warning
+    # lo = ceil(60000/8750) = 7; hi = ceil(60000/1875) = 32; 7 <= 25 -> no warning
     assert data["nb_load_min"] == 7
     assert data["nb_load_max"] == 32
     assert data["capacity_warning"] is False
@@ -43,7 +43,23 @@ def test_stage2_computes_nb_from_footprint(client):
 def test_stage2_spacing_changes_nb_range(client):
     resp = _post(client, dict(_BASE, B=3.0))
     data = resp.get_json()
-    assert data["nb_max"] > 15          # tighter spacing fits more boreholes
+    assert data["nb_max"] > 25          # tighter spacing fits more boreholes
+
+
+def test_stage2_capacity_capped_clamps_to_nb_max(client):
+    # 600 kW peak: nb_load_min = ceil(600000/(70*125)) = 69 > nb_max 25
+    # -> NB clamped to nb_max, boreholes go deeper than H_min
+    loads = {"q_h": -600000.0, "q_m": -250000.0, "q_y": -40000.0,
+             "q_h_heat": -600000.0, "q_m_heat": -250000.0,
+             "q_h_cool": 410000.0,  "q_m_cool": 170000.0}
+    resp = _post(client, dict(_BASE, loads=loads))
+    assert resp.status_code == 200, resp.get_json()
+    data = resp.get_json()
+    assert data["nb_source"] == "capacity_capped"
+    assert data["capacity_warning"] is True
+    assert data["NB"] == data["nb_max"] == 25
+    assert data["H"] == pytest.approx(data["L"] / data["NB"], abs=1.0)
+    assert data["H"] > 125.0            # deeper than H_min — intentional
 
 
 def test_stage2_expert_override_fixes_nb(client):

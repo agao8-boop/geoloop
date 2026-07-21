@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from geosite.s3_loads.compute import compute_pulses
+from geosite.s3_loads.compute import compute_pulses, compute_pulses_from_ground
 from geosite.models import LoadPulses
 
 
@@ -57,3 +57,21 @@ def test_balanced_load_near_zero_annual():
     q_cool[4380:] = 5_000.0
     result = compute_pulses(q_heat, q_cool)
     assert abs(result.q_y) < 100.0   # near-zero annual average
+
+
+def test_compute_pulses_from_ground_matches_compute_pulses():
+    """compute_pulses_from_ground(q_cool - q_heat) must equal compute_pulses(q_heat, q_cool)."""
+    q_heat, q_cool = _make_synthetic_8760()
+    ref = compute_pulses(q_heat, q_cool)
+    ground = q_cool - q_heat
+    result = compute_pulses_from_ground(ground)
+    assert result.q_h == pytest.approx(ref.q_h, rel=1e-9)
+    assert result.q_m == pytest.approx(ref.q_m, rel=1e-9)
+    assert result.q_y == pytest.approx(ref.q_y, rel=1e-9)
+    assert result.q_h_heat == pytest.approx(ref.q_h_heat, rel=1e-9)
+    assert result.q_h_cool == pytest.approx(ref.q_h_cool, rel=1e-9)
+
+
+def test_compute_pulses_from_ground_wrong_length_raises():
+    with pytest.raises(ValueError):
+        compute_pulses_from_ground([0.0] * 8759)

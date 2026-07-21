@@ -62,20 +62,49 @@ def lookup_prototype_loads(
 
     entry = building_table[climate_zone]
 
-    # If the entry contains normalized W/m² values and a target area was given,
-    # scale to the user's floor area.
+    def _both_mode_peaks(q_h: float, q_m: float) -> dict:
+        """Derive both-mode peaks when peak_heat_kW / peak_cool_kW are stored.
+
+        The monthly average for the cross-mode is estimated using the dominant
+        mode's |q_m|/|q_h| ratio — a reasonable first-order approximation for
+        a feasibility tool (the load shape is similar across modes).
+        """
+        if "peak_heat_kW" not in entry or "peak_cool_kW" not in entry:
+            return {}
+        ratio = abs(q_m / q_h) if q_h != 0 else 0.33
+        q_h_heat = -abs(float(entry["peak_heat_kW"]) * 1000.0)
+        q_h_cool = abs(float(entry["peak_cool_kW"]) * 1000.0)
+        return dict(
+            q_h_heat=q_h_heat,
+            q_m_heat=q_h_heat * ratio,
+            q_h_cool=q_h_cool,
+            q_m_cool=q_h_cool * ratio,
+        )
+
+    # Area-scaled path: use normalised W/m² values.
     if target_area_m2 is not None and "q_h_Wpm2" in entry:
         proto_area = float(building_table.get("_area_m2", 1.0))
         area = float(target_area_m2)
+        q_h = float(entry["q_h_Wpm2"]) * area
+        q_m = float(entry["q_m_Wpm2"]) * area
+        bm = _both_mode_peaks(q_h, q_m)
+        # Scale cross-mode peaks by (area / proto_area) because peak_*_kW are at proto area
+        if bm:
+            scale = area / proto_area
+            bm = {k: v * scale for k, v in bm.items()}
         return LoadPulses(
-            q_h=float(entry["q_h_Wpm2"]) * area,
-            q_m=float(entry["q_m_Wpm2"]) * area,
+            q_h=q_h,
+            q_m=q_m,
             q_y=float(entry["q_y_Wpm2"]) * area,
+            **bm,
         )
 
-    # Legacy path: return absolute prototype values (fixture or pre-computed at ref area)
+    # Legacy path: absolute prototype values.
+    q_h = float(entry["q_h"])
+    q_m = float(entry["q_m"])
     return LoadPulses(
-        q_h=float(entry["q_h"]),
-        q_m=float(entry["q_m"]),
+        q_h=q_h,
+        q_m=q_m,
         q_y=float(entry["q_y"]),
+        **_both_mode_peaks(q_h, q_m),
     )

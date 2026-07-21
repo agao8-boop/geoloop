@@ -4,66 +4,114 @@ import math
 import pytest
 
 from geosite.s4_sizing.footprint import (
-    BUILDING_ASPECT,
     BUILDING_FLOORS,
+    BUILDING_SHAPES,
+    DEFAULT_SHAPE,
     PROTOTYPE_AREAS_M2,
     compute_nb_range,
+    shape_geometry,
 )
 
 
-def test_floor_table_covers_all_12_prototypes():
+def test_floor_table_covers_all_prototypes():
     assert set(BUILDING_FLOORS) == set(PROTOTYPE_AREAS_M2)
-    assert set(BUILDING_FLOORS) == set(BUILDING_ASPECT)
-    assert len(BUILDING_FLOORS) == 12
+    assert len(BUILDING_FLOORS) == 16
     assert BUILDING_FLOORS["large_office"] == 12
     assert BUILDING_FLOORS["small_office"] == 1
 
 
+def test_default_shape_is_elongated_linear_array():
+    # default keeps back-compat with the old 9:1 rectangle (linear borehole row)
+    assert DEFAULT_SHAPE == "elongated"
+    assert BUILDING_SHAPES["elongated"]["area_units"] == 9.0
+
+
 @pytest.mark.parametrize("bt", sorted(BUILDING_FLOORS))
-def test_meta_reports_building_type_aspect(bt):
+def test_meta_reports_default_shape(bt):
     _, _, meta = compute_nb_range(None, bt, spacing_m=6.0)
-    assert meta["aspect"] == BUILDING_ASPECT[bt]
+    assert meta["shape"] == DEFAULT_SHAPE
+    assert meta["shape_label"] == BUILDING_SHAPES[DEFAULT_SHAPE]["label"]
 
 
-def test_aspects_are_realistic_building_shapes():
-    # Guard against a typo reintroducing the old fixed aspect-9 fiction
-    for bt, aspect in BUILDING_ASPECT.items():
-        assert 1.0 <= aspect <= 4.0, f"{bt}: aspect {aspect} outside [1.0, 4.0]"
+@pytest.mark.parametrize("shape_key", sorted(BUILDING_SHAPES))
+def test_shape_geometry_polygon_scales_to_footprint(shape_key):
+    geom = shape_geometry(500.0, shape_key)
+    sh = BUILDING_SHAPES[shape_key]
+    assert geom["scale"] == pytest.approx(math.sqrt(500.0 / sh["area_units"]))
+    assert len(geom["pts"]) == len(sh["polygon"])
+    # shoelace area of the scaled polygon must equal the footprint
+    pts = geom["pts"]
+    n = len(pts)
+    area = abs(sum(pts[i][0] * pts[(i + 1) % n][1] - pts[(i + 1) % n][0] * pts[i][1]
+                   for i in range(n))) / 2.0
+    assert area == pytest.approx(500.0)
+    assert geom["perimeter_m"] > 0
 
 
 def test_small_office_prototype_range():
-    # footprint = 511/1; aspect 1.5; W = sqrt(511/1.5) = 18.457 m; L = 27.686 m
-    # nb_min = ceil(18.457/6) = 4; perimeter = 92.29 m -> nb_max = floor(15.38) = 15
+    # footprint = 511/1; elongated (9 sq units); scale = sqrt(511/9) = 7.535 m
+    # nb_min = ceil(7.535/6) = 2; perimeter = 150.70 m -> nb_max = floor(25.12) = 25
     nb_min, nb_max, meta = compute_nb_range(None, "small_office", spacing_m=6.0)
-    assert nb_min == 4
-    assert nb_max == 15
+    assert nb_min == 2
+    assert nb_max == 25
     assert meta["footprint_m2"] == pytest.approx(511.0)
     assert meta["n_floors"] == 1
-    assert meta["width_m"] == pytest.approx(18.457, abs=0.01)
-    assert meta["length_m"] == pytest.approx(1.5 * meta["width_m"])
+    assert meta["scale_m"] == pytest.approx(7.535, abs=0.01)
+    assert meta["perimeter_m"] == pytest.approx(20.0 * meta["scale_m"])
+    assert meta["pts"][1][0] == pytest.approx(9.0 * meta["scale_m"])  # long side
     assert meta["prototype_area_used"] is True
 
 
+def test_num_floors_override_changes_footprint():
+    # small_office prototype is 1 floor; 2 floors halves the footprint
+    _, _, meta1 = compute_nb_range(None, "small_office", spacing_m=6.0)
+    _, _, meta2 = compute_nb_range(None, "small_office", spacing_m=6.0, num_floors=2)
+    assert meta2["n_floors"] == 2
+    assert meta2["footprint_m2"] == pytest.approx(meta1["footprint_m2"] / 2.0)
+
+
+def test_square_shape_shrinks_perimeter_vs_elongated():
+    _, nb_max_el, meta_el = compute_nb_range(None, "small_office", spacing_m=6.0,
+                                             shape="elongated")
+    _, nb_max_sq, meta_sq = compute_nb_range(None, "small_office", spacing_m=6.0,
+                                             shape="square")
+    assert meta_sq["perimeter_m"] < meta_el["perimeter_m"]
+    assert nb_max_sq < nb_max_el
+    # square: scale = sqrt(511) = 22.605; perimeter = 4*scale = 90.42
+    assert meta_sq["scale_m"] == pytest.approx(math.sqrt(511.0))
+    assert meta_sq["perimeter_m"] == pytest.approx(4.0 * meta_sq["scale_m"])
+
+
+def test_unknown_shape_raises():
+    with pytest.raises(KeyError):
+        compute_nb_range(None, "small_office", shape="triangle")
+
+
+def test_invalid_num_floors_raises():
+    with pytest.raises(ValueError):
+        compute_nb_range(None, "small_office", num_floors=0)
+
+
 def test_large_office_prototype_range():
-    # footprint = 46320/12 = 3860; aspect 1.5; W = 50.728 m; L = 76.09 m
-    # nb_min = ceil(50.728/6) = 9; perimeter = 253.64 m -> nb_max = 42
+    # footprint = 46320/12 = 3860; aspect 9; W = 20.710 m; L = 186.39 m
+    # nb_min = ceil(20.710/6) = 4; perimeter = 414.19 m -> nb_max = 69
     nb_min, nb_max, meta = compute_nb_range(None, "large_office", spacing_m=6.0)
-    assert nb_min == 9
-    assert nb_max == 42
+    assert nb_min == 4
+    assert nb_max == 69
     assert meta["footprint_m2"] == pytest.approx(3860.0)
 
 
 def test_medium_office_prototype_range():
-    # footprint = 4982/3 = 1660.67; aspect 1.5; W = 33.273 m; nb_min = 6; nb_max = 27
+    # footprint = 4982/3 = 1660.67; aspect 9; W = 13.584 m; nb_min = 3; nb_max = 45
     nb_min, nb_max, _ = compute_nb_range(None, "medium_office", spacing_m=6.0)
-    assert (nb_min, nb_max) == (6, 27)
+    assert (nb_min, nb_max) == (3, 45)
 
 
 def test_user_area_overrides_prototype():
-    # 1022 m2 small office: footprint 1022; aspect 1.5; W = 26.102 m -> nb_min 5;
-    # L = 39.154; perimeter = 130.51 -> nb_max 21
+    # 1022 m2 small office: footprint 1022; aspect 9; W = 10.656 m -> nb_min 2;
+    # L = 95.91; perimeter = 213.13 -> nb_max 35
     nb_min, nb_max, meta = compute_nb_range(1022.0, "small_office", spacing_m=6.0)
-    assert (nb_min, nb_max) == (5, 21)
+    assert (nb_min, nb_max) == (2, 35)
     assert meta["prototype_area_used"] is False
 
 
@@ -72,7 +120,7 @@ def test_tighter_spacing_expands_range():
     nb_min3, nb_max3, _ = compute_nb_range(None, "small_office", spacing_m=3.0)
     assert nb_min3 >= nb_min6
     assert nb_max3 > nb_max6
-    assert (nb_min3, nb_max3) == (7, 30)
+    assert (nb_min3, nb_max3) == (3, 50)
 
 
 def test_nb_min_never_below_one_and_range_ordered():

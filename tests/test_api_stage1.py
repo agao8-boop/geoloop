@@ -40,7 +40,7 @@ def test_stage1_returns_site_loads_and_nb_estimate(mock_get, client):
     for key in ("q_h", "q_m", "q_y", "q_h_heat", "q_m_heat", "q_h_cool", "q_m_cool"):
         assert key in data["loads"]
     est = data["nb_estimate"]
-    assert est["nb_min"] == 4 and est["nb_max"] == 15   # small_office proto, B=6.0
+    assert est["nb_min"] == 2 and est["nb_max"] == 25   # small_office proto, B=6.0
     assert est["spacing_m"] == 6.0
     assert est["footprint"]["n_floors"] == 1
     assert isinstance(est["nb_load_min"], int) and est["nb_load_min"] >= 1
@@ -65,7 +65,7 @@ def test_stage1_floor_area_scales_range(mock_get, client):
                        data=json.dumps(dict(_BASE, floor_area_m2=1022.0)),
                        content_type="application/json")
     est = resp.get_json()["nb_estimate"]
-    assert (est["nb_min"], est["nb_max"]) == (5, 21)
+    assert (est["nb_min"], est["nb_max"]) == (2, 35)
 
 
 def test_stage1_requires_zip_and_building_type(client):
