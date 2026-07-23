@@ -11,17 +11,10 @@ _DEFAULT_HOURLY_JSON = (
 _CACHE: dict = {}
 
 # Map building types without hourly profiles to a similar available type.
-# Fallback shapes the LDC correctly even before full EnergyPlus runs.
+# As of 2026-07-23: 15/16 types have real 8760h data; only midrise_apartment
+# still uses a proxy until its EnergyPlus runs complete.
 _HOURLY_FALLBACK: dict[str, str] = {
-    "hospital":              "large_office",
-    "large_hotel":           "medium_office",
-    "midrise_apartment":     "medium_office",
-    "outpatient_healthcare": "small_office",
-    "primary_school":        "medium_office",
-    "secondary_school":      "large_office",
-    "small_hotel":           "small_office",
-    "standalone_retail":     "medium_office",
-    "warehouse":             "medium_office",
+    "midrise_apartment": "medium_office",
 }
 
 

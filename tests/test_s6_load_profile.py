@@ -43,18 +43,31 @@ def test_scale_factor_one_returns_same_values():
     assert scaled == pytest.approx(profile)
 
 
-def test_fallback_building_types_return_8760_profile():
-    """Building types without dedicated hourly data fall back to a similar type."""
-    for bt in ("hospital", "primary_school", "warehouse", "standalone_retail",
-               "large_hotel", "small_hotel", "midrise_apartment",
-               "outpatient_healthcare", "secondary_school"):
-        p = load_hourly_profile(bt, "5B", _HOURLY_JSON)
+def test_all_16_building_types_return_8760_profile():
+    """All 16 building types must return 8760h profiles (direct data or proxy fallback)."""
+    from geosite.s4_sizing.footprint import BUILDING_FLOORS
+    for bt in sorted(BUILDING_FLOORS):
+        p = load_hourly_profile(bt, "5A", _HOURLY_JSON)
         assert len(p) == 8760, f"{bt}: expected 8760 hours"
 
 
-def test_new_building_types_have_direct_profiles():
-    """Newly added types must have their own dedicated hourly profiles."""
-    for bt in ("highrise_apartment", "restaurant_fastfood",
-               "restaurant_sitdown", "retail_stripmall"):
-        p = load_hourly_profile(bt, "5B", _HOURLY_JSON)
-        assert len(p) == 8760, f"{bt}: expected 8760 hours"
+def test_15_types_have_direct_hourly_profiles():
+    """15/16 types have real EnergyPlus 8760h data; only midrise_apartment uses proxy."""
+    import json, pathlib
+    data = json.loads(pathlib.Path(_HOURLY_JSON).read_text())
+    direct_types = [k for k in data if not k.startswith("_")]
+    assert len(direct_types) == 15
+    assert "midrise_apartment" not in direct_types  # still proxy
+    # All others must be direct
+    from geosite.s4_sizing.footprint import BUILDING_FLOORS
+    for bt in sorted(BUILDING_FLOORS):
+        if bt != "midrise_apartment":
+            assert bt in direct_types, f"{bt} should have direct hourly data"
+
+
+def test_midrise_apartment_uses_proxy_fallback():
+    """midrise_apartment still proxies via medium_office until its EnergyPlus runs complete."""
+    from geosite.s6_strategy.load_profile import _HOURLY_FALLBACK
+    assert _HOURLY_FALLBACK == {"midrise_apartment": "medium_office"}
+    p = load_hourly_profile("midrise_apartment", "5A", _HOURLY_JSON)
+    assert len(p) == 8760
