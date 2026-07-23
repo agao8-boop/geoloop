@@ -366,14 +366,30 @@ def _resolve_site_and_loads(data):
         return None, (jsonify({"error": "field", "field": "building_type",
                                "message": str(exc)}), 400)
 
-    # Apply construction year correction factor to all pulses (NaN-safe)
+    # Optional: prototype load scale override — for specialty buildings where the
+    # DOE prototype EUI is known to be off (e.g. high-intensity grocery vs restaurant_fastfood).
+    # Range 0.1–10.0; default 1.0 (no correction).
+    load_scale = 1.0
+    if data.get("load_scale") not in (None, ""):
+        try:
+            load_scale = float(data["load_scale"])
+        except (ValueError, TypeError):
+            return None, (jsonify({"error": "field", "field": "load_scale",
+                                   "message": "load_scale must be a number"}), 400)
+        if not (0.1 <= load_scale <= 10.0):
+            return None, (jsonify({"error": "field", "field": "load_scale",
+                                   "message": "load_scale must be between 0.1 and 10.0"}), 400)
+
+    # Apply construction year + prototype scale corrections to all pulses (NaN-safe)
+    combined_scale = year_factor * load_scale
+
     def _scale(v: float) -> float:
-        return v * year_factor if v == v else float("nan")
+        return v * combined_scale if v == v else float("nan")
 
     loads = LoadPulses(
-        q_h=loads.q_h * year_factor,
-        q_m=loads.q_m * year_factor,
-        q_y=loads.q_y * year_factor,
+        q_h=loads.q_h * combined_scale,
+        q_m=loads.q_m * combined_scale,
+        q_y=loads.q_y * combined_scale,
         q_h_heat=_scale(loads.q_h_heat),
         q_m_heat=_scale(loads.q_m_heat),
         q_h_cool=_scale(loads.q_h_cool),
@@ -435,6 +451,7 @@ def _resolve_site_and_loads(data):
             # envelope_factor for /api/strategy: use governing-mode factor so S6 hourly
             # profile scaling is consistent with the S4 two-pass sizing.
             "envelope_factor": heat_f if mode == "heating" else cool_f,
+            "load_scale": load_scale,
         },
         "building_type": building_type,
         "floor_area_m2": floor_area_m2,
