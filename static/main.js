@@ -293,11 +293,26 @@
     const areaNote = loads.floor_area_m2
       ? `scaled to ${Math.round(loads.floor_area_m2)} m²`
       : '';
-    const notes = [yearNote, areaNote].filter(Boolean).join(' · ');
+    // Show envelope factors if they differ from baseline (1.00 = no change)
+    const hf = loads.heat_factor, cf = loads.cool_factor;
+    const envelopeNote = (hf != null && cf != null && (Math.abs(hf - 1) > 0.005 || Math.abs(cf - 1) > 0.005))
+      ? `envelope: heat ×${hf.toFixed(3)}, cool ×${cf.toFixed(3)}`
+      : (hf != null ? 'envelope: baseline (×1.000)' : '');
+    const notes = [yearNote, areaNote, envelopeNote].filter(Boolean).join(' · ');
+
+    // Two-pass peaks (show both if available, otherwise dominant mode only)
+    const qhHeat = loads.q_h_heat, qhCool = loads.q_h_cool;
+    let peaksLine;
+    if (qhHeat != null && qhCool != null) {
+      peaksLine =
+        `q<sub>h,heat</sub> = ${Math.round(Math.abs(qhHeat)).toLocaleString()} W (extraction) &nbsp;·&nbsp; ` +
+        `q<sub>h,cool</sub> = ${Math.round(qhCool).toLocaleString()} W (injection) &nbsp;·&nbsp; <em>${modeLabel}</em>`;
+    } else {
+      peaksLine = `q<sub>h</sub> = ${loads.q_h?.toLocaleString()} W &nbsp;·&nbsp; <em>${modeLabel}</em>`;
+    }
     document.getElementById('pipeline-s2').innerHTML =
-      `q<sub>h</sub> = ${loads.q_h?.toLocaleString()} W &nbsp;·&nbsp; <em>${modeLabel}</em><br>` +
-      `q<sub>m</sub> = ${loads.q_m?.toLocaleString()} W<br>` +
-      `q<sub>y</sub> = ${loads.q_y?.toLocaleString()} W` +
+      `${peaksLine}<br>` +
+      `q<sub>m</sub> = ${loads.q_m?.toLocaleString()} W &nbsp;·&nbsp; q<sub>y</sub> = ${loads.q_y?.toLocaleString()} W` +
       (notes ? `<br><span style="font-size:11px;color:#666">${notes}</span>` : '');
 
     const est = result.nb_estimate;
@@ -394,6 +409,9 @@
     const nbRange = document.getElementById('sres-NB-range');
     if (result.nb_source === 'expert_override') {
       nbRange.textContent = 'expert override — footprint optimization skipped';
+    } else if (result.nb_source === 'depth_too_deep') {
+      nbRange.textContent =
+        `load exceeds drillable depth — even ${result.nb_max} boreholes require >${fmtInt(result.H)} m; hybrid peaker or larger footprint needed`;
     } else if (result.nb_source === 'capacity_capped') {
       nbRange.textContent =
         `footprint capacity reached — clamped to ${result.nb_max} boreholes, depth increased`;
@@ -405,7 +423,13 @@
     }
 
     const capWarnEl = document.getElementById('sres-capacity-warning');
-    if (result.nb_source === 'capacity_capped') {
+    if (result.nb_source === 'depth_too_deep') {
+      capWarnEl.innerHTML =
+        `<strong>Depth limit exceeded:</strong> the load requires ${fmtInt(result.H)} m per borehole — ` +
+        `beyond the practical 250 m drill-rig limit. The s6 hybrid strategy (peaker shaving) ` +
+        `is strongly recommended to reduce required borefield length.`;
+      capWarnEl.classList.remove('hidden');
+    } else if (result.nb_source === 'capacity_capped') {
       capWarnEl.innerHTML =
         `<strong>Footprint capacity:</strong> load exceeds footprint capacity — clamped to ` +
         `${result.nb_max} boreholes, depth increased to ${fmtInt(result.H)} m each. ` +
@@ -786,7 +810,7 @@
 
       // s6: trigger hybrid strategy section after cost section is rendered
       if (smartRes) {
-        fetchStrategy(smartRes, {B: B_m, A: parseFloat(document.getElementById('s_A').value) || 1.0});
+        fetchStrategy(smartRes, {B: B_m, A: parseFloat(document.getElementById('s_A').value) || 9.0});
       }
     })
     .catch(() => {}); // fail silently — sizing result still shows
@@ -813,6 +837,8 @@
       state:         smartRes.site.state_abbrev,
       floor_area_m2: smartRes.loads.floor_area_m2 || null,
       year_factor:   smartRes.loads.year_factor || 1.0,
+      // envelope_factor is governing-mode heat_factor/cool_factor stored in loads dict by stage1.
+      // (loads.envelope_factor was undefined before stage1 was fixed to include it)
       envelope_factor: smartRes.loads.envelope_factor || 1.0,
     };
     applySmartAdvOverrides(payload);
@@ -988,7 +1014,8 @@
         ? `${d.footprint_shape ?? 'Footprint'}, ${Math.round(d.footprint_m2).toLocaleString('en-US')} m², ${d.n_floors} floor(s)` : '—'],
       ['Soil', `k_eff ${d.k_effective ?? '—'} W/m·K · α ${d.alpha ?? '—'} m²/day · T_g ${d.T_g ?? '—'} °C`],
     ];
-    if (d.capacity_warning) designRows.push(['Capacity check', '⚠ peak load may exceed the footprint']);
+    if (d.nb_source === 'depth_too_deep') designRows.push(['Depth warning', '⚠ required depth >250 m — hybrid peaker or larger footprint needed']);
+    else if (d.capacity_warning) designRows.push(['Capacity check', '⚠ peak load may exceed the footprint']);
     if (d.solar_thermal_recommended) designRows.push(['Thermal balance', 'net extraction — solar thermal supplement recommended']);
     sections.push({title: 'System Design', rows: designRows});
 

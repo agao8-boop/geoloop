@@ -432,6 +432,9 @@ def _resolve_site_and_loads(data):
             "glazing": glazing,
             "heat_factor": heat_f,
             "cool_factor": cool_f,
+            # envelope_factor for /api/strategy: use governing-mode factor so S6 hourly
+            # profile scaling is consistent with the S4 two-pass sizing.
+            "envelope_factor": heat_f if mode == "heating" else cool_f,
         },
         "building_type": building_type,
         "floor_area_m2": floor_area_m2,
