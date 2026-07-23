@@ -200,6 +200,8 @@
     if (floorArea) body.floor_area_m2 = parseFloat(floorArea);
     const numFloorsRaw = document.getElementById('num_floors').value.trim();
     body.num_floors = numFloorsRaw !== '' ? parseInt(numFloorsRaw, 10) : null;
+    const loadScaleRaw = document.getElementById('load_scale').value.trim();
+    if (loadScaleRaw) body.load_scale = parseFloat(loadScaleRaw);
     return body;
   }
 
@@ -298,7 +300,9 @@
     const envelopeNote = (hf != null && cf != null && (Math.abs(hf - 1) > 0.005 || Math.abs(cf - 1) > 0.005))
       ? `envelope: heat ×${hf.toFixed(3)}, cool ×${cf.toFixed(3)}`
       : (hf != null ? 'envelope: baseline (×1.000)' : '');
-    const notes = [yearNote, areaNote, envelopeNote].filter(Boolean).join(' · ');
+    const ls = loads.load_scale;
+    const loadScaleNote = (ls != null && Math.abs(ls - 1) > 0.005) ? `prototype correction ×${ls.toFixed(2)}` : '';
+    const notes = [yearNote, areaNote, envelopeNote, loadScaleNote].filter(Boolean).join(' · ');
 
     // Two-pass peaks (show both if available, otherwise dominant mode only)
     const qhHeat = loads.q_h_heat, qhCool = loads.q_h_cool;
@@ -647,6 +651,20 @@
     'small_hotel','large_hotel','midrise_apartment','highrise_apartment',
     'hospital','outpatient_healthcare','restaurant_fastfood','restaurant_sitdown'
   ]);
+  // Specialty types where DOE prototype EUI is known to be 2–5× off vs real buildings
+  const LOAD_SCALE_HINTS = {
+    'restaurant_fastfood': 'DOE prototype is a small 232 m² fast-food unit. A real grocery store or high-intensity restaurant typically runs 2–4× higher loads — enter a correction multiplier (e.g. 2.5).',
+    'restaurant_sitdown':  'DOE prototype is a 511 m² sit-down restaurant. High-volume commercial kitchens or food-production facilities may need 1.5–3×.',
+    'hospital':            'Hospital loads include 24/7 HVAC for sterile suites and high plug loads — DOE prototype may underestimate by 1.5–2× for research hospitals.',
+    'small_hotel':         'Boutique hotels with pools or spas can run 1.5–2× higher than the DOE prototype. Enter measured EUI / prototype EUI as the multiplier.',
+    'large_hotel':         'Resort or conference hotels with pools can run 1.5–2× higher. Enter measured EUI / prototype EUI.',
+  };
+  function updateLoadScaleHint() {
+    const hintEl = document.getElementById('load-scale-hint');
+    if (!hintEl) return;
+    const hint = LOAD_SCALE_HINTS[buildingTypeEl.value];
+    hintEl.textContent = hint || '';
+  }
   function updateDhwWarning() {
     const el = document.getElementById('dhw-warning');
     if (el) el.classList.toggle('hidden', !DHW_TYPES.has(buildingTypeEl.value));
@@ -656,9 +674,11 @@
     buildingTypeEl.addEventListener('change', updateProtoAreaHint);
     buildingTypeEl.addEventListener('change', updateNumFloorsHint);
     buildingTypeEl.addEventListener('change', updateDhwWarning);
+    buildingTypeEl.addEventListener('change', updateLoadScaleHint);
     updateProtoAreaHint();
     updateNumFloorsHint();
     updateDhwWarning();
+    updateLoadScaleHint();
   }
 
   // ── MANUAL MODE ───────────────────────────────────────────────────────

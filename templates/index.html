@@ -151,6 +151,14 @@
             <span class="field-hint" id="proto-area-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
             <span class="field-error" data-for="floor_area_m2"></span>
           </div>
+          <div class="field">
+            <label for="load_scale">Prototype Load Correction <span class="hint-inline">— multiplier for building types with unusual energy use (e.g. grocery stores, hospitals with 24/7 process loads). Leave blank or 1.0 for standard DOE prototype.</span></label>
+            <div class="input-row">
+              <input type="number" id="load_scale" name="load_scale" min="0.1" max="10" step="0.1" placeholder="1.0 (default)">
+            </div>
+            <span class="field-hint" id="load-scale-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
+            <span class="field-error" data-for="load_scale"></span>
+          </div>
           <div class="input-group field">
             <label for="num_floors">Number of Floors
               <span class="input-hint hint-inline">— leave blank to use DOE prototype floor count</span>
