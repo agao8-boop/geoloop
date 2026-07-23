@@ -238,10 +238,10 @@ flowchart LR
 ### 5 · S6: Hybrid GSHP Strategy
 
 #### Data Source
-- `data/public/prototype_loads_hourly.json` — 8760h EnergyPlus ground load profiles per building_type × climate_zone; 9 types with real data + 7 via proxy fallback (`_HOURLY_FALLBACK`)
+- `data/public/prototype_loads_hourly.json` — 8760h EnergyPlus ground load profiles per building_type × climate_zone; 15/16 types have real data (as of 2026-07-23); only `midrise_apartment` still proxies via `medium_office` (`_HOURLY_FALLBACK`)
 
 #### Hourly Profile Scaling
-- `proxy_type` = `_HOURLY_FALLBACK.get(building_type, building_type)` (e.g. warehouse→large_office for types without real profiles)
+- `proxy_type` = `_HOURLY_FALLBACK.get(building_type, building_type)` (only `midrise_apartment→medium_office` remains; all other types use their own data directly)
 - `proxy_area` = `PROTOTYPE_AREAS_M2[proxy_type]` [m²]
 - `target_area` = `floor_area_m2` or `PROTOTYPE_AREAS_M2[building_type]` [m²]
 - `scale` = `year_factor × envelope_factor × (target_area / proxy_area)` [-]
