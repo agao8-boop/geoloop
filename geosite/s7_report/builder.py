@@ -290,6 +290,8 @@ def compute_recommendation_score(report_data: dict) -> dict:
     nb_source = design.get("nb_source")
     if nb_source == "optimizer":
         fp_pts, fp_note = 25, "optimal borehole count fits within footprint"
+    elif nb_source == "depth_too_deep":
+        fp_pts, fp_note = 3, "load exceeds drillable depth — nb_max boreholes still require >250 m; hybrid or larger footprint needed"
     elif nb_source == "capacity_capped":
         fp_pts, fp_note = 6, "load exceeds footprint — clamped to nb_max, deeper boreholes"
     elif nb_source == "depth_fallback":

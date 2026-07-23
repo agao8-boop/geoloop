@@ -115,6 +115,7 @@ def calculate():
 # backward compatibility with existing references.
 _ADVANCED_DEFAULTS = ADVANCED_DEFAULTS
 _T_IN_HP_DEFAULTS = T_IN_HP_DEFAULTS
+_H_MAX = 250.0   # maximum practical drill-rig depth [m] for commercial rotary rigs
 
 
 def _parse_advanced_params(data):
@@ -568,6 +569,8 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
         nb_source = "capacity_capped"
     elif NB_out < nb_min:
         nb_source = "depth_fallback"
+    elif H > _H_MAX:
+        nb_source = "depth_too_deep"
     else:
         nb_source = "optimizer"
 

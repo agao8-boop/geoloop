@@ -192,11 +192,11 @@ def test_optimal_nb_within_range_and_meets_depth():
 
 def test_optimal_nb_minimizes_L_over_valid_range():
     nb, L, H = find_optimal_nb(4, 69, **_BIG_COOL, **_GROUND,
-                               H_min=125.0, B=6.0, A=9.0, **_ADV)
+                               H_min=125.0, H_max=250.0, B=6.0, A=9.0, **_ADV)
     for cand in range(4, 70):
         L_c = float(size_borefield(**_BIG_COOL, **_GROUND, **_ADV,
                                    B=6.0, NB=cand, A=9.0))
-        if L_c > 0 and L_c / cand >= 125.0:
+        if L_c > 0 and 125.0 <= L_c / cand <= 250.0:
             assert L <= L_c + 1e-9
 
 
