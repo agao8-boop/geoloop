@@ -8,7 +8,7 @@ The building footprint is modeled as one of the BUILDING_SHAPES polygons
 per-floor footprint):
     footprint = floor_area / n_floors
     scale = sqrt(footprint / area_units)   # one grid unit in metres
-    NB_min = one line of boreholes along the SHORT side  = ceil(scale / spacing)
+    NB_min = boreholes along short side including both endpoints = floor(scale/spacing) + 1
     NB_max = boreholes circling the full perimeter       = floor(perimeter / spacing)
 
 Floor counts are the DOE Commercial Prototype Building Models (90.1-2019)
@@ -149,9 +149,10 @@ def compute_nb_range(
     geom = shape_geometry(footprint, shape)
     perimeter = geom["perimeter_m"]
 
-    # nb_min: one line of boreholes along the "short" side (= one grid unit)
+    # nb_min: boreholes along short side including BOTH endpoints = floor(side/spacing) + 1
+    # e.g. 18 m side / 6 m spacing → 3 intervals → 4 boreholes (not 3)
     short_side = geom["scale"]
-    nb_min = max(1, math.ceil(short_side / spacing_m))
+    nb_min = max(1, math.floor(short_side / spacing_m) + 1)
     nb_max = max(nb_min, math.floor(perimeter / spacing_m))
 
     meta = {

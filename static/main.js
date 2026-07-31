@@ -28,24 +28,8 @@
     return n == null ? '—' : '$' + Math.round(n).toLocaleString('en-US');
   }
 
-  // ── Mode toggle (Smart / Manual) ─────────────────────────────────────
-  const modeButtons = document.querySelectorAll('.mode-btn');
+  // ── Mode toggle (Smart only in user tool; dev tool has manual mode) ──
   const panelSmart  = document.getElementById('panel-smart');
-  const panelManual = document.getElementById('panel-manual');
-
-  modeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      modeButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      if (btn.dataset.mode === 'smart') {
-        panelSmart.classList.remove('hidden');
-        panelManual.classList.add('hidden');
-      } else {
-        panelSmart.classList.add('hidden');
-        panelManual.classList.remove('hidden');
-      }
-    });
-  });
 
   // ── Manual mode: Tab switching ────────────────────────────────────────
   const tabBtns   = document.querySelectorAll('.tab-btn');
@@ -81,19 +65,19 @@
   let lastCostResult = null;
   let lastStrategyResult = null;
 
-  // Body key → input id for Smart Advanced overrides; blank = server default
+  // Body key → input id for Smart Advanced overrides; blank = server default.
   const SMART_ADV_FIELDS = {
     T_in_HP_heat: 's_T_in_HP_heat',
     T_in_HP_cool: 's_T_in_HP_cool',
-    mfls:  's_mfls',
-    Cp:    's_Cp',
-    rbore: 's_rbore',
-    rpin:  's_rpin',
-    rpext: 's_rpext',
-    kgrout:'s_kgrout',
-    kpipe: 's_kpipe',
-    LU:    's_LU',
-    hconv: 's_hconv',
+    rbore:  's_rbore',
+    rpin:   's_rpin',
+    rpext:  's_rpext',
+    LU:     's_LU',
+    kgrout: 's_kgrout',
+    kpipe:  's_kpipe',
+    hconv:  's_hconv',
+    Cp:     's_Cp',
+    mfls:   's_mfls',
   };
 
   function applySmartAdvOverrides(body) {
@@ -115,8 +99,7 @@
 
   const STAGE1_INPUT_IDS = ['zip_code', 'soil_confidence', 'building_type',
                             'floor_area_m2', 'num_floors', 'footprint_shape',
-                            'borehole_config', 'building_age',
-                            's_wwr', 's_envelope', 's_glazing'];
+                            'building_age', 's_wwr', 's_envelope', 's_glazing'];
 
   function unlockStep2() {
     wizardStep2.classList.remove('step-locked');
@@ -157,10 +140,7 @@
     }
   });
 
-  document.getElementById('expert-nb-enable').addEventListener('change', e => {
-    document.getElementById('s_NB').disabled = !e.target.checked;
-    if (!e.target.checked) document.getElementById('s_NB').value = '';
-  });
+  // expert-nb-enable removed from user tool; handled in dev tool only
 
   function showStage1Error(msg) {
     stage1Error.textContent = msg;
@@ -189,18 +169,22 @@
       zip_code:        document.getElementById('zip_code').value.trim(),
       building_type:   document.getElementById('building_type').value,
       soil_confidence: document.getElementById('soil_confidence').value,
-      wwr:             document.getElementById('s_wwr').value,
-      envelope:        document.getElementById('s_envelope').value,
-      glazing:         document.getElementById('s_glazing').value,
       footprint_shape: document.getElementById('footprint_shape').value,
-      borehole_config: document.getElementById('borehole_config').value,
+      borehole_config: document.getElementById('borehole_config')?.value || 'perimeter',
       building_age:    document.getElementById('building_age').value,
     };
+    // Only send envelope fields when user explicitly chose a value; "unknown" → omit → server default
+    const wwr = document.getElementById('s_wwr').value;
+    if (wwr && wwr !== 'unknown') body.wwr = wwr;
+    const envelope = document.getElementById('s_envelope').value;
+    if (envelope && envelope !== 'unknown') body.envelope = envelope;
+    const glazing = document.getElementById('s_glazing').value;
+    if (glazing && glazing !== 'unknown') body.glazing = glazing;
     const floorArea = document.getElementById('floor_area_m2').value.trim();
     if (floorArea) body.floor_area_m2 = parseFloat(floorArea);
     const numFloorsRaw = document.getElementById('num_floors').value.trim();
     body.num_floors = numFloorsRaw !== '' ? parseInt(numFloorsRaw, 10) : null;
-    const loadScaleRaw = document.getElementById('load_scale').value.trim();
+    const loadScaleRaw = document.getElementById('s_load_scale')?.value.trim();
     if (loadScaleRaw) body.load_scale = parseFloat(loadScaleRaw);
     return body;
   }
@@ -208,7 +192,7 @@
   async function runStage1() {
     stage1Error.textContent = '';
     stage1Error.classList.add('hidden');
-    ['zip_code', 'building_type', 'floor_area_m2', 'building_age', 'borehole_config'].forEach(clearFieldError);
+    ['zip_code', 'building_type', 'floor_area_m2', 'building_age'].forEach(clearFieldError);
     invalidateStage1();
     stage1Btn.disabled = true;
     stage1Btn.classList.add('loading');
@@ -346,7 +330,7 @@
       loads: stage1Result.loads,
       H_min: parseFloat(document.getElementById('s_H_min').value) || 125,
       B:     parseFloat(document.getElementById('s_B').value) || 6.0,
-      A:     parseFloat(document.getElementById('s_A').value) || 9.0,
+      A:     9.0,  // derived from footprint; user tool uses default
       footprint_shape: document.getElementById('footprint_shape').value,
     };
     const floorArea = document.getElementById('floor_area_m2').value.trim();
@@ -354,10 +338,6 @@
     const numFloorsRaw = document.getElementById('num_floors').value.trim();
     body.num_floors = numFloorsRaw !== '' ? parseInt(numFloorsRaw, 10) : null;
     applySmartAdvOverrides(body);
-    if (document.getElementById('expert-nb-enable').checked) {
-      const nbRaw = document.getElementById('s_NB').value.trim();
-      if (nbRaw !== '') body.NB = parseInt(nbRaw, 10);
-    }
     return body;
   }
 
@@ -365,7 +345,7 @@
     if (!stage1Result) return;
     stage2Error.textContent = '';
     stage2Error.classList.add('hidden');
-    ['s_H_min', 's_B', 's_A', 's_NB'].forEach(clearFieldError);
+    ['s_H_min', 's_B'].forEach(clearFieldError);
     smartResult.classList.add('hidden');
     document.getElementById('cost-section').classList.add('hidden');
     document.getElementById('s6-section').classList.add('hidden');
@@ -390,7 +370,7 @@
     }
 
     if (!response.ok) {
-      const fieldMap = { H_min: 's_H_min', B: 's_B', A: 's_A', NB: 's_NB' };
+      const fieldMap = { H_min: 's_H_min', B: 's_B' };
       if (result.error === 'field' && fieldMap[result.field]) {
         showFieldError(fieldMap[result.field], result.message);
       } else {
@@ -501,7 +481,7 @@
       NB_user: result.nb_source === 'expert_override' ? result.NB : null,
       NB_computed: result.NB,
       B: B_m,
-      A: parseFloat(document.getElementById('s_A').value) || 9.0,
+      A: 9.0,
     };
     lastStage2Result = smartRes;
 
@@ -510,7 +490,7 @@
       drawBoreholePlan(document.getElementById('borehole-plan'), smartRes);
     }
 
-    fetchCostEstimate(result.L, result.NB, B_m, siteState, smartRes);
+    fetchStrategy(smartRes, {B: B_m, A: 9.0});
   }
 
   // ── Vintage label helper ─────────────────────────────────────────────
@@ -629,10 +609,13 @@
 
   function updateProtoAreaHint() {
     const area = PROTO_AREAS_M2[buildingTypeEl.value];
+    const floorAreaEl = document.getElementById('floor_area_m2');
     if (area) {
-      protoAreaHint.textContent = `DOE prototype area: ${area.toLocaleString()} m² — blank field uses this area`;
+      protoAreaHint.textContent = `DOE prototype: ${area.toLocaleString()} m² — leave blank to use this`;
+      if (floorAreaEl) floorAreaEl.placeholder = area.toLocaleString();
     } else {
       protoAreaHint.textContent = '';
+      if (floorAreaEl) floorAreaEl.placeholder = 'DOE prototype default';
     }
   }
 
@@ -715,7 +698,8 @@
     return data;
   }
 
-  document.getElementById('calc-btn').addEventListener('click', async () => {
+  const _calcBtnEl = document.getElementById('calc-btn');
+  if (_calcBtnEl) _calcBtnEl.addEventListener('click', async () => {
     clearManualErrors();
     document.getElementById('result-panel').classList.add('hidden');
     const manualBtn = document.getElementById('calc-btn');
@@ -762,81 +746,9 @@
     document.getElementById('res-NB').textContent = result.NB.toLocaleString();
     document.getElementById('result-panel').classList.remove('hidden');
     document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
+  }); // end if (_calcBtnEl)
 
-  // ── s5: Cost estimate fetch and render ────────────────────────────────
-  function fetchCostEstimate(L_m, NB, B_m, state, smartRes) {
-    fetch('/api/cost', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({L: L_m, NB: NB, B: B_m, state: state}),
-    })
-    .then(r => r.json())
-    .then(cost => {
-      lastCostResult = cost;
-      document.getElementById('cost-section').classList.remove('hidden');
-
-      document.getElementById('cost-region-tag').textContent = cost.region_used;
-      document.getElementById('cost-state-tag').textContent = state || 'National';
-
-      document.getElementById('cost-best-pft').textContent  = '$' + cost.best.cost_per_ft.toFixed(2);
-      document.getElementById('cost-best-total').textContent = fmtUSD(cost.best.total_usd);
-      document.getElementById('cost-base-pft').textContent  = '$' + cost.base.cost_per_ft.toFixed(2);
-      document.getElementById('cost-base-total').textContent = fmtUSD(cost.base.total_usd);
-      document.getElementById('cost-worst-pft').textContent = '$' + cost.worst.cost_per_ft.toFixed(2);
-      document.getElementById('cost-worst-total').textContent = fmtUSD(cost.worst.total_usd);
-
-      const best = cost.best.total_usd, base = cost.base.total_usd, worst = cost.worst.total_usd;
-      const span = Math.max(worst - best, 1);
-      document.getElementById('cost-range-min').textContent = fmtUSD(best);
-      document.getElementById('cost-range-max').textContent = fmtUSD(worst);
-      document.getElementById('cost-range-label').textContent = fmtUSD(base) + ' expected';
-      document.getElementById('cost-range-marker').style.left =
-        `${Math.min(100, Math.max(0, (base - best) / span * 100))}%`;
-
-      document.getElementById('cost-cmp-base').textContent  = '$' + cost.base.cost_per_ft.toFixed(2);
-      document.getElementById('cost-cmp-best').textContent  = '$' + cost.best.cost_per_ft.toFixed(2);
-      document.getElementById('cost-cmp-worst').textContent = '$' + cost.worst.cost_per_ft.toFixed(2);
-
-      // Fetch US national avg for comparison
-      fetch('/api/cost', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({L: L_m, NB: NB, B: B_m, state: 'US'}),
-      })
-      .then(r => r.json())
-      .then(us => {
-        document.getElementById('cost-cmp-us').textContent = '$' + us.base.cost_per_ft.toFixed(2);
-      });
-
-      // Populate breakdown table
-      const tbody = document.getElementById('cost-breakdown-body');
-      tbody.innerHTML = '';
-      const labels = {
-        mobilization: 'Mobilization', drilling_soil: 'Drilling (soil)',
-        drilling_rock: 'Drilling (rock)', well_casing: 'Well Casing',
-        sand_bag: 'Sand (bentonite)', grout_bag: 'Grout (CETCO)',
-        utube_pipe: 'U-tube HDPE pipe', horiz_pipe: 'Horizontal header pipe',
-        horiz_trench: 'Horizontal trench',
-      };
-      cost.base.breakdown.forEach(item => {
-        const row = tbody.insertRow();
-        row.innerHTML = `<td>${labels[item.name] || item.name}</td>
-          <td>${Number(item.qty).toFixed(1)}</td>
-          <td>${item.unit}</td>
-          <td>$${item.rate}/LF</td>
-          <td>$${Math.round(item.cost_usd).toLocaleString()}</td>`;
-      });
-
-      // s6: trigger hybrid strategy section after cost section is rendered
-      if (smartRes) {
-        fetchStrategy(smartRes, {B: B_m, A: parseFloat(document.getElementById('s_A').value) || 9.0});
-      }
-    })
-    .catch(() => {}); // fail silently — sizing result still shows
-  }
-
-  // ── s6: Hybrid strategy fetch and render ─────────────────────────────
+  // ── s6: Hybrid strategy fetch and render (runs FIRST, triggers cost after) ──
   async function fetchStrategy(smartRes, costState) {
     const s6Section = document.getElementById('s6-section');
     s6Section.classList.remove('hidden');
@@ -845,6 +757,16 @@
     document.getElementById('s6-comparison').classList.add('hidden');
 
     const hMinVal = document.getElementById('s_H_min');
+    const purposeEl = document.getElementById('s6-peaker-purpose');
+
+    // Translate UI dropdown values (dominant/non-dominant) to API values (heating/cooling)
+    let peakerPurposeAPI = purposeEl ? purposeEl.value : 'dominant';
+    if (peakerPurposeAPI === 'dominant') {
+      peakerPurposeAPI = lastStrategyResult?.dominant_mode === 'cooling' ? 'cooling' : 'heating';
+    } else if (peakerPurposeAPI === 'non-dominant') {
+      peakerPurposeAPI = lastStrategyResult?.dominant_mode === 'cooling' ? 'heating' : 'cooling';
+    }
+
     const payload = {
       building_type: smartRes.building_type,
       climate_zone:  smartRes.site.climate_zone,
@@ -853,16 +775,14 @@
       T_g:           smartRes.site.T_g,
       B:             costState.B,
       A:             costState.A,
-      H_min:         hMinVal ? parseFloat(hMinVal.value) : 125.0,
+      H_min:         (hMinVal && hMinVal.value.trim()) ? parseFloat(hMinVal.value) : 125.0,
       state:         smartRes.site.state_abbrev,
       floor_area_m2: smartRes.loads.floor_area_m2 || null,
       year_factor:   smartRes.loads.year_factor || 1.0,
-      // envelope_factor is governing-mode heat_factor/cool_factor stored in loads dict by stage1.
-      // (loads.envelope_factor was undefined before stage1 was fixed to include it)
       envelope_factor: smartRes.loads.envelope_factor || 1.0,
+      peaker_purpose: peakerPurposeAPI,
     };
     applySmartAdvOverrides(payload);
-    // s5/s6 must describe the same borefield stage2 sized
     payload.NB = smartRes.NB_user ?? smartRes.NB_computed ?? null;
 
     let res;
@@ -884,23 +804,64 @@
     }
 
     const m2 = res.comparison?.m2 || {};
+    const nopeaker = res.peaker_type === 'none';
     const peakerLabel = res.peaker_type === 'electric_heater' ? 'electric heater'
-      : res.peaker_type === 'chiller' ? 'chiller' : 'electric heater + chiller';
+      : res.peaker_type === 'chiller' ? 'chiller'
+      : res.peaker_type === 'electric_heater+chiller' ? 'electric heater + chiller'
+      : 'none';
 
-    document.getElementById('s6-headline').textContent =
-      `Baseline borefield: ${fmtInt(res.L_before)} m. ` +
-      `With peaker (M2): −${m2.savings_pct ?? 0}% → ${fmtInt(m2.L_after ?? 0)} m.`;
+    // Update dropdown option labels to show computed dominant/non-dominant
+    const _pEl = document.getElementById('s6-peaker-purpose');
+    if (_pEl && res.dominant_mode) {
+      const dom = res.dominant_mode === 'cooling' ? 'Cooling' : 'Heating';
+      const ndom = res.dominant_mode === 'cooling' ? 'Heating' : 'Cooling';
+      _pEl.options[1].text = `Dominant — ${dom} load`;
+      _pEl.options[2].text = `Non-dominant — ${ndom} load`;
+      const hintEl = document.getElementById('s6-purpose-hint');
+      if (hintEl) hintEl.textContent =
+        `Dominant load: ${dom}. A supplemental ${dom === 'Heating' ? 'boiler/heater' : 'chiller'} handles ` +
+        `peak ${dom.toLowerCase()} hours. Non-dominant uses a ${ndom === 'Heating' ? 'boiler/heater' : 'chiller'}.`;
+      const recalcBtn = document.getElementById('s6-recalc-btn');
+      if (recalcBtn) recalcBtn.disabled = false;
+    }
+
+    if (nopeaker) {
+      document.getElementById('s6-headline').textContent =
+        `No peaker — full borefield required: ${fmtInt(res.L_before)} m.`;
+    } else {
+      document.getElementById('s6-headline').textContent =
+        `Baseline borefield: ${fmtInt(res.L_before)} m. ` +
+        `With peaker: −${m2.savings_pct ?? 0}% → ${fmtInt(m2.L_after ?? res.L_before)} m.`;
+    }
 
     document.getElementById('s6-before-L').textContent = `${fmtInt(res.L_before)} m`;
     document.getElementById('s6-before-cost').textContent =
-      `$${(res.cost_before.total_usd / 1000).toFixed(0)}k base`;
-    document.getElementById('s6-after-L').textContent = m2.L_after ? `${fmtInt(m2.L_after)} m` : '—';
-    document.getElementById('s6-after-cost').textContent =
-      `$${(res.cost_after.total_usd / 1000).toFixed(0)}k base`;
-    document.getElementById('s6-peaker-kw').textContent = `${res.peaker_kW.toFixed(1)} kW`;
-    document.getElementById('s6-peaker-type').textContent = peakerLabel;
+      `$${(res.cost_before.total_usd / 1000).toFixed(0)}k drilling`;
+    document.getElementById('s6-after-L').textContent = nopeaker ? '—' : `${fmtInt(m2.L_after ?? res.L_before)} m`;
+    document.getElementById('s6-after-cost').textContent = nopeaker ? 'no peaker'
+      : `$${(res.cost_after.total_usd / 1000).toFixed(0)}k drilling`;
+    document.getElementById('s6-peaker-kw').textContent = nopeaker ? '—' : `${res.peaker_kW.toFixed(1)} kW`;
+    document.getElementById('s6-peaker-type').textContent = nopeaker ? 'none' : peakerLabel;
 
-    // ASHRAE cap note
+    // Borehole / cost reduction savings note
+    const savingsEl = document.getElementById('s6-savings-note');
+    if (savingsEl) {
+      if (!nopeaker && m2.savings_pct > 0) {
+        const drillSaved = res.cost_before.total_usd - res.cost_after.total_usd;
+        const hReduced  = res.H_before != null ? Math.round(res.H_before - (m2.L_after / res.NB)) : null;
+        const nbReduced = res.NB != null && res.H_before != null && m2.L_after != null
+          ? Math.max(0, Math.round((res.L_before - m2.L_after) / res.H_before)) : null;
+        let msg = `Using a ${peakerLabel} reduces drilling by ${m2.savings_pct}%`;
+        if (nbReduced != null && nbReduced > 0) msg += `, equivalent to removing ~${nbReduced} borehole${nbReduced > 1 ? 's' : ''}`;
+        if (drillSaved > 1000) msg += `, saving ~${fmtUSD(drillSaved)} in drilling costs`;
+        msg += '.';
+        savingsEl.textContent = msg;
+        savingsEl.classList.remove('hidden');
+      } else {
+        savingsEl.classList.add('hidden');
+      }
+    }
+
     if (res.cap_W != null) {
       document.getElementById('s6-cap-kw').textContent = (res.cap_W / 1000).toFixed(1);
       document.getElementById('s6-nb-val').textContent = res.NB;
@@ -908,8 +869,7 @@
       document.getElementById('s6-cap-note').classList.remove('hidden');
     }
 
-    // M2 method table
-    if (m2.cutoff_W != null) {
+    if (!nopeaker && m2.cutoff_W != null) {
       document.getElementById('s6-m2-cutoff').textContent = `${(m2.cutoff_W/1000).toFixed(1)} kW`;
       document.getElementById('s6-m2-hrs').textContent = `${m2.cutoff_h} hrs`;
       document.getElementById('s6-m2-coverage').textContent = `${m2.gshp_hours_pct}% hrs · ${m2.gshp_energy_pct}% kWh`;
@@ -917,62 +877,193 @@
       document.getElementById('s6-m2-L').textContent = `${fmtInt(m2.L_after)} m`;
       document.getElementById('s6-m2-save').textContent = `−${m2.savings_pct}%`;
       document.getElementById('s6-comparison').classList.remove('hidden');
+    } else {
+      document.getElementById('s6-comparison').classList.add('hidden');
     }
 
-    _renderS6ChartA('s6-chart-a', res.hourly_profile, m2.cutoff_W, res.cap_W, res.dominant_mode, 220);
+    _renderS6ChartA('s6-chart-a', res.hourly_profile, m2.cutoff_W, res.cap_W, res.dominant_mode, 240);
+    _renderS6ChartLDC('s6-chart-ldc', res.hourly_profile, m2.cutoff_W, res.cap_W, res.dominant_mode, 240, m2.cutoff_h, m2.peaker_kW);
 
     lastStrategyResult = res;
-    window.__geositeLast = {
-      stage1: stage1Result,
-      stage2: lastStage2Result,
-      cost: lastCostResult,
-      strategy: res,
-    };
-    document.getElementById('s7-section').classList.remove('hidden');
+
+    // After strategy: fetch cost using the REDUCED borefield (L_after with peaker)
+    const L_for_cost = (m2.L_after && m2.L_after < res.L_before) ? m2.L_after : res.L_before;
+    fetchCostEstimate(L_for_cost, res.NB, costState.B, smartRes.site.state_abbrev, smartRes, res);
   }
 
-  function _renderS6ChartA(canvasId, hourlyProfile, m2CutoffW, capW, dominantMode, heightPx) {
-    // Downsample to every 4th hour (2190 bars) for compact display
-    const ds = hourlyProfile.filter((_, i) => i % 4 === 0);
-    const colors = ds.map(h =>
-      h < 0 ? 'rgba(37,99,235,0.65)' : h > 0 ? 'rgba(220,38,38,0.55)' : 'transparent'
-    );
-
-    const cutoffDatasets = [];
-    const addLine = (val, sign, color, dash, label) => {
-      if (val == null) return;
-      cutoffDatasets.push({
-        type: 'line', label,
-        data: Array(ds.length).fill(sign * val),
-        borderColor: color, borderDash: dash, pointRadius: 0, borderWidth: 1.5,
-      });
-    };
-
-    const heat = dominantMode === 'heating' || dominantMode === 'balanced';
-    const cool = dominantMode === 'cooling' || dominantMode === 'balanced';
-    if (heat) {
-      addLine(capW,     -1, '#dc2626', [2, 2], `ASHRAE cap (−${(capW/1000).toFixed(1)} kW)`);
-      addLine(m2CutoffW,-1, '#0ea5e9', [3, 3], `M2 cutoff (−${(m2CutoffW/1000).toFixed(1)} kW)`);
+  // ── s5: Cost estimate fetch and render (called AFTER strategy) ────────
+  function fetchCostEstimate(L_m, NB, B_m, state, smartRes, strategyRes) {
+    // Compute peak ground load kW from stage1 loads for GSHP equipment estimate
+    let peak_load_kw = null;
+    if (smartRes && smartRes.loads) {
+      const ld = smartRes.loads;
+      const candidates = [ld.q_h_heat, ld.q_h_cool, ld.q_h].filter(v => v != null);
+      if (candidates.length) peak_load_kw = Math.max(...candidates.map(Math.abs)) / 1000;
     }
-    if (cool) {
-      addLine(capW,      1, '#dc2626', [2, 2], `ASHRAE cap (+${(capW/1000).toFixed(1)} kW)`);
-      addLine(m2CutoffW, 1, '#0ea5e9', [3, 3], `M2 cutoff (+${(m2CutoffW/1000).toFixed(1)} kW)`);
+    const costBody = {L: L_m, NB: NB, B: B_m, state: state};
+    if (peak_load_kw != null) costBody.peak_load_kw = peak_load_kw;
+    // Include peaker equipment cost
+    if (strategyRes && strategyRes.peaker_kW != null) {
+      costBody.peaker_kw  = strategyRes.peaker_kW;
+      costBody.peaker_type = strategyRes.peaker_type;
+    }
+    fetch('/api/cost', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(costBody),
+    })
+    .then(r => r.json())
+    .then(cost => {
+      lastCostResult = cost;
+      document.getElementById('cost-section').classList.remove('hidden');
+      document.getElementById('cost-region-tag').textContent = cost.region_used;
+
+      document.getElementById('cost-best-pft').textContent  = '$' + cost.best.cost_per_ft.toFixed(2);
+      document.getElementById('cost-best-total').textContent = fmtUSD(cost.best.total_usd);
+      document.getElementById('cost-base-pft').textContent  = '$' + cost.base.cost_per_ft.toFixed(2);
+      document.getElementById('cost-base-total').textContent = fmtUSD(cost.base.total_usd);
+      document.getElementById('cost-worst-pft').textContent = '$' + cost.worst.cost_per_ft.toFixed(2);
+      document.getElementById('cost-worst-total').textContent = fmtUSD(cost.worst.total_usd);
+
+      const best = cost.best.total_usd, base = cost.base.total_usd, worst = cost.worst.total_usd;
+      const span = Math.max(worst - best, 1);
+      document.getElementById('cost-range-min').textContent = fmtUSD(best);
+      document.getElementById('cost-range-max').textContent = fmtUSD(worst);
+      document.getElementById('cost-range-label').textContent = fmtUSD(base) + ' expected (drilling only)';
+      document.getElementById('cost-range-marker').style.left =
+        `${Math.min(100, Math.max(0, (base - best) / span * 100))}%`;
+
+      // Update hidden legacy comparison elements (kept for test IDs)
+      document.getElementById('cost-cmp-base').textContent  = '$' + cost.base.cost_per_ft.toFixed(2);
+      document.getElementById('cost-cmp-best').textContent  = '$' + cost.best.cost_per_ft.toFixed(2);
+      document.getElementById('cost-cmp-worst').textContent = '$' + cost.worst.cost_per_ft.toFixed(2);
+      document.getElementById('cost-gshp-tons').textContent = cost.peak_tons != null ? cost.peak_tons + ' tons' : '—';
+      document.getElementById('cost-gshp-equip').textContent = cost.hp_equipment_usd != null ? fmtUSD(cost.hp_equipment_usd) : '—';
+
+      // System cost summary card
+      const summaryCard = document.getElementById('cost-system-summary');
+      if (cost.hp_equipment_usd != null) {
+        const drillBase = cost.base.total_usd;
+        const hpEquip  = cost.hp_equipment_usd;
+        const pkEquip  = cost.peaker_equipment_usd || 0;
+        const total    = drillBase + hpEquip + pkEquip;
+
+        document.getElementById('cost-drill-base').textContent = fmtUSD(drillBase);
+        document.getElementById('cost-hp-equip').textContent   = fmtUSD(hpEquip);
+        if (pkEquip > 0 && strategyRes) {
+          const pkLabel = strategyRes.peaker_type === 'electric_heater' ? 'Electric heater'
+            : strategyRes.peaker_type === 'chiller' ? 'Chiller'
+            : 'Boiler + chiller';
+          document.getElementById('cost-peaker-label').textContent =
+            `${pkLabel} (${strategyRes.peaker_kW.toFixed(0)} kW)`;
+          document.getElementById('cost-peaker-equip').textContent = fmtUSD(pkEquip);
+          document.getElementById('cost-peaker-row').style.display = '';
+        } else {
+          document.getElementById('cost-peaker-row').style.display = 'none';
+        }
+        document.getElementById('cost-system-total').textContent = fmtUSD(total);
+        summaryCard.classList.remove('hidden');
+      }
+
+      // Populate breakdown table
+      const tbody = document.getElementById('cost-breakdown-body');
+      tbody.innerHTML = '';
+      const labels = {
+        mobilization: 'Mobilization', drilling_soil: 'Drilling (soil)',
+        drilling_rock: 'Drilling (rock)', well_casing: 'Well casing',
+        sand_bag: 'Sand/bentonite backfill', grout_bag: 'Thermally enhanced grout',
+        utube_pipe: 'U-tube HDPE pipe', horiz_pipe: 'Horizontal header pipe',
+        horiz_trench: 'Horizontal header trench',
+      };
+      cost.base.breakdown.forEach(item => {
+        const row = tbody.insertRow();
+        row.innerHTML = `<td>${labels[item.name] || item.name}</td>
+          <td>${Number(item.qty).toFixed(1)}</td>
+          <td>${item.unit}</td>
+          <td>$${item.rate}/LF</td>
+          <td>$${Math.round(item.cost_usd).toLocaleString()}</td>`;
+      });
+
+      window.__geositeLast = {
+        stage1: stage1Result,
+        stage2: lastStage2Result,
+        cost: lastCostResult,
+        strategy: strategyRes,
+      };
+      document.getElementById('s7-section').classList.remove('hidden');
+    })
+    .catch(() => {});
+  }
+
+  // ── Stage2 completion triggers s6 (which then triggers s5) ─────────────
+  function _fetchCostAndStrategy_ENTRY(L_m, NB, B_m, state, smartRes) {
+    if (smartRes) fetchStrategy(smartRes, {B: B_m, A: 9.0});
+  }
+
+  // Recalculate button and peaker-purpose change both re-run strategy
+  function _rerunStrategy() {
+    if (lastStage2Result) {
+      const B_m = parseFloat(document.getElementById('s_B').value) || 6.0;
+      fetchStrategy(lastStage2Result, {B: B_m, A: 9.0});
+    }
+  }
+
+  const _recalcBtn = document.getElementById('s6-recalc-btn');
+  if (_recalcBtn) _recalcBtn.addEventListener('click', _rerunStrategy);
+
+  const _peakerPurposeEl = document.getElementById('s6-peaker-purpose');
+  if (_peakerPurposeEl) _peakerPurposeEl.addEventListener('change', _rerunStrategy);
+
+  // ── Annual load profile: smooth line chart (heating = blue, cooling = red) ──
+  function _renderS6ChartA(canvasId, hourlyProfile, m2CutoffW, capW, dominantMode, heightPx) {
+    const STEP = 24; // one data point per day — smooth without being jittery
+    const N = Math.ceil(hourlyProfile.length / STEP);
+    const heatKW = [], coolKW = [], labels = [];
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const MONTH_HOURS = [0,744,1416,2160,2880,3624,4368,5088,5832,6552,7296,8016,8760];
+
+    for (let i = 0; i < N; i++) {
+      let sumH = 0, sumC = 0, n = 0;
+      for (let j = i * STEP; j < Math.min((i + 1) * STEP, hourlyProfile.length); j++) {
+        sumH += Math.min(hourlyProfile[j], 0);
+        sumC += Math.max(hourlyProfile[j], 0);
+        n++;
+      }
+      heatKW.push(n > 0 ? -sumH / n / 1000 : 0);
+      coolKW.push(n > 0 ? sumC / n / 1000 : 0);
+      const h = i * STEP;
+      const mIdx = MONTH_HOURS.findIndex((ms, mi) => h >= ms && h < MONTH_HOURS[mi + 1]);
+      labels.push(mIdx >= 0 && h === MONTH_HOURS[mIdx] ? MONTH_NAMES[mIdx] : '');
     }
 
     const canvas = document.getElementById(canvasId);
-    if (canvas._chartInst) canvas._chartInst.destroy();
+    if (!canvas) return;
+    if (canvas._chartInst) { canvas._chartInst.destroy(); canvas._chartInst = null; }
     canvas._chartInst = new Chart(canvas, {
-      type: 'bar',
+      type: 'line',
       data: {
-        labels: ds.map((_, i) => i * 4),
+        labels,
         datasets: [
           {
-            data: ds,
-            backgroundColor: colors,
-            borderWidth: 0,
-            label: 'Ground load',
+            label: 'Heating demand (kW)',
+            data: heatKW,
+            borderColor: 'rgba(37,99,235,0.85)',
+            backgroundColor: 'rgba(37,99,235,0.08)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            borderWidth: 1.5,
           },
-          ...cutoffDatasets,
+          {
+            label: 'Cooling demand (kW)',
+            data: coolKW,
+            borderColor: 'rgba(220,38,38,0.85)',
+            backgroundColor: 'rgba(220,38,38,0.08)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            borderWidth: 1.5,
+          },
         ],
       },
       options: {
@@ -980,22 +1071,167 @@
         maintainAspectRatio: false,
         animation: false,
         plugins: {
-          legend: {display: false},
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {font: {size: 11}, color: '#5b6b7b', boxWidth: 14},
+          },
+          tooltip: {
+            callbacks: {label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)} kW`},
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: {size: 10},
+              color: '#5b6b7b',
+              maxRotation: 0,
+              autoSkip: false,
+              callback: (_, i) => labels[i] || null,
+            },
+            grid: {display: false},
+            title: {display: true, text: 'Month', font: {size: 11}, color: '#5b6b7b'},
+          },
+          y: {
+            ticks: {
+              callback: v => `${v.toFixed(0)} kW`,
+              font: {size: 11}, color: '#5b6b7b',
+            },
+            grid: {color: 'rgba(22,35,47,0.06)'},
+            title: {display: true, text: 'Load (kW)', font: {size: 11}, color: '#5b6b7b'},
+          },
+        },
+      },
+    });
+  }
+
+  // ── Load duration curve: sorted magnitude, with 3 threshold lines ──
+  function _renderS6ChartLDC(canvasId, hourlyProfile, m2CutoffW, capW, dominantMode, heightPx, m2CutoffH, peakerKW) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    // Separate heating and cooling, sort descending
+    const heatSorted = hourlyProfile.map(h => -Math.min(h, 0) / 1000)
+      .filter(v => v > 0).sort((a, b) => b - a);
+    const coolSorted = hourlyProfile.map(h => Math.max(h, 0) / 1000)
+      .filter(v => v > 0).sort((a, b) => b - a);
+
+    const TARGET = 200; // points per curve
+    const resample = (arr) => {
+      if (!arr.length) return [];
+      return Array.from({length: TARGET}, (_, i) => {
+        const idx = Math.round(i / (TARGET - 1) * (arr.length - 1));
+        return {x: +(i / (TARGET - 1) * 100).toFixed(1), y: arr[idx]};
+      });
+    };
+
+    const heatData = resample(heatSorted);
+    const coolData = resample(coolSorted);
+    const maxY = Math.max(
+      heatSorted[0] || 0, coolSorted[0] || 0, (capW || 0) / 1000
+    ) * 1.1;
+
+    // Three threshold lines:
+    // 1. ASHRAE 99.6% design condition (horizontal, red)
+    // 2. GSHP max capacity = peaker cutoff threshold (horizontal, blue)
+    // 3. Peaker active hours boundary (vertical, amber) — hours where load > GSHP capacity
+    const extrasets = [];
+    if (capW) {
+      extrasets.push({
+        label: `ASHRAE 99.6% — ${(capW/1000).toFixed(0)} kW`,
+        data: [{x: 0, y: capW/1000}, {x: 100, y: capW/1000}],
+        borderColor: '#dc2626',
+        borderDash: [5, 3],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+      });
+    }
+    if (m2CutoffW && m2CutoffW < (capW || Infinity)) {
+      extrasets.push({
+        label: `GSHP max capacity — ${(m2CutoffW/1000).toFixed(0)} kW`,
+        data: [{x: 0, y: m2CutoffW/1000}, {x: 100, y: m2CutoffW/1000}],
+        borderColor: 'rgba(37,99,235,0.9)',
+        borderDash: [4, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+      });
+    }
+    // Vertical line at the peaker-active hours boundary (x = % of 8760 hours where peaker runs)
+    if (m2CutoffH != null && m2CutoffH > 0 && hourlyProfile.length > 0) {
+      const peakerPct = +(m2CutoffH / hourlyProfile.length * 100).toFixed(1);
+      const peakerKWlabel = peakerKW != null ? ` (${peakerKW.toFixed(0)} kW)` : '';
+      extrasets.push({
+        label: `Peaker size${peakerKWlabel} — ${m2CutoffH} hrs/yr`,
+        data: [{x: peakerPct, y: 0}, {x: peakerPct, y: maxY}],
+        borderColor: '#b45309',
+        borderDash: [3, 3],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+      });
+    }
+
+    if (canvas._chartInst) { canvas._chartInst.destroy(); canvas._chartInst = null; }
+    canvas._chartInst = new Chart(canvas, {
+      type: 'line',
+      data: {
+        datasets: [
+          ...(heatData.length ? [{
+            label: 'Heating (kW)',
+            data: heatData,
+            borderColor: 'rgba(37,99,235,0.85)',
+            backgroundColor: 'transparent',
+            tension: 0.35,
+            pointRadius: 0,
+            borderWidth: 1.8,
+            fill: false,
+          }] : []),
+          ...(coolData.length ? [{
+            label: 'Cooling (kW)',
+            data: coolData,
+            borderColor: 'rgba(220,38,38,0.85)',
+            backgroundColor: 'transparent',
+            tension: 0.35,
+            pointRadius: 0,
+            borderWidth: 1.8,
+            fill: false,
+          }] : []),
+          ...extrasets,
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        parsing: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {font: {size: 10}, color: '#5b6b7b', boxWidth: 12, padding: 8},
+          },
           tooltip: {
             callbacks: {
-              label: ctx => `${(ctx.raw / 1000).toFixed(1)} kW`,
+              label: ctx => `${ctx.dataset.label}: ${typeof ctx.raw === 'object' ? ctx.raw.y.toFixed(1) : ctx.raw} kW`,
             },
           },
         },
         scales: {
-          x: {display: false},
+          x: {
+            type: 'linear',
+            min: 0, max: 100,
+            ticks: {callback: v => `${v}%`, font: {size: 10}, color: '#5b6b7b'},
+            grid: {color: 'rgba(22,35,47,0.05)'},
+            title: {display: true, text: '% of hours per year', font: {size: 11}, color: '#5b6b7b'},
+          },
           y: {
-            ticks: {
-              callback: v => `${(v / 1000).toFixed(0)} kW`,
-              font: {family: "'Inter', sans-serif", size: 11},
-              color: '#5b6b7b',
-            },
+            min: 0,
+            suggestedMax: maxY,
+            ticks: {callback: v => `${v.toFixed(0)} kW`, font: {size: 11}, color: '#5b6b7b'},
             grid: {color: 'rgba(22,35,47,0.06)'},
+            title: {display: true, text: 'Load magnitude (kW)', font: {size: 11}, color: '#5b6b7b'},
           },
         },
       },
@@ -1021,53 +1257,53 @@
     const sections = [];
 
     const designRows = [
-      ['Building', `${d.building_type ?? '—'} · climate zone ${d.climate_zone ?? '—'}`],
-      ['Boreholes (NB)', `${fmtInt(d.NB)} — ${d.nb_source ?? '—'}` +
-        (d.nb_min != null ? ` (footprint range ${d.nb_min}–${d.nb_max})` : '')],
+      ['Building type / Climate zone', `${d.building_type ?? '—'} · zone ${d.climate_zone ?? '—'}`],
+      ['Number of boreholes', `${fmtInt(d.NB)}` +
+        (d.nb_min != null ? ` (footprint fits ${d.nb_min}–${d.nb_max})` : '')],
       ['Depth per borehole', `${fmtInt(d.H_m)} m`],
-      ['Total drilled length', `${fmtInt(d.L_m)} m (${fmtInt(d.L_ft)} ft)`],
-      ['Spacing · array aspect', `${d.B_m ?? '—'} m · ${d.A ?? '—'}`],
-      ['Governing mode', d.governing ?? '—'],
-      ['Two-pass L (heat / cool)', `${fmtInt(d.L_heat_m)} / ${fmtInt(d.L_cool_m)} m` +
-        (d.imbalance_m != null ? ` — imbalance ${fmtInt(d.imbalance_m)} m` : '')],
-      ['Footprint', d.footprint_m2 != null
+      ['Total drilled length', `${fmtInt(d.L_m)} m  (${fmtInt(d.L_ft)} ft)`],
+      ['Borehole spacing / array ratio', `${d.B_m ?? '—'} m spacing · ${d.A ?? '—'} aspect ratio`],
+      ['Governing design condition', d.governing === 'cooling' ? 'Cooling (summer peak)' : d.governing === 'heating' ? 'Heating (winter peak)' : (d.governing ?? '—')],
+      ['Required length — heating / cooling', `${fmtInt(d.L_heat_m)} / ${fmtInt(d.L_cool_m)} m` +
+        (d.imbalance_m != null ? ` — thermal imbalance ${fmtInt(d.imbalance_m)} m` : '')],
+      ['Building footprint', d.footprint_m2 != null
         ? `${d.footprint_shape ?? 'Footprint'}, ${Math.round(d.footprint_m2).toLocaleString('en-US')} m², ${d.n_floors} floor(s)` : '—'],
-      ['Soil', `k_eff ${d.k_effective ?? '—'} W/m·K · α ${d.alpha ?? '—'} m²/day · T_g ${d.T_g ?? '—'} °C`],
+      ['Subsurface conditions', `Effective thermal conductivity ${d.k_effective ?? '—'} W/m·K · Diffusivity ${d.alpha ?? '—'} m²/day · Undisturbed ground temperature ${d.T_g ?? '—'} °C`],
     ];
-    if (d.nb_source === 'depth_too_deep') designRows.push(['Depth warning', '⚠ required depth >250 m — hybrid peaker or larger footprint needed']);
-    else if (d.capacity_warning) designRows.push(['Capacity check', '⚠ peak load may exceed the footprint']);
-    if (d.solar_thermal_recommended) designRows.push(['Thermal balance', 'net extraction — solar thermal supplement recommended']);
+    if (d.nb_source === 'depth_too_deep') designRows.push(['Depth warning', '⚠ Required borehole depth exceeds 250 m — consider a supplemental peaker or a larger footprint']);
+    else if (d.capacity_warning) designRows.push(['Footprint note', '⚠ Peak load density exceeds what the available footprint can supply at minimum depth']);
+    if (d.solar_thermal_recommended) designRows.push(['Thermal balance note', 'Net annual heat extraction from the ground — solar thermal supplement is recommended to prevent long-term cooling']);
     sections.push({title: 'System Design', rows: designRows});
 
     const p = r.performance;
     if (p.available) {
       sections.push({title: 'Estimated Performance', rows: [
-        ['ASHRAE 99.6% cap', p.cap_kW != null ? `${p.cap_kW.toFixed(1)} kW` : '—'],
-        ['Dominant mode', p.dominant_mode ?? '—'],
-        ['GSHP coverage (M2)', `${p.m2.gshp_hours_pct ?? '—'}% hrs · ${p.m2.gshp_energy_pct ?? '—'}% kWh`],
-        ['Peaker unit', `${p.peaker_kW ?? '—'} kW ${p.peaker_type ?? ''}`],
-        ['Peaker energy', p.m2.peaker_energy_kwh != null ? `${fmtInt(p.m2.peaker_energy_kwh)} kWh/yr` : '—'],
-        ['Borefield after shaving (M2)', `${fmtInt(p.m2.L_after_m)} m (−${p.m2.savings_pct ?? 0}%)`],
+        ['Peak load limit (ASHRAE 99.6%)', p.cap_kW != null ? `${p.cap_kW.toFixed(1)} kW — extreme peaks above this threshold are handled by the peaker` : '—'],
+        ['Design driving condition', p.dominant_mode ?? '—'],
+        ['GSHP covers (hours / energy)', `${p.m2.gshp_hours_pct ?? '—'}% of operating hours · ${p.m2.gshp_energy_pct ?? '—'}% of annual energy`],
+        ['Supplemental peaker unit', `${p.peaker_kW ?? '—'} kW ${p.peaker_type === 'electric_heater' ? 'electric heater' : p.peaker_type === 'chiller' ? 'chiller' : (p.peaker_type ?? '')}`],
+        ['Peaker annual energy use', p.m2.peaker_energy_kwh != null ? `${fmtInt(p.m2.peaker_energy_kwh)} kWh/yr` : '—'],
+        ['Borefield length after peak shaving', `${fmtInt(p.m2.L_after_m)} m  (${p.m2.savings_pct ?? 0}% reduction vs. sizing without a peaker)`],
       ]});
     } else {
-      sections.push({title: 'Estimated Performance', rows: [['Status', 'unavailable — run the s6 strategy first']]});
+      sections.push({title: 'Estimated Performance', rows: [['Status', 'Run Hybrid Strategy (above) to see performance details']]});
     }
 
     const c = r.cost_savings;
     if (c.available) {
       sections.push({title: 'Cost & Savings', rows: [
-        ['Borefield cost (best / base / worst)', `${fmtUSD(c.borefield_best_usd)} / ${fmtUSD(c.borefield_base_usd)} / ${fmtUSD(c.borefield_worst_usd)}`],
+        ['Borefield drilling — best / expected / worst', `${fmtUSD(c.borefield_best_usd)} / ${fmtUSD(c.borefield_base_usd)} / ${fmtUSD(c.borefield_worst_usd)}`],
         ['Heat pump equipment', fmtUSD(c.hp_equipment_usd)],
-        ['GSHP total system', fmtUSD(c.gshp_capex_usd)],
-        ['Conventional system (boiler + chiller)', `${fmtUSD(c.conv_capex_usd)} ($${c.conv_usd_per_sqft}/sqft × ${c.floor_area_sqft?.toLocaleString()} sqft)`],
-        ['Annual operating — conventional', fmtUSD(c.conv_opex_usd_yr) + '/yr'],
-        ['Annual operating — GSHP', fmtUSD(c.gshp_opex_usd_yr) + '/yr (peaker energy additional)'],
-        ['Annual savings', fmtUSD(c.annual_savings_usd_yr) + '/yr'],
-        ['Simple payback', _fmtYears(c.simple_payback_yr)],
+        ['GSHP total installed cost', fmtUSD(c.gshp_capex_usd)],
+        ['Conventional system (gas boiler + chiller)', `${fmtUSD(c.conv_capex_usd)} ($${c.conv_usd_per_sqft}/sqft × ${c.floor_area_sqft?.toLocaleString()} sqft)`],
+        ['Conventional annual operating cost', fmtUSD(c.conv_opex_usd_yr) + '/yr'],
+        ['GSHP annual operating cost', fmtUSD(c.gshp_opex_usd_yr) + '/yr (peaker energy additional)'],
+        ['Annual savings vs conventional', fmtUSD(c.annual_savings_usd_yr) + '/yr'],
+        ['Simple payback period', _fmtYears(c.simple_payback_yr)],
         ['Note', c.note],
       ]});
     } else {
-      sections.push({title: 'Cost & Savings', rows: [['Status', 'unavailable — cost estimate missing']]});
+      sections.push({title: 'Cost & Savings', rows: [['Status', 'Cost estimate unavailable — complete the Cost Estimate section above first']]});
     }
 
     document.getElementById('s7-design').innerHTML = _rowsHTML(sections[0].rows);
@@ -1078,11 +1314,20 @@
     const rec = data.recommendation || r.recommendation;
     if (rec) {
       const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Footprint feasibility': 25 };
-      const GRADE_CLS  = { Excellent: 'grade-excellent', Good: 'grade-good', Fair: 'grade-fair', Poor: 'grade-poor' };
+      const GRADE_CLS     = { Excellent: 'grade-excellent', Good: 'grade-good', Fair: 'grade-fair', Poor: 'grade-poor' };
+      const GRADE_NUM_CLS = { Excellent: 'score-num-excellent', Good: 'score-num-good', Fair: 'score-num-fair', Poor: 'score-num-poor' };
       const benchmark  = rec.benchmark || 70;
       const delta      = rec.score - benchmark;
       const deltaStr   = (delta >= 0 ? '+' : '') + delta;
-      const gradeClass = GRADE_CLS[rec.grade] || 'grade-fair';
+      const gradeClass    = GRADE_CLS[rec.grade] || 'grade-fair';
+      const scoreNumClass = GRADE_NUM_CLS[rec.grade] || 'score-num-fair';
+      // Score-based background: 0→red, 50→neutral, 100→blue (low saturation)
+      const t = Math.max(0, Math.min(1, rec.score / 100));
+      const rBg = Math.round(180 - t * 130);  // red channel: 180 (red) → 50 (blue)
+      const gBg = Math.round(55 + t * 35);    // green channel stays low
+      const bBg = Math.round(55 + t * 150);   // blue channel: 55 → 205
+      const scoreCardBg = `rgb(${rBg},${gBg},${bBg})`;
+      document.getElementById('r-score-card').style.background = scoreCardBg;
 
       const factorRows = (rec.factors || []).map(f => {
         const max = FACTOR_MAX[f.label] || 40;
@@ -1099,7 +1344,7 @@
 
       document.getElementById('r-score-card').innerHTML = `
         <div class="score-header">
-          <div class="score-number">${rec.score}</div>
+          <div class="score-number ${scoreNumClass}">${rec.score}</div>
           <div>
             <div><span class="score-grade-badge ${gradeClass}">${rec.grade}</span></div>
             <div class="score-vs-bench">${deltaStr} vs benchmark</div>
@@ -1211,7 +1456,7 @@
 
       `A ${peakerKW} kW ${peakerType} handles the top ${peakerHours} hours/year of load that the ` +
       `GSHP can't efficiently cover. The GSHP provides ${m2.gshp_energy_pct ?? '—'}% of annual energy ` +
-      `(M2 method). The peaker adds ~${peakerCost}/yr operating cost.`,
+      `The peaker adds ~${peakerCost}/yr operating cost.`,
 
       `Measured soil thermal conductivity: k = ${kRaw ?? '—'} W/m·K (conservative effective ` +
       `k_eff = ${kEff ?? '—'} W/m·K). ${soilQuality} for ground-source heat exchange. Climate zone ` +

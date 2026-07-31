@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, Response
 from werkzeug.exceptions import BadRequest
 from geosite.s4_sizing.ashrae_sizing import size_borefield
 from geosite.s4_sizing.footprint import (
@@ -30,6 +30,8 @@ from geosite.s6_strategy import run_strategy
 from geosite.s7_report import build_report
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "geosite-dev-local-only")
+_DEV_PASSWORD = os.environ.get("DEV_PASSWORD", "")  # set DEV_PASSWORD in .env for local, env var in production
 
 _PUBLIC_DATA = pathlib.Path(__file__).parent / "data" / "public"
 
@@ -83,9 +85,9 @@ def calculate():
     if not (0.025 <= values["alpha"] <= 0.2):
         return jsonify({"error": "field", "field": "alpha",
                         "message": "α must be between 0.025 and 0.2 m²/day"}), 400
-    if not (0.05 <= values["rbore"] <= 0.1):
+    if not (0.05 <= values["rbore"] <= 0.15):
         return jsonify({"error": "field", "field": "rbore",
-                        "message": "Borehole radius must be between 0.05 and 0.1 m"}), 400
+                        "message": "Borehole radius must be between 0.05 and 0.15 m"}), 400
     if values["NB"] < 1:
         return jsonify({"error": "field", "field": "NB",
                         "message": "Number of boreholes must be ≥ 1"}), 400
@@ -115,7 +117,7 @@ def calculate():
 # backward compatibility with existing references.
 _ADVANCED_DEFAULTS = ADVANCED_DEFAULTS
 _T_IN_HP_DEFAULTS = T_IN_HP_DEFAULTS
-_H_MAX = 250.0   # maximum practical drill-rig depth [m] for commercial rotary rigs
+_H_MAX = 400.0   # maximum practical drill-rig depth [m] for commercial rotary rigs (item 21)
 
 
 def _parse_advanced_params(data):
@@ -133,19 +135,22 @@ def _parse_advanced_params(data):
         try:
             params[key] = float(raw)
         except (ValueError, TypeError):
+            label = _FIELD_LABELS.get(key, key)
             return None, (jsonify({"error": "field", "field": key,
-                                   "message": f"'{key}' must be a number"}), 400)
+                                   "message": f"{label} must be a number"}), 400)
 
-    if not (0.05 <= params["rbore"] <= 0.1):
+    if not (0.05 <= params["rbore"] <= 0.15):
         return None, (jsonify({"error": "field", "field": "rbore",
-                               "message": "Borehole radius must be between 0.05 and 0.1 m"}), 400)
+                               "message": "Borehole radius must be between 0.05 and 0.15 m"}), 400)
     for key in ("Cp", "mfls", "kgrout", "kpipe", "hconv", "LU", "rpin", "rpext"):
         if params[key] <= 0:
+            label = _FIELD_LABELS.get(key, key)
             return None, (jsonify({"error": "field", "field": key,
-                                   "message": f"'{key}' must be positive"}), 400)
+                                   "message": f"{label} must be positive"}), 400)
     if not (params["rpin"] < params["rpext"] < params["rbore"]):
         return None, (jsonify({"error": "field", "field": "rpext",
-                               "message": "Pipe radii must satisfy rpin < rpext < rbore"}), 400)
+                               "message": "Pipe inner radius must be less than pipe outer radius, "
+                                          "which must be less than the borehole radius"}), 400)
     if not (params["LU"] < 2 * params["rbore"]):
         return None, (jsonify({"error": "field", "field": "LU",
                                "message": "U-tube spacing must be less than the borehole diameter"}), 400)
@@ -247,6 +252,56 @@ def _year_to_load_factor(year_built: int) -> float:
     return 1.50
 
 
+_FIELD_LABELS = {
+    "zip_code":        "ZIP Code",
+    "building_type":   "Building Type",
+    "floor_area_m2":   "Total Floor Area",
+    "num_floors":      "Number of Floors",
+    "footprint_shape": "Footprint Shape",
+    "building_age":    "Building Age",
+    "soil_confidence": "Thermal Conductivity Source",
+    "H_min":           "Borehole Depth",
+    "B":               "Borehole Spacing",
+    "NB":              "Number of Boreholes",
+    "rbore":           "Borehole Radius",
+    "rpin":            "Pipe Inner Radius",
+    "rpext":           "Pipe Outer Radius",
+    "LU":              "U-tube Shank Spacing",
+    "kgrout":          "Grout Conductivity",
+    "kpipe":           "Pipe Conductivity",
+    "hconv":           "Convection Coefficient",
+    "Cp":              "Fluid Heat Capacity",
+    "mfls":            "Flow Rate",
+    "T_in_HP_heat":    "Minimum Loop Temperature (Heating)",
+    "T_in_HP_cool":    "Maximum Loop Temperature (Cooling)",
+    "wwr":             "Window-Wall Ratio",
+    "envelope":        "Infiltration & Insulation",
+    "glazing":         "Glazing Type",
+    "load_scale":      "Load Scale Factor",
+    "borehole_config": "Layout Configuration",
+    "k":               "Ground Thermal Conductivity",
+    "alpha":           "Ground Thermal Diffusivity",
+    "T_g":             "Ground Temperature",
+    "A":               "Aspect Ratio",
+    "envelope_factor": "Envelope Factor",
+    "q_h":             "Peak Ground Load (hourly)",
+    "q_m":             "Peak Ground Load (monthly)",
+    "q_y":             "Annual Ground Load",
+}
+
+
+_FIELD_REQUIRED_MSGS = {
+    "zip_code":      "Location required — please enter a 5-digit US ZIP code.",
+    "building_type": "Please select a building type to continue.",
+}
+
+def _field_err(field, msg=None):
+    """Return a JSON 400 response with a human-readable field label."""
+    if msg is None:
+        msg = _FIELD_REQUIRED_MSGS.get(field) or f"{_FIELD_LABELS.get(field, field)} is required."
+    return jsonify({"error": "field", "field": field, "message": msg}), 400
+
+
 def _resolve_site_and_loads(data):
     """Shared s1+s2 half of the pipeline. Returns (payload, None) or (None, error_response).
 
@@ -261,8 +316,7 @@ def _resolve_site_and_loads(data):
     """
     for field in ("zip_code", "building_type"):
         if field not in data or str(data[field]).strip() == "":
-            return None, (jsonify({"error": "field", "field": field,
-                                   "message": f"'{field}' is required"}), 400)
+            return None, _field_err(field)
 
     zip_code = str(data["zip_code"]).strip()
     building_type = str(data["building_type"]).strip()
@@ -273,11 +327,9 @@ def _resolve_site_and_loads(data):
         try:
             floor_area_m2 = float(data["floor_area_m2"])
             if floor_area_m2 <= 0:
-                return None, (jsonify({"error": "field", "field": "floor_area_m2",
-                                       "message": "Floor area must be positive"}), 400)
+                return None, _field_err("floor_area_m2", "Total Floor Area must be a positive number.")
         except (ValueError, TypeError):
-            return None, (jsonify({"error": "field", "field": "floor_area_m2",
-                                   "message": "Floor area must be a number"}), 400)
+            return None, _field_err("floor_area_m2", "Total Floor Area must be a number.")
 
     # Optional: number of floors + footprint shape
     fp_opts, err = _parse_footprint_opts(data)
@@ -508,18 +560,23 @@ def _run_sizing(*, q_pulses, effective_k, alpha, T_g, building_type,
         except (KeyError, ValueError) as exc:
             return None, (jsonify({"error": "field", "field": "building_type",
                                    "message": str(exc)}), 400)
-        # Capacity check: when the load physically cannot fit in the footprint
-        # (nb_load_min > nb_max), clamp NB to nb_max and let the boreholes go
-        # deeper than H_min — intentional; we cannot fit more holes.
+        # Capacity check: warns when load density exceeds what the footprint
+        # can supply at H_min.  Advisory only — the optimizer uses nb_max as
+        # the upper bound and will find the best NB within [nb_min, nb_max]
+        # while still satisfying H_min ≤ H ≤ H_max.  We must NOT force
+        # NB_fixed = nb_max here; doing so bypasses the optimizer and sends a
+        # fixed-NB call to size_borefield(), which oscillates when NB is too
+        # large relative to the load (Tp correction drives H below B → x > 1
+        # → Tp = 0 → L collapses to a physically impossible 2-3 m depth).
         load_check = _load_density_check(q_pulses, H_min, nb_max)
         capacity_capped = bool(load_check["capacity_warning"])
     else:
         load_check = {"nb_load_min": None, "nb_load_max": None,
                       "capacity_warning": None}
 
-    # NB_fixed is set for both expert overrides and capacity-capped fields:
-    # both size at a fixed count instead of running the optimizer sweep.
-    NB_fixed = NB if NB is not None else (nb_max if capacity_capped else None)
+    # NB_fixed is only set for explicit expert overrides (the NB field).
+    # capacity_capped is advisory: the optimizer handles [nb_min, nb_max].
+    NB_fixed = NB  # None unless user explicitly set a borehole count
 
     # --- s4: two-pass borefield sizing ---
     # Run for both heating and cooling; the mode requiring more borefield governs.
@@ -637,13 +694,15 @@ def calculate_smart():
         return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
 
     # --- validate required fields ---
-    for field in ("zip_code", "building_type", "B", "A"):
+    for field in ("zip_code", "building_type", "B"):
         if field not in data or str(data[field]).strip() == "":
             return jsonify({"error": "field", "field": field,
                             "message": f"'{field}' is required"}), 400
 
     B = float(data["B"])
-    A = float(data["A"])
+    # A (Tp polynomial aspect ratio) defaults to 9.0 — allows up to 3:1 elongation.
+    # User tool omits this; dev tool can override explicitly.
+    A = float(data["A"]) if data.get("A") not in (None, "") else 9.0
 
     # NB fixed-count mode is legacy; footprint-derived NB is the default.
     # data["NB"] may be JSON null (dev.html sends NaN -> null when blank).
@@ -659,9 +718,9 @@ def calculate_smart():
     except (ValueError, TypeError):
         return jsonify({"error": "field", "field": "H_min",
                         "message": "H_min must be a number"}), 400
-    if not (100.0 <= H_min <= 300.0):
+    if not (30.0 <= H_min <= 600.0):
         return jsonify({"error": "field", "field": "H_min",
-                        "message": "Target depth must be between 100 and 300 m"}), 400
+                        "message": "Borehole depth must be between 30 and 600 m"}), 400
 
     if NB is not None and NB < 1:
         return jsonify({"error": "field", "field": "NB",
@@ -796,9 +855,9 @@ def calculate_stage2():
     except (ValueError, TypeError):
         return jsonify({"error": "field", "field": "H_min",
                         "message": "H_min must be a number"}), 400
-    if not (100.0 <= H_min <= 300.0):
+    if not (30.0 <= H_min <= 600.0):
         return jsonify({"error": "field", "field": "H_min",
-                        "message": "Target depth must be between 100 and 300 m"}), 400
+                        "message": "Borehole depth must be between 30 and 600 m"}), 400
 
     try:
         B = float(data.get("B", 6.0))
@@ -1008,6 +1067,37 @@ def cost_api():
     rock_class = data.get("rock_class") or None
     distance_to_house_ft = float(data.get("distance_to_house_ft", 100.0))
 
+    # Optional: peak_load_kw → compute GSHP equipment cost estimate
+    # $600/kW is the midpoint for commercial GSHP equipment ($1,500–$3,500/ton installed equipment)
+    _HP_USD_PER_KW = 600.0
+    # Peaker equipment: gas/electric boiler ~$150/kW, chiller ~$300/kW (installed, commercial)
+    _PEAKER_USD_PER_KW = {"electric_heater": 150.0, "chiller": 300.0,
+                          "electric_heater+chiller": 225.0}  # average when both
+    peak_load_kw = None
+    hp_equipment_usd = None
+    peak_tons = None
+    peaker_equipment_usd = None
+    raw_peak = data.get("peak_load_kw")
+    if raw_peak not in (None, ""):
+        try:
+            peak_load_kw = float(raw_peak)
+            if peak_load_kw > 0:
+                hp_equipment_usd = round(peak_load_kw * _HP_USD_PER_KW, 0)
+                peak_tons = round(peak_load_kw / 3.517, 1)
+        except (ValueError, TypeError):
+            pass
+
+    raw_peaker_kw   = data.get("peaker_kw")
+    raw_peaker_type = str(data.get("peaker_type") or "").strip()
+    if raw_peaker_kw not in (None, ""):
+        try:
+            pkw = float(raw_peaker_kw)
+            if pkw > 0:
+                rate = _PEAKER_USD_PER_KW.get(raw_peaker_type, 225.0)
+                peaker_equipment_usd = round(pkw * rate, 0)
+        except (ValueError, TypeError):
+            pass
+
     try:
         result = estimate_cost(
             L_m=L_m, NB=NB, B_m=B_m, state=state,
@@ -1032,13 +1122,22 @@ def cost_api():
             "scenario": cr.scenario,
         }
 
-    return jsonify({
+    out = {
         "best":  _cr(result["best"]),
         "base":  _cr(result["base"]),
         "worst": _cr(result["worst"]),
         "headline_per_ft": round(result["headline_per_ft"], 2),
         "region_used": result["region_used"],
-    })
+    }
+    if hp_equipment_usd is not None:
+        out["hp_equipment_usd"] = hp_equipment_usd
+        out["peak_tons"] = peak_tons
+        out["peak_load_kw"] = round(peak_load_kw, 1)
+    if peaker_equipment_usd is not None:
+        out["peaker_equipment_usd"] = peaker_equipment_usd
+        out["peaker_kw"] = round(float(raw_peaker_kw), 1)
+        out["peaker_type"] = raw_peaker_type
+    return jsonify(out)
 
 
 @app.route("/api/cost/map")
@@ -1118,8 +1217,11 @@ def strategy_api():
 
     ldc_cutoff_pct      = float(data.get("ldc_cutoff_pct", 10.0))
     imbalance_threshold = float(data.get("imbalance_threshold", 1.25))
-    H_min               = float(data.get("H_min", 125.0))
+    H_min               = float(data.get("H_min") or 125.0)
     ignore_top_pct      = float(data.get("ignore_top_pct", 0.4))
+    peaker_purpose      = str(data.get("peaker_purpose") or "auto").strip()
+    if peaker_purpose not in ("auto", "heating", "cooling", "both", "none"):
+        peaker_purpose = "auto"
 
     floor_area_m2 = None
     if data.get("floor_area_m2"):
@@ -1160,6 +1262,7 @@ def strategy_api():
             year_factor=year_factor,
             envelope_factor=envelope_factor,
             state=state,
+            peaker_purpose=peaker_purpose,
             **sizing_params,
         )
     except KeyError as exc:
@@ -1209,8 +1312,63 @@ def report_api():
 
 @app.route("/dev")
 def developer():
-    """Developer-only pipeline dashboard — not linked from the public UI."""
+    """Developer-only pipeline dashboard — password protected."""
+    if not session.get("dev_auth"):
+        return redirect(url_for("dev_login"))
     return render_template("dev.html")
+
+
+_DEV_LOGIN_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/tool.css">
+  <style>
+    .dev-login-wrap { min-height: 100dvh; display: flex; align-items: center; justify-content: center; }
+    .dev-login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px 36px; width: 100%; max-width: 360px; box-shadow: var(--shadow); }
+    .dev-login-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .dev-login-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+    .dev-login-card input[type=password] { display: block; width: 100%; padding: 9px 12px; font-family: var(--font-sans); font-size: 14px; color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); margin-bottom: 14px; box-sizing: border-box; }
+    .dev-login-card input[type=password]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(5,150,105,0.12); }
+    .dev-login-card button { display: block; width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; }
+    .dev-login-card button:hover { background: var(--accent-hover); }
+    .dev-login-err { color: #b91c1c; font-size: 13px; margin-top: 10px; }
+    .dev-back { display: inline-block; margin-top: 18px; font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .dev-back:hover { color: var(--text); }
+  </style>
+</head>
+<body class="t-body">
+  <div class="dev-login-wrap">
+    <div class="dev-login-card">
+      <div class="dev-login-title">Developer Mode</div>
+      <div class="dev-login-sub">Enter the developer password to continue.</div>
+      <form method="post" action="/dev-login">
+        <input type="password" name="password" placeholder="Password" autofocus autocomplete="current-password">
+        <button type="submit">Unlock</button>
+        {% if error %}<div class="dev-login-err">Incorrect password. Try again.</div>{% endif %}
+      </form>
+      <a href="/" class="dev-back">&larr; Back to tool</a>
+    </div>
+  </div>
+</body>
+</html>"""
+
+
+@app.route("/dev-login", methods=["GET", "POST"])
+def dev_login():
+    error = False
+    if request.method == "POST":
+        pwd = request.form.get("password", "")
+        if pwd == _DEV_PASSWORD:
+            session["dev_auth"] = True
+            return redirect(url_for("developer"))
+        error = True
+    from flask import render_template_string
+    return render_template_string(_DEV_LOGIN_HTML, error=error)
 
 
 if __name__ == "__main__":

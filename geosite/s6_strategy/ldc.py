@@ -15,16 +15,14 @@ def _monthly_averages(arr: np.ndarray) -> np.ndarray:
 
 
 def compute_ldc(profile: list, cutoff_pct: float = 10.0, ignore_top_pct: float = 0.4) -> dict:
-    """Sort 8760h profile by |load| descending; apply ASHRAE peak cap; return two cutoff methods.
+    """Sort 8760h profile by |load| descending; apply ASHRAE peak cap; return energy-based cutoff.
 
     ignore_top_pct:  top % of hours to cap at the design-condition load.
                      0.4% → 35 hours of 8760 (ASHRAE 99.6% design condition).
-    cutoff_pct:      % boundary used by both methods (default 10%).
+    cutoff_pct:      % of total annual energy handled by peaker (default 10%).
 
-    Method 1 — hours-based:   cutoff at the top cutoff_pct% of hours.
-    Method 2 — energy-based:  cutoff where peaker excess energy = cutoff_pct% of total.
-
-    Backward-compatible keys: "cutoff_idx" and "cutoff_W" alias Method 1 results.
+    Method 2 (energy-based):  cutoff where peaker excess energy = cutoff_pct% of total.
+    Backward-compatible keys: "cutoff_idx" and "cutoff_W" alias Method 2 results.
     """
     arr = np.asarray(profile, dtype=float)
     sorted_abs = np.sort(np.abs(arr))[::-1].copy()
@@ -42,14 +40,6 @@ def compute_ldc(profile: list, cutoff_pct: float = 10.0, ignore_top_pct: float =
         sorted_abs_capped = sorted_abs.copy()
 
     total_Wh = float(sorted_abs_capped.sum())
-
-    # --- Method 1: hours-based ---
-    m1_idx = min(int(n * cutoff_pct / 100), n - 1)
-    m1_cutoff_W = float(sorted_abs_capped[m1_idx])
-    m1_gshp_Wh = float(np.minimum(sorted_abs_capped, m1_cutoff_W).sum())
-    m1_gshp_energy_pct = round(100.0 * m1_gshp_Wh / total_Wh, 2) if total_Wh > 0 else 100.0
-    m1_gshp_hours_pct = round(100.0 * (n - m1_idx) / n, 2)
-    m1_peaker_Wh = total_Wh - m1_gshp_Wh
 
     # --- Method 2: energy-based (binary search on cutoff_W) ---
     # excess(W) = sum(max(v - W, 0)) = total energy above the W threshold
@@ -77,21 +67,15 @@ def compute_ldc(profile: list, cutoff_pct: float = 10.0, ignore_top_pct: float =
         # Raw LDC data (for visualization)
         "sorted_abs": sorted_abs.tolist(),
         "sorted_abs_capped": sorted_abs_capped.tolist(),
-        # Method 1 — hours-based
-        "m1_cutoff_W": m1_cutoff_W,
-        "m1_cutoff_idx": m1_idx,
-        "m1_gshp_hours_pct": m1_gshp_hours_pct,
-        "m1_gshp_energy_pct": m1_gshp_energy_pct,
-        "m1_peaker_energy_Wh": m1_peaker_Wh,
-        # Method 2 — energy-based
+        # Method 2 — energy-based (only method)
         "m2_cutoff_W": m2_cutoff_W,
         "m2_cutoff_idx": m2_idx,
         "m2_gshp_hours_pct": m2_gshp_hours_pct,
         "m2_gshp_energy_pct": m2_gshp_energy_pct,
         "m2_peaker_energy_Wh": m2_peaker_Wh,
-        # Backward-compat aliases (Method 1)
-        "cutoff_idx": m1_idx,
-        "cutoff_W": m1_cutoff_W,
+        # Backward-compat aliases → M2
+        "cutoff_idx": m2_idx,
+        "cutoff_W": m2_cutoff_W,
     }
 
 
@@ -106,7 +90,14 @@ def trim_profile(profile: list, cutoff_W: float, dominant_mode: str) -> list:
 
 
 def extract_one_sided_pulses(profile: list, mode: str) -> tuple:
-    """Extract (q_h, q_m, q_y) for one-mode sizing; 'heating' zeroes positive hours (q_h<0), 'cooling' zeroes negative (q_h>0)."""
+    """Extract (q_h, q_m, q_y) for one-mode sizing; 'heating' zeroes positive hours (q_h<0), 'cooling' zeroes negative (q_h>0).
+
+    q_y is the NET annual average of the full profile (Philippe et al. 2010 definition),
+    not a one-sided average. A positive q_y means net cooling-dominant (net heat injection
+    to ground); negative means net heating-dominant. This is the same value for both the
+    heating-mode and cooling-mode sizing calls — it represents the long-term ground
+    thermal imbalance, not a single-side contribution.
+    """
     arr = np.asarray(profile, dtype=float)
     if mode == "heating":
         one_sided = np.where(arr < 0, arr, 0.0)
@@ -116,5 +107,7 @@ def extract_one_sided_pulses(profile: list, mode: str) -> tuple:
         one_sided = np.where(arr > 0, arr, 0.0)
         q_h = float(one_sided.max())
         q_m = float(_monthly_averages(one_sided).max())
-    q_y = float(one_sided.mean())
+    # q_y = net annual average (Philippe 2010): full profile mean, NOT one-sided mean.
+    # Using one-sided.mean() would give ~120% error and wrong sign for non-dominant mode.
+    q_y = float(arr.mean())
     return q_h, q_m, q_y

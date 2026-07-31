@@ -4,973 +4,1139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GeoSite Advisor — Geothermal Feasibility for Buildings</title>
-  <meta name="description" content="Geothermal borefield sizing from real subsurface geology. Enter a ZIP, get a full ASHRAE-method feasibility report in minutes.">
+  <meta name="description" content="First-principles geothermal borefield sizing. Enter a ZIP, get a capital cost estimate in minutes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <style>
-    /* ── Reset ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* ── Tokens ── */
     :root {
-      --bg:          #070D18;
-      --surface:     #0D1A26;
-      --surface-2:   #102031;
-      --border:      rgba(255,255,255,0.07);
-      --border-lt:   rgba(255,255,255,0.13);
-
-      --text:        #F0F6FF;
-      --muted:       #6B8299;
-      --faint:       #3D5166;
-
-      --green:       #10B981;
-      --green-glow:  rgba(16,185,129,0.14);
-      --green-soft:  rgba(16,185,129,0.10);
-
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --ink:       #0E0E0C;
+      --ink-soft:  #161614;
+      --paper:     #F5F1EB;
+      --accent:    #c1314d;
+      --accent-dim:#a82840;
+      --blue:      #2e4efe;
+      --blue-dim:  #2440d8;
+      --muted-d:   rgba(245,241,235,.5);
+      --faint-d:   rgba(245,241,235,.25);
+      --border-d:  rgba(245,241,235,.1);
+      --border-l:  rgba(14,14,12,.1);
+      --muted-l:   rgba(14,14,12,.55);
+      --font-serif:'DM Serif Display', Georgia, serif;
+      --font-sans: 'DM Serif Display', Georgia, serif;
+      --font-mono: 'DM Serif Display', Georgia, serif;
+      --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+      /* Bento */
+      --bento-border: #2a2630;
+      --bento-bg:     #110e16;
+      --bento-glow:   193, 49, 77;
     }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+    body { font-family: var(--font-serif); background: var(--ink); color: var(--paper); -webkit-font-smoothing: antialiased; overflow-x: hidden; cursor: none; }
 
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
+    /* ── Cursor ── */
+    #cdot  { position:fixed; width:8px; height:8px; background:var(--paper); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .15s,height .15s,background .25s; }
+    #cring { position:fixed; width:36px; height:36px; border:1.5px solid var(--paper); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .25s,height .25s,opacity .2s,border-color .25s,box-shadow .25s; opacity:.35; }
+    /* Dark cursor on light backgrounds */
+    #cdot.dark  { background:var(--ink); }
+    #cring.dark { border-color:var(--ink); box-shadow:0 0 12px rgba(46,78,254,.3); }
+    body:has(a:hover) #cdot,body:has(button:hover) #cdot { width:12px; height:12px; background:var(--accent); }
+    body:has(a:hover) #cring,body:has(button:hover) #cring { width:52px; height:52px; opacity:.2; border-color:var(--accent); }
+
+    /* ── Nav ── */
+    .nav { position:fixed; top:0; left:0; right:0; z-index:500; display:flex; align-items:center; justify-content:space-between; padding:20px 52px; background:rgba(14,14,12,.8); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid transparent; transition:border-color .3s; }
+    .nav.scrolled { border-bottom-color:var(--border-d); }
+    .nav-logo { font-family:var(--font-serif); font-size:1.25rem; color:var(--paper); text-decoration:none; letter-spacing:-.01em; display:flex; align-items:center; gap:6px; }
+    .nav-logo-dot { display:inline-block; width:8px; height:8px; background:var(--accent); border-radius:50%; }
+    .nav-links { display:flex; gap:32px; list-style:none; align-items:center; }
+    .nav-links a { font-size:1rem; color:var(--muted-d); text-decoration:none; transition:color .2s; }
+    .nav-links a:hover { color:var(--paper); }
+    .nav-cta { font-size:.875rem; font-weight:500; color:var(--paper); background:var(--accent); text-decoration:none; padding:9px 22px; border-radius:100px; transition:background .2s,transform .2s,box-shadow .2s; }
+    .nav-cta:hover { background:var(--accent-dim); transform:translateY(-1px); box-shadow:0 0 20px rgba(var(--bento-glow),.35); }
+
+    /* ── Shared ── */
+    .inner { max-width:1280px; margin:0 auto; padding:0 52px; }
+    .eyebrow { font-family:var(--font-mono); font-size:.875rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); }
+    .eyebrow-d { color:var(--muted-d); }
+    .eyebrow-b { color:var(--blue); }
+
+    /* ── Hero ── */
+    .hero { background:var(--ink); min-height:100dvh; display:flex; align-items:center; padding:140px 52px 100px; position:relative; overflow:hidden; }
+    .hero-inner { max-width:1280px; margin:0 auto; width:100%; position:relative; z-index:2; }
+
+    /* Ferrofluid background */
+    #ferrofluid-container { position:absolute; inset:0; pointer-events:none; z-index:0; }
+
+    /* Gradient overlay for text readability */
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 55% at 30% 55%, rgba(14,14,12,0.7) 0%, transparent 100%),
+        radial-gradient(ellipse 80% 40% at 50% 100%, rgba(14,14,12,0.8) 0%, transparent 100%);
     }
 
-    /* ══════════════════════════════════════
-       NAV
-    ══════════════════════════════════════ */
-    .ln-nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 48px;
-      background: rgba(7,13,24,0.65);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid var(--border);
+    /* ── CircularText widget ── */
+    .hero-circular {
+      position: absolute;
+      top: 110px;
+      right: 52px;
+      z-index: 3;
+      cursor: pointer;
     }
-
-    .ln-logo {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      color: var(--text);
-      text-decoration: none;
-    }
-    .ln-logo em { font-style: normal; color: var(--green); }
-
-    .ln-nav-links {
-      display: flex;
-      align-items: center;
-      gap: 36px;
-      list-style: none;
-    }
-    .ln-nav-links a {
+    .circular-text-widget {
+      border-radius: 50%;
+      width: 200px;
+      height: 200px;
+      position: relative;
+      font-family: var(--font-serif);
       font-size: 14px;
-      font-weight: 500;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color .18s;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--paper);
+      text-align: center;
+      transform-origin: 50% 50%;
+      opacity: 0.45;
+      animation: circ-rotate 18s linear infinite;
+      transition: opacity 0.3s;
     }
-    .ln-nav-links a:hover { color: var(--text); }
-
-    .ln-nav-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #000;
-      background: var(--green);
-      padding: 9px 20px;
-      border-radius: 100px;
-      text-decoration: none;
-      transition: opacity .18s, transform .18s;
+    .circular-text-widget:hover { animation-duration: 0.9s; opacity: 0.7; }
+    .circular-text-widget span {
+      position: absolute;
+      display: inline-block;
+      left: 0; right: 0; top: 0; bottom: 0;
+      transition: all 0.5s cubic-bezier(0, 0, 0, 1);
     }
-    .ln-nav-cta:hover { opacity: .9; transform: translateY(-1px); }
+    @keyframes circ-rotate { to { transform: rotate(360deg); } }
 
-    /* ══════════════════════════════════════
-       HERO
-    ══════════════════════════════════════ */
-    .ln-hero {
-      min-height: 100vh;
+    /* ── TrueFocus hero title ── */
+    .true-focus-container {
+      position: relative;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 130px 24px 96px;
-      position: relative;
-      overflow: hidden;
-      text-align: center;
+      align-items: flex-start;
+      gap: 0.35em;
+      user-select: none;
+      margin-bottom: 24px;
     }
-
-    /* Radial glow — negative z-index keeps it behind all flow content */
-    .ln-glow {
+    .focus-word {
+      font-family: var(--font-serif);
+      font-size: clamp(4rem, 8vw, 8.5rem);
+      font-weight: 400;
+      color: var(--paper);
+      line-height: 1;
+      cursor: pointer;
+      transition: filter 0.8s ease;
+    }
+    .focus-frame {
       position: absolute;
-      top: 38%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 960px; height: 640px;
-      background: radial-gradient(ellipse at center,
-        rgba(16,185,129,.13) 0%,
-        rgba(16,185,129,.05) 42%,
-        transparent 70%);
+      top: 0; left: 0;
       pointer-events: none;
-      z-index: -1;
+      opacity: 0;
+    }
+    .focus-frame .corner {
+      position: absolute;
+      width: 1rem;
+      height: 1rem;
+      border: 3px solid #2e4efe;
+      filter: drop-shadow(0 0 4px #2e4efe);
+      border-radius: 3px;
+    }
+    .focus-frame .corner.top-left    { top:-10px; left:-10px; border-right:none; border-bottom:none; }
+    .focus-frame .corner.top-right   { top:-10px; right:-10px; border-left:none; border-bottom:none; }
+    .focus-frame .corner.bottom-left { bottom:-10px; left:-10px; border-right:none; border-top:none; }
+    .focus-frame .corner.bottom-right{ bottom:-10px; right:-10px; border-left:none; border-top:none; }
+    .hero-subtitle {
+      font-family: var(--font-serif);
+      font-size: clamp(1.25rem, 2.5vw, 2rem);
+      font-weight: 400;
+      color: var(--muted-d);
+      margin-bottom: 52px;
+      letter-spacing: -0.01em;
     }
 
-    /* Grain noise overlay */
-    .ln-hero::before {
+    /* CTA buttons */
+    .hero-actions { display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:10px;
+      font-family:var(--font-sans); font-size:.9375rem; font-weight:500;
+      color:var(--paper); background:var(--accent);
+      text-decoration:none; padding:14px 28px; border-radius:100px;
+      transition:background .2s,transform .2s,box-shadow .2s;
+      cursor:none; position:relative;
+    }
+    .btn-primary svg { transition:transform .3s var(--ease); }
+    .btn-primary:hover { background:var(--accent-dim); transform:translateY(-2px); box-shadow:0 0 24px rgba(193,49,77,.45),0 0 48px rgba(193,49,77,.2); }
+    .btn-primary:hover svg { transform:rotate(45deg); }
+    .btn-outline { display:inline-flex; align-items:center; gap:8px; font-size:.9375rem; font-weight:500; color:var(--paper); border:1px solid var(--border-d); text-decoration:none; padding:13px 27px; border-radius:100px; transition:border-color .2s,color .2s,box-shadow .2s; cursor:none; }
+    .btn-outline:hover { border-color:rgba(46,78,254,.5); color:var(--paper); box-shadow:0 0 18px rgba(46,78,254,.25); }
+
+    /* ── Marquee ── */
+    .marquee-wrap { border-top:1px solid var(--border-d); border-bottom:1px solid var(--border-d); overflow:hidden; padding:16px 0; background:var(--ink-soft); }
+    .marquee-track { display:flex; white-space:nowrap; animation:marquee 32s linear infinite; }
+    .mi { display:inline-flex; align-items:center; gap:18px; padding:0 24px; font-family:var(--font-mono); font-size:.8125rem; letter-spacing:.1em; text-transform:uppercase; color:var(--faint-d); }
+    .mi-dot { width:4px; height:4px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+    .mi-dot-b { width:4px; height:4px; border-radius:50%; background:var(--blue); flex-shrink:0; }
+    @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+    /* ── Stats ── */
+    .stats { background:var(--ink); border-top:1px solid var(--border-d); padding:80px 52px; }
+    .stats-grid { max-width:1280px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+    .stat-item { padding:48px 0; border-right:1px solid var(--border-d); padding-right:48px; padding-left:48px; }
+    .stat-item:first-child { padding-left:0; }
+    .stat-item:last-child { border-right:none; }
+    .stat-num { font-family:var(--font-serif); font-size:clamp(3rem,5vw,5.5rem); line-height:1; color:var(--paper); margin-bottom:10px; }
+    .stat-num .accent { color:var(--accent); }
+    .stat-num .accent-b { color:var(--blue); }
+    .stat-label { font-size:1rem; color:var(--muted-d); line-height:1.4; }
+
+    /* ── What we model — Bento ── */
+    .what { background:var(--ink-soft); border-top:1px solid var(--border-d); padding:100px 52px; }
+    .what-header { max-width:1280px; margin:0 auto 64px; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:end; }
+    .what h2 { font-family:var(--font-serif); font-size:clamp(2.5rem,4vw,4rem); line-height:1.05; letter-spacing:-.03em; color:var(--paper); }
+    .what-intro { font-size:1rem; color:var(--muted-d); line-height:1.7; }
+    .what-bento-wrap { max-width:1280px; margin:0 auto; }
+
+    /* ── How it works — Bento ── */
+    .how { background:var(--paper); padding:100px 52px; }
+    .how-header { max-width:1280px; margin:0 auto 72px; }
+    .how-header .eyebrow { color:var(--muted-l); margin-bottom:20px; }
+    .how h2 { font-family:var(--font-serif); font-size:clamp(2.5rem,4vw,4rem); line-height:1.05; letter-spacing:-.03em; color:var(--ink); max-width:none; }
+    .how-bento-wrap { max-width:1280px; margin:0 auto; }
+
+    /* ── Magic Bento Grid ── */
+    .card-grid {
+      display: grid;
+      gap: 0.5em;
+      padding: 0.75em 0;
+      width: 100%;
+      font-size: clamp(1rem, 0.9rem + 0.5vw, 1.5rem);
+    }
+    .magic-bento-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      aspect-ratio: 4/3;
+      min-height: 200px;
+      width: 100%;
+      padding: 1.25em;
+      border-radius: 20px;
+      border: 1px solid var(--bento-border);
+      background: var(--bento-bg);
+      overflow: hidden;
+      transition: transform .3s ease, box-shadow .3s ease;
+      --glow-x: 50%;
+      --glow-y: 50%;
+      --glow-intensity: 0;
+      --glow-radius: 200px;
+      cursor: none;
+    }
+    .magic-bento-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+    .magic-bento-card__header,
+    .magic-bento-card__content { display:flex; position:relative; color:var(--paper); }
+    .magic-bento-card__header { gap:.75em; justify-content:space-between; align-items:flex-start; }
+    .magic-bento-card__content { flex-direction:column; }
+    .magic-bento-card__label { font-family:var(--font-mono); font-size:13px; color:var(--accent); background:rgba(193,49,77,.12); padding:4px 10px; border-radius:100px; letter-spacing:.05em; }
+    .magic-bento-card__num { font-family:var(--font-mono); font-size:13px; color:var(--faint-d); }
+    .magic-bento-card__title { font-family:var(--font-sans); font-weight:400; font-size:1.15em; color:var(--paper); margin:0 0 .3em; }
+    .magic-bento-card__description { font-size:.8em; line-height:1.55; color:var(--muted-d); }
+    .magic-bento-card__stage-bg {
+      position:absolute; right:-8px; bottom:-12px;
+      font-family:var(--font-mono); font-size:5em; font-weight:700;
+      color:rgba(255,255,255,.03); line-height:1; pointer-events:none; user-select:none;
+    }
+
+    /* How it works cards: dark-on-light variant */
+    .how-bento-wrap .magic-bento-card {
+      background: rgba(14,14,12,.04);
+      border-color: rgba(14,14,12,.1);
+      --bento-glow: 46, 78, 254;
+    }
+    .how-bento-wrap .magic-bento-card__label { color:var(--blue); background:rgba(46,78,254,.08); }
+    .how-bento-wrap .magic-bento-card__title { color:var(--ink); }
+    .how-bento-wrap .magic-bento-card__description { color:var(--muted-l); }
+    .how-bento-wrap .magic-bento-card__num { color:rgba(14,14,12,.3); }
+    .how-bento-wrap .magic-bento-card__stage-bg { color:rgba(14,14,12,.04); }
+    .how-bento-wrap .magic-bento-card:hover { box-shadow:0 8px 30px rgba(46,78,254,.1); }
+
+    /* Border glow effect on bento cards */
+    .magic-bento-card--border-glow::after {
       content: '';
       position: absolute;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
-      background-size: 300px 300px;
+      padding: 1px;
+      background: radial-gradient(
+        var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+        rgba(var(--bento-glow, 193,49,77), calc(var(--glow-intensity) * 0.9)) 0%,
+        rgba(var(--bento-glow, 193,49,77), calc(var(--glow-intensity) * 0.4)) 35%,
+        transparent 65%
+      );
+      border-radius: inherit;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
       pointer-events: none;
-      z-index: -1;
+      z-index: 1;
     }
 
-    /* Badge */
-    .ln-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--green);
-      background: var(--green-soft);
-      border: 1px solid rgba(16,185,129,.22);
-      padding: 6px 16px;
-      border-radius: 100px;
-      margin-bottom: 36px;
-    }
-    .ln-badge-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: .35; }
-    }
-
-    /* H1 */
-    h1.ln-h1 {
-      font-size: clamp(48px, 7.5vw, 92px);
-      font-weight: 900;
-      letter-spacing: -0.035em;
-      line-height: .96;
-      color: var(--text);
-      max-width: 860px;
-      margin-bottom: 28px;
-    }
-    h1.ln-h1 em {
-      font-style: normal;
-      color: var(--green);
-    }
-
-    /* Sub */
-    .ln-sub {
-      font-size: clamp(16px, 2vw, 20px);
-      font-weight: 400;
-      line-height: 1.6;
-      color: var(--muted);
-      max-width: 500px;
-      margin-bottom: 44px;
-    }
-
-    /* CTAs */
-    .ln-actions {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 80px;
-    }
-
-    .ln-btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #000;
-      background: var(--green);
-      padding: 15px 30px;
-      border-radius: 100px;
-      text-decoration: none;
-      box-shadow: 0 0 32px rgba(16,185,129,.32), 0 4px 16px rgba(16,185,129,.18);
-      transition: transform .2s, box-shadow .2s;
-    }
-    .ln-btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 48px rgba(16,185,129,.42), 0 8px 28px rgba(16,185,129,.24);
-    }
-
-    .ln-btn-ghost {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--muted);
-      text-decoration: none;
-      padding: 15px 22px;
-      border-radius: 100px;
-      border: 1px solid var(--border-lt);
-      transition: color .2s, border-color .2s, transform .2s;
-    }
-    .ln-btn-ghost:hover {
-      color: var(--text);
-      border-color: rgba(255,255,255,.28);
-      transform: translateY(-2px);
-    }
-
-    /* ══════════════════════════════════════
-       DEVICE COMPOSITION
-    ══════════════════════════════════════ */
-    .ln-devices {
-      width: 100%;
-      max-width: 980px;
-      position: relative;
-      margin-bottom: 72px;
-      animation: float-mac 5.5s ease-in-out infinite;
-    }
-    @keyframes float-mac {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-10px); }
-    }
-
-    /* ── MacBook ── */
-    .ln-mac {
-      width: 100%;
-      filter:
-        drop-shadow(0 48px 96px rgba(0,0,0,.72))
-        drop-shadow(0 0 64px rgba(16,185,129,.09));
-    }
-
-    .ln-mac-lid {
-      background: linear-gradient(140deg, #2e2e42 0%, #1c1c2c 100%);
-      border-radius: 18px 18px 4px 4px;
-      padding: 14px 14px 7px;
-      border: 1.5px solid rgba(255,255,255,.13);
-    }
-
-    .ln-mac-camera {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #2a2a3a;
-      margin: 0 auto 10px;
-    }
-
-    .ln-mac-screen {
-      background: #050a10;
-      border-radius: 8px;
-      aspect-ratio: 16/10;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .ln-mac-base {
-      background: linear-gradient(180deg, #2b2b3d 0%, #22222e 100%);
-      height: 24px;
-      border-radius: 0 0 8px 8px;
-      border: 1.5px solid rgba(255,255,255,.08);
-      border-top: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ln-mac-trackpad {
-      width: 110px; height: 11px;
-      background: rgba(255,255,255,.06);
-      border-radius: 4px;
-    }
-
-    /* ── Screen UI ── */
-    .ln-ui {
-      display: flex;
-      height: 100%;
-      font-size: 8.5px;
-      font-family: var(--font);
-    }
-
-    .ln-ui-sidebar {
-      width: 148px;
-      flex-shrink: 0;
-      background: #0f1d29;
-      border-right: 1px solid rgba(255,255,255,.05);
-      padding: 14px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .ln-ui-brand {
-      padding: 0 14px 12px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #fff;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-      margin-bottom: 8px;
-    }
-    .ln-ui-brand em { font-style: normal; color: #10B981; }
-
-    .ln-ui-nav {
-      padding: 5px 14px;
-      font-size: 8.5px;
-      font-weight: 500;
-      color: #4a6378;
-    }
-    .ln-ui-nav.active {
-      background: rgba(16,185,129,.14);
-      color: #fff;
-    }
-
-    .ln-ui-main {
-      flex: 1;
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow: hidden;
-    }
-
-    .ln-ui-page-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #F0F6FF;
-      letter-spacing: -0.02em;
-      line-height: 1;
-    }
-    .ln-ui-page-sub {
-      font-size: 7.5px;
-      color: #4a6378;
-      margin-top: 2px;
-    }
-
-    .ln-ui-card {
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.06);
-      border-radius: 6px;
-      padding: 10px 12px;
-    }
-
-    .ln-ui-card-title {
-      font-size: 7.5px;
-      font-weight: 700;
-      color: #4a6378;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-bottom: 8px;
-    }
-
-    .ln-ui-field {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.07);
-      border-radius: 3px;
-      padding: 5px 8px;
-      margin-bottom: 5px;
-      font-size: 8.5px;
-      color: #6B8299;
-    }
-    .ln-ui-field strong {
-      color: #D0E4F0;
-      font-weight: 600;
-    }
-
-    .ln-ui-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 8px;
-      font-weight: 700;
-      background: #10B981;
-      color: #000;
-      padding: 4px 10px;
-      border-radius: 100px;
-      margin-top: 4px;
-    }
-
-    /* Result card */
-    .ln-ui-result {
-      background: rgba(16,185,129,.06);
-      border: 1px solid rgba(16,185,129,.22);
-      border-radius: 6px;
-      padding: 10px 12px;
-    }
-    .ln-ui-result-label {
-      font-size: 7.5px;
-      font-weight: 700;
-      color: #10B981;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-bottom: 10px;
-    }
-    .ln-ui-stat-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      text-align: center;
-    }
-    .ln-ui-stat-val {
-      font-size: 16px;
-      font-weight: 900;
-      color: #F0F6FF;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      margin-bottom: 2px;
-    }
-    .ln-ui-stat-lbl {
-      font-size: 7px;
-      color: #4a6378;
-    }
-
-    /* ── iPhone ── */
-    .ln-phone {
-      position: absolute;
-      bottom: -28px;
-      right: -16px;
-      width: 175px;
-      background: linear-gradient(140deg, #2a2a3e 0%, #1a1a2c 100%);
-      border-radius: 34px;
-      border: 1.5px solid rgba(255,255,255,.13);
-      padding: 10px 7px 14px;
-      box-shadow:
-        0 28px 72px rgba(0,0,0,.65),
-        0 0 44px rgba(16,185,129,.09);
-      animation: float-phone 5.5s ease-in-out .5s infinite;
-    }
-    @keyframes float-phone {
-      0%, 100% { transform: rotate(3deg) translateY(0); }
-      50%       { transform: rotate(3deg) translateY(-9px); }
-    }
-
-    .ln-phone-island {
-      width: 64px; height: 18px;
-      background: #000;
-      border-radius: 20px;
-      margin: 0 auto 8px;
-    }
-
-    .ln-phone-screen {
-      background: #050a10;
-      border-radius: 22px;
-      padding: 12px 10px;
-      min-height: 272px;
-      font-family: var(--font);
-    }
-
-    .ln-phone-top {
-      font-size: 10px;
-      font-weight: 800;
-      color: #F0F6FF;
-      text-align: center;
-      margin-bottom: 10px;
-      letter-spacing: -0.01em;
-    }
-
-    .ln-phone-score-box {
-      background: rgba(16,185,129,.1);
-      border: 1px solid rgba(16,185,129,.25);
-      border-radius: 12px;
-      padding: 12px 8px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .ln-phone-score-num {
-      font-size: 32px;
-      font-weight: 900;
-      color: #10B981;
-      line-height: 1;
-    }
-    .ln-phone-score-denom {
-      font-size: 14px;
-      font-weight: 500;
-      color: rgba(16,185,129,.5);
-    }
-    .ln-phone-score-grade {
-      font-size: 9px;
-      font-weight: 600;
-      color: #10B981;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-top: 4px;
-    }
-
-    .ln-phone-rows { display: flex; flex-direction: column; gap: 5px; }
-    .ln-phone-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.05);
-      border-radius: 7px;
-      padding: 6px 9px;
-      font-family: var(--font);
-    }
-    .ln-phone-key { font-size: 8px; color: #4a6378; }
-    .ln-phone-val { font-size: 9px; font-weight: 700; color: #D0E4F0; }
-
-    /* ══════════════════════════════════════
-       STATS BAR
-    ══════════════════════════════════════ */
-    .ln-stats {
-      display: flex;
-      align-items: stretch;
-      flex-wrap: wrap;
-      justify-content: center;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,.015);
-    }
-    .ln-stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 40px;
-      gap: 4px;
-    }
-    .ln-stat-item:not(:last-child) {
-      border-right: 1px solid var(--border);
-    }
-    .ln-stat-num {
-      font-size: 26px;
-      font-weight: 900;
-      color: var(--text);
-      letter-spacing: -0.03em;
-    }
-    .ln-stat-desc {
-      font-size: 12px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    /* ══════════════════════════════════════
-       FEATURES
-    ══════════════════════════════════════ */
-    .ln-features {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 100px 32px;
-    }
-
-    .ln-section-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--green);
-      text-align: center;
-      margin-bottom: 18px;
-    }
-
-    .ln-section-title {
-      font-size: clamp(32px, 4vw, 50px);
-      font-weight: 800;
-      letter-spacing: -0.025em;
-      line-height: 1.08;
-      text-align: center;
-      color: var(--text);
-      max-width: 620px;
-      margin: 0 auto 60px;
-    }
-
-    .ln-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-
-    .ln-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
-      transition: border-color .2s, transform .22s;
-    }
-    .ln-card:hover {
-      border-color: rgba(16,185,129,.3);
-      transform: translateY(-5px);
-    }
-
-    .ln-card-icon {
-      width: 46px; height: 46px;
-      border-radius: 12px;
-      background: var(--green-soft);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 18px;
-    }
-
-    .ln-card-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.01em;
-      margin-bottom: 10px;
-    }
-
-    .ln-card-desc {
-      font-size: 14px;
-      line-height: 1.68;
-      color: var(--muted);
-    }
-
-    /* ══════════════════════════════════════
-       METHODOLOGY STRIP
-    ══════════════════════════════════════ */
-    .ln-method {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 56px 32px;
-      text-align: center;
-    }
-    .ln-method-inner {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .ln-method-title {
-      font-size: clamp(24px, 3vw, 38px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      margin-bottom: 14px;
-    }
-    .ln-method-sub {
-      font-size: 16px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 32px;
-      max-width: 640px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .ln-method-pills {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-    .ln-method-pill {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      background: rgba(255,255,255,.04);
-      border: 1px solid var(--border-lt);
-      padding: 7px 16px;
-      border-radius: 100px;
-    }
-
-    /* ══════════════════════════════════════
-       FOOTER
-    ══════════════════════════════════════ */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 36px 48px;
-    }
-    .ln-footer {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .ln-footer-brand {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--muted);
-      text-decoration: none;
-    }
-    .ln-footer-brand em { font-style: normal; color: var(--green); }
-    .ln-footer-links {
-      display: flex;
-      gap: 28px;
-    }
-    .ln-footer-links a {
-      font-size: 13px;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color .18s;
-    }
-    .ln-footer-links a:hover { color: var(--text); }
-    .ln-footer-copy {
-      font-size: 12px;
-      color: var(--faint);
-    }
-
-    /* ══════════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════════ */
-    @media (max-width: 900px) {
-      .ln-nav-links { display: none; }
-      .ln-nav { padding: 16px 20px; }
-      .ln-phone {
-        position: static;
-        width: 150px;
-        margin: -50px auto 0;
-        transform: rotate(3deg);
-        animation: none;
+    /* Grid layouts */
+    @media (min-width: 600px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) {
+      .card-grid { grid-template-columns: repeat(4, 1fr); }
+      .magic-bento-card:nth-child(3) { grid-column: span 2; grid-row: span 2; }
+      .magic-bento-card:nth-child(4) { grid-column: 1 / span 2; grid-row: 2 / span 2; }
+      .magic-bento-card:nth-child(6) { grid-column: 4; grid-row: 3; }
+      .card-grid--2col { grid-template-columns: repeat(2, 1fr); }
+      .card-grid--2col .magic-bento-card:nth-child(n) {
+        grid-column: unset; grid-row: unset; aspect-ratio: 16/9;
       }
-      .ln-grid { grid-template-columns: 1fr 1fr; }
     }
-    @media (max-width: 600px) {
-      .ln-grid { grid-template-columns: 1fr; }
-      .ln-stat-item { padding: 18px 24px; }
-      .ln-stat-item:not(:last-child) { border-right: none; border-bottom: 1px solid var(--border); }
-      .ln-footer { flex-direction: column; align-items: flex-start; }
-      .ln-hero { padding: 100px 16px 72px; }
-      .ln-actions { flex-direction: column; width: 100%; }
-      .ln-btn-primary, .ln-btn-ghost { width: 100%; justify-content: center; }
+    @media (max-width: 599px) {
+      .card-grid { grid-template-columns: 1fr; padding:.5em 0; }
+      .magic-bento-card { min-height:180px; }
+    }
+
+    /* Particle container */
+    .particle-container { position:relative; overflow:hidden; }
+
+    /* Global spotlight */
+    .global-spotlight {
+      position: fixed;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 200;
+      opacity: 0;
+      transform: translate(-50%,-50%);
+      mix-blend-mode: screen;
+      transition: opacity .3s ease;
+      will-change: left, top, opacity;
+    }
+
+    /* ── Quote ── */
+    .quote { background:var(--ink); border-top:1px solid var(--border-d); padding:120px 52px; text-align:center; }
+    .quote-inner { max-width:840px; margin:0 auto; }
+    .quote blockquote { font-family:var(--font-serif); font-size:clamp(2rem,4vw,3.75rem); line-height:1.15; letter-spacing:-.03em; color:var(--paper); margin-bottom:40px; }
+    .quote blockquote em { color:var(--accent); font-style:italic; }
+    .quote cite { display:block; font-family:var(--font-mono); font-size:.875rem; letter-spacing:.1em; text-transform:uppercase; color:var(--faint-d); }
+
+    /* ── CTA ── */
+    .cta { background:var(--ink-soft); border-top:1px solid var(--border-d); padding:120px 52px; }
+    .cta-inner { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:48px; flex-wrap:wrap; }
+    .cta h2 { font-family:var(--font-serif); font-size:clamp(2.5rem,4.5vw,4.5rem); line-height:1; letter-spacing:-.04em; color:var(--paper); max-width:640px; }
+    .cta h2 em { color:var(--accent); font-style:italic; }
+    .btn-cta {
+      display:inline-flex; align-items:center; gap:10px;
+      font-family:var(--font-sans); font-size:1rem; font-weight:500;
+      color:var(--paper); background:var(--accent);
+      text-decoration:none; padding:16px 32px; border-radius:100px;
+      white-space:nowrap; transition:background .2s,transform .2s,box-shadow .2s;
+      cursor:none; position:relative;
+    }
+    .btn-cta svg { transition:transform .3s var(--ease); }
+    .btn-cta:hover { background:var(--accent-dim); transform:translateY(-2px); box-shadow:0 0 28px rgba(193,49,77,.5),0 0 56px rgba(193,49,77,.25); }
+    .btn-cta:hover svg { transform:rotate(45deg); }
+
+    /* ── Footer ── */
+    .footer { background:var(--ink); border-top:1px solid var(--border-d); padding:40px 52px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; }
+    .footer-logo { font-family:var(--font-serif); font-size:1.1rem; color:var(--muted-d); text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .footer-logo-dot { display:inline-block; width:7px; height:7px; background:var(--accent); border-radius:50%; }
+    .footer-links { display:flex; gap:24px; list-style:none; flex-wrap:wrap; }
+    .footer-links a { font-size:.9375rem; color:var(--faint-d); text-decoration:none; transition:color .2s; }
+    .footer-links a:hover { color:var(--muted-d); }
+    .footer-copy { font-size:.9375rem; color:var(--faint-d); }
+
+    /* ── Reveal utility ── */
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s var(--ease),transform .7s var(--ease); }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* ── Responsive ── */
+    @media(max-width:1024px) {
+      .nav { padding:16px 24px; }
+      .nav-links { display:none; }
+      .hero { padding:120px 32px 80px; }
+      .hero-circular { right:24px; top:90px; }
+      .inner,.stats,.what,.how,.quote,.cta,.footer { padding-left:32px; padding-right:32px; }
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
+      .stat-item:nth-child(2) { border-right:none; }
+      .what-header { grid-template-columns:1fr; }
+      .cta-inner { flex-direction:column; align-items:flex-start; }
+    }
+    @media(max-width:640px) {
+      .hero { padding:100px 20px 64px; }
+      .hero-circular { top:80px; right:16px; }
+      .circular-text-svg { width:100px; height:100px; }
+      .stats,.what,.how,.quote,.cta,.footer { padding-left:20px; padding-right:20px; }
+      .stats-grid { grid-template-columns:1fr 1fr; gap:32px; }
+      .stat-item { padding:24px 0; border-right:none; }
+      .hero-actions { flex-direction:column; align-items:flex-start; }
+      .footer { flex-direction:column; }
+    }
+    /* ── Button border glow (React Bits inspired) ── */
+    .btn-primary, .btn-outline, .btn-cta { --btn-glow-x:50%; --btn-glow-y:50%; --btn-glow-a:0; }
+    .btn-primary::before, .btn-outline::before, .btn-cta::before {
+      content:''; position:absolute; inset:0; padding:1px;
+      background: radial-gradient(140px circle at var(--btn-glow-x) var(--btn-glow-y),
+        rgba(193,49,77,var(--btn-glow-a)) 0%,
+        rgba(193,49,77,calc(var(--btn-glow-a)*.4)) 40%,
+        transparent 70%);
+      border-radius:inherit;
+      -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor; mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+      mask-composite:exclude; pointer-events:none; transition:opacity .2s;
+    }
+    .btn-outline::before {
+      background: radial-gradient(140px circle at var(--btn-glow-x) var(--btn-glow-y),
+        rgba(46,78,254,var(--btn-glow-a)) 0%,
+        rgba(46,78,254,calc(var(--btn-glow-a)*.4)) 40%,
+        transparent 70%);
+    }
+
+    /* ── Bento card formula highlights ── */
+    .magic-bento-card__formula {
+      font-size:.72em; color:rgba(193,49,77,.75); margin-top:.55em; line-height:1.6;
+      letter-spacing:.01em; font-style:italic;
+    }
+    .how-bento-wrap .magic-bento-card__formula { color:rgba(46,78,254,.7); }
+
+    /* ── How it works — text lines ── */
+    .how-lines { max-width:1280px; margin:0 auto; }
+    .how-line {
+      display:grid; grid-template-columns:80px 1fr 2fr;
+      gap:0 48px; align-items:baseline;
+      padding:36px 0; border-top:1px solid var(--border-l);
+    }
+    .how-line:last-child { border-bottom:1px solid var(--border-l); }
+    .how-line-num { font-size:.9375rem; color:var(--muted-l); opacity:.45; letter-spacing:.05em; }
+    .how-line-title { font-size:clamp(1.5rem,2.2vw,2rem); line-height:1.1; letter-spacing:-.02em; color:var(--ink); }
+    .how-line-desc { font-size:1.0625rem; color:var(--muted-l); line-height:1.65; max-width:440px; }
+    @media(max-width:768px) {
+      .how-line { grid-template-columns:48px 1fr; }
+      .how-line-desc { grid-column:2; margin-top:8px; }
+    }
+
+    @media (pointer: coarse),(prefers-reduced-motion: reduce) {
+      body { cursor:auto; }
+      #cdot,#cring { display:none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ══════════════════ NAV ══════════════════ -->
-  <nav class="ln-nav">
-    <a href="/landing" class="ln-logo">GeoSite<em>Advisor</em></a>
-    <ul class="ln-nav-links">
-      <li><a href="#features">Features</a></li>
-      <li><a href="/references">Methodology</a></li>
-      <li><a href="/dev">Dev Dashboard</a></li>
-    </ul>
-    <a href="/" class="ln-nav-cta">Open Tool →</a>
-  </nav>
+<div id="cdot"></div>
+<div id="cring"></div>
 
-  <!-- ══════════════════ HERO ══════════════════ -->
-  <section class="ln-hero">
-    <div class="ln-glow"></div>
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a class="nav-logo" href="/landing">GeoSite<span class="nav-logo-dot"></span></a>
+  <ul class="nav-links">
+    <li><a href="#what">What we model</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#tool">The tool</a></li>
+  </ul>
+  <a class="nav-cta" href="/tool">Try the tool &rarr;</a>
+</nav>
 
-    <div class="ln-badge">
-      <div class="ln-badge-dot"></div>
-      ASHRAE · Philippe et al. 2010 · 3,221 Counties
-    </div>
+<!-- HERO -->
+<section class="hero" id="top">
+  <div id="ferrofluid-container"></div>
+  <div class="hero-vignette"></div>
 
-    <h1 class="ln-h1">Know the ground<br>before the <em>drill</em>.</h1>
+  <!-- CircularText component -->
+  <div class="hero-circular" aria-label="By Almanzo Gao Stanford">
+    <div class="circular-text-widget" id="circWidget"></div>
+  </div>
 
-    <p class="ln-sub">
-      Geothermal borefield sizing from real subsurface geology.
-      Enter a ZIP — get a full feasibility report in minutes.
-    </p>
-
-    <div class="ln-actions">
-      <a href="/" class="ln-btn-primary">Size Your Building →</a>
-      <a href="/references" class="ln-btn-ghost">View Methodology ↗</a>
-    </div>
-
-    <!-- Device composition -->
-    <div class="ln-devices">
-
-      <!-- MacBook mockup -->
-      <div class="ln-mac">
-        <div class="ln-mac-lid">
-          <div class="ln-mac-camera"></div>
-          <div class="ln-mac-screen">
-            <div class="ln-ui">
-
-              <!-- Sidebar -->
-              <div class="ln-ui-sidebar">
-                <div class="ln-ui-brand">GeoSite<em>Advisor</em></div>
-                <div class="ln-ui-nav">s1 Site</div>
-                <div class="ln-ui-nav">s2 Simulation</div>
-                <div class="ln-ui-nav">s3 Loads</div>
-                <div class="ln-ui-nav active">s4 Sizing</div>
-                <div class="ln-ui-nav">s5 Cost</div>
-                <div class="ln-ui-nav">s6 Strategy</div>
-                <div class="ln-ui-nav">s7 Report</div>
-              </div>
-
-              <!-- Main content -->
-              <div class="ln-ui-main">
-                <div>
-                  <div class="ln-ui-page-title">Borefield Sizing</div>
-                  <div class="ln-ui-page-sub">Vertical closed-loop · ASHRAE three-pulse method (Philippe et al. 2010)</div>
-                </div>
-
-                <div class="ln-ui-card">
-                  <div class="ln-ui-card-title">Site &amp; Building</div>
-                  <div class="ln-ui-field"><span>ZIP Code</span><strong>60601</strong></div>
-                  <div class="ln-ui-field"><span>Building Type</span><strong>Small Office</strong></div>
-                  <div class="ln-ui-field"><span>Floor Area</span><strong>4,982 m²</strong></div>
-                  <div class="ln-ui-field"><span>Soil Confidence</span><strong>Medium</strong></div>
-                  <div class="ln-ui-pill">Analyze Site &amp; Loads →</div>
-                </div>
-
-                <div class="ln-ui-result">
-                  <div class="ln-ui-result-label">Sizing Result · Chicago IL · Cooling governs</div>
-                  <div class="ln-ui-stat-row">
-                    <div>
-                      <div class="ln-ui-stat-val">1,847</div>
-                      <div class="ln-ui-stat-lbl">Total length (m)</div>
-                    </div>
-                    <div>
-                      <div class="ln-ui-stat-val">115</div>
-                      <div class="ln-ui-stat-lbl">Depth per borehole (m)</div>
-                    </div>
-                    <div>
-                      <div class="ln-ui-stat-val">16</div>
-                      <div class="ln-ui-stat-lbl">Boreholes</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="ln-mac-base">
-          <div class="ln-mac-trackpad"></div>
-        </div>
+  <div class="hero-inner">
+    <!-- TrueFocus component -->
+    <div class="true-focus-container" id="trueFocusContainer">
+      <div class="focus-frame" id="focusFrame">
+        <span class="corner top-left"></span>
+        <span class="corner top-right"></span>
+        <span class="corner bottom-left"></span>
+        <span class="corner bottom-right"></span>
       </div>
+    </div>
+    <p class="hero-subtitle">Evaluated within only 30 seconds.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="/tool">
+        Try the tool
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn-outline" href="#how">How it works</a>
+    </div>
+  </div>
+</section>
 
-      <!-- iPhone mockup -->
-      <div class="ln-phone">
-        <div class="ln-phone-island"></div>
-        <div class="ln-phone-screen">
-          <div class="ln-phone-top">Feasibility Report</div>
-          <div class="ln-phone-score-box">
-            <div class="ln-phone-score-num">74<span class="ln-phone-score-denom">/100</span></div>
-            <div class="ln-phone-score-grade">Good Candidate</div>
-          </div>
-          <div class="ln-phone-rows">
-            <div class="ln-phone-row">
-              <span class="ln-phone-key">Borefield length</span>
-              <span class="ln-phone-val">1,847 m</span>
-            </div>
-            <div class="ln-phone-row">
-              <span class="ln-phone-key">Depth per hole</span>
-              <span class="ln-phone-val">115 m</span>
-            </div>
-            <div class="ln-phone-row">
-              <span class="ln-phone-key">Cost (base)</span>
-              <span class="ln-phone-val">$548k</span>
-            </div>
-            <div class="ln-phone-row">
-              <span class="ln-phone-key">Ground k</span>
-              <span class="ln-phone-val">2.41 W/m·K</span>
-            </div>
-            <div class="ln-phone-row">
-              <span class="ln-phone-key">Climate zone</span>
-              <span class="ln-phone-val">5A — Chicago</span>
-            </div>
-          </div>
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" aria-hidden="true">
+    <span class="mi"><span class="mi-dot"></span>THERMAL LOAD ANALYSIS</span>
+    <span class="mi"><span class="mi-dot-b"></span>BOREFIELD SIZING</span>
+    <span class="mi"><span class="mi-dot"></span>FIRST-PRINCIPLES MODEL</span>
+    <span class="mi"><span class="mi-dot-b"></span>CAPITAL COST ESTIMATE</span>
+    <span class="mi"><span class="mi-dot"></span>GROUND-SOURCE HEAT PUMP</span>
+    <span class="mi"><span class="mi-dot-b"></span>ASHRAE THREE-PULSE METHOD</span>
+    <span class="mi"><span class="mi-dot"></span>HEATING &middot; COOLING</span>
+    <span class="mi"><span class="mi-dot-b"></span>SUBSURFACE GEOLOGY</span>
+    <span class="mi"><span class="mi-dot"></span>ENERGYPLUS SIMULATION</span>
+    <span class="mi"><span class="mi-dot-b"></span>HYBRID PEAKER STRATEGY</span>
+    <!-- duplicate -->
+    <span class="mi"><span class="mi-dot"></span>THERMAL LOAD ANALYSIS</span>
+    <span class="mi"><span class="mi-dot-b"></span>BOREFIELD SIZING</span>
+    <span class="mi"><span class="mi-dot"></span>FIRST-PRINCIPLES MODEL</span>
+    <span class="mi"><span class="mi-dot-b"></span>CAPITAL COST ESTIMATE</span>
+    <span class="mi"><span class="mi-dot"></span>GROUND-SOURCE HEAT PUMP</span>
+    <span class="mi"><span class="mi-dot-b"></span>ASHRAE THREE-PULSE METHOD</span>
+    <span class="mi"><span class="mi-dot"></span>HEATING &middot; COOLING</span>
+    <span class="mi"><span class="mi-dot-b"></span>SUBSURFACE GEOLOGY</span>
+    <span class="mi"><span class="mi-dot"></span>ENERGYPLUS SIMULATION</span>
+    <span class="mi"><span class="mi-dot-b"></span>HYBRID PEAKER STRATEGY</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats" id="stats">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-num"><span class="counter" data-target="7">0</span><span class="accent">+</span></div>
+      <div class="stat-label">Pipeline stages,<br>from site to report</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:.1s">
+      <div class="stat-num"><span class="counter" data-target="405">0</span></div>
+      <div class="stat-label">Unit tests,<br>all passing</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:.2s">
+      <div class="stat-num"><span class="counter" data-target="8760">0</span></div>
+      <div class="stat-label">Hours simulated<br>per building run</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:.3s">
+      <div class="stat-num"><span class="counter" data-target="3">0</span><span class="accent-b"> </span></div>
+      <div class="stat-label">Cost scenarios &mdash;<br>best, base, worst</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT WE MODEL — Magic Bento -->
+<section class="what" id="what">
+  <div class="what-header">
+    <div>
+      <p class="eyebrow" style="margin-bottom:20px">What we model</p>
+      <h2 class="reveal">Every physical layer,<br>from soil to cost.</h2>
+    </div>
+    <p class="what-intro reveal" style="transition-delay:.1s">GeoSite Advisor runs a seven-stage pipeline. No rule of thumb, no lookup table. Each stage is traceable to a published source.</p>
+  </div>
+  <div class="what-bento-wrap">
+    <div class="card-grid bento-section" id="what-bento">
+      <!-- Card 1: col1 row1 — small -->
+      <div class="magic-bento-card magic-bento-card--border-glow particle-container reveal">
+        <span class="magic-bento-card__stage-bg">01</span>
+        <div class="magic-bento-card__header">
+          <div class="magic-bento-card__label">s1_site</div>
+          <div class="magic-bento-card__num">01</div>
+        </div>
+        <div class="magic-bento-card__content">
+          <h2 class="magic-bento-card__title" style="font-size:.95em">Subsurface Ground Truth</h2>
+          <p class="magic-bento-card__description">Soil thermal properties from USGS + SMU geothermal database. GBM model maps rock type to conductivity.</p>
+          <p class="magic-bento-card__formula">k (W/m·K) &nbsp;·&nbsp; &alpha; (m²/s) &nbsp;·&nbsp; T<sub>g</sub> (°C)</p>
         </div>
       </div>
-
-    </div><!-- /ln-devices -->
-
-    <!-- Stats bar -->
-    <div class="ln-stats">
-      <div class="ln-stat-item">
-        <div class="ln-stat-num">3,221</div>
-        <div class="ln-stat-desc">Counties with deep thermal data</div>
+      <!-- Card 2: col2 row1 — small -->
+      <div class="magic-bento-card magic-bento-card--border-glow particle-container reveal" style="transition-delay:.05s">
+        <span class="magic-bento-card__stage-bg">02</span>
+        <div class="magic-bento-card__header">
+          <div class="magic-bento-card__label">s2_building</div>
+          <div class="magic-bento-card__num">02</div>
+        </div>
+        <div class="magic-bento-card__content">
+          <h2 class="magic-bento-card__title" style="font-size:.95em">Building Conditions</h2>
+          <p class="magic-bento-card__description">16 DOE prototype building types mapped to 17 ASHRAE climate zones via ZIP lookup.</p>
+          <p class="magic-bento-card__formula">DOE prototypes &nbsp;·&nbsp; ASHRAE 90.1 &nbsp;·&nbsp; Envelope class</p>
+        </div>
       </div>
-      <div class="ln-stat-item">
-        <div class="ln-stat-num">100 m</div>
-        <div class="ln-stat-desc">Borehole midpoint depth</div>
+      <!-- Card 3: col3-4 row1-2 — LARGE: Energy Simulation -->
+      <div class="magic-bento-card magic-bento-card--border-glow particle-container reveal" style="transition-delay:.1s">
+        <span class="magic-bento-card__stage-bg" style="font-size:8em;right:-12px;bottom:-20px;opacity:.04">03</span>
+        <div class="magic-bento-card__header">
+          <div class="magic-bento-card__label">s2_simulation</div>
+          <div class="magic-bento-card__num">03</div>
+        </div>
+        <div class="magic-bento-card__content">
+          <h2 class="magic-bento-card__title" style="font-size:1.4em">Energy Simulation</h2>
+          <p class="magic-bento-card__description">8,760-hour ground load profile Q(h) from EnergyPlus with DOE prototype IDFs in Ideal Air Loads mode. Peak heating and cooling extracted per ASHRAE three-pulse conventions.</p>
+          <p class="magic-bento-card__formula">Q(h) = Q<sub>hvac</sub>(h) &nbsp;·&nbsp; EnergyPlus IDA &nbsp;·&nbsp; &Delta;T = Q/UA &nbsp;·&nbsp; 8,760 h/yr</p>
+        </div>
       </div>
-      <div class="ln-stat-item">
-        <div class="ln-stat-num">7</div>
-        <div class="ln-stat-desc">Automated pipeline stages</div>
+      <!-- Card 4: col1-2 row2-3 — LARGE: Borehole Sizing -->
+      <div class="magic-bento-card magic-bento-card--border-glow particle-container reveal" style="transition-delay:.15s">
+        <span class="magic-bento-card__stage-bg" style="font-size:8em;right:-12px;bottom:-20px;opacity:.04">04</span>
+        <div class="magic-bento-card__header">
+          <div class="magic-bento-card__label">s4_sizing</div>
+          <div class="magic-bento-card__num">04</div>
+        </div>
+        <div class="magic-bento-card__content">
+          <h2 class="magic-bento-card__title" style="font-size:1.4em">Borehole Sizing</h2>
+          <p class="magic-bento-card__description">Philippe et al. (2010) three-pulse method computes total borefield length L, borehole depth H, and count N<sub>B</sub>. Iterative T<sub>p</sub> correction for multi-borehole thermal interaction.</p>
+          <p class="magic-bento-card__formula">L = (q<sub>h</sub>·R<sub>b</sub> + q<sub>m</sub>·R<sub>s</sub> + q<sub>y</sub>·R<sub>y</sub>) / &Delta;T<sub>g</sub> &nbsp;·&nbsp; H = L/N<sub>B</sub></p>
+        </div>
       </div>
-      <div class="ln-stat-item">
-        <div class="ln-stat-num">379</div>
-        <div class="ln-stat-desc">Validated test assertions</div>
+      <!-- Card 5: col3 row3 — small: Hybrid Strategy -->
+      <div class="magic-bento-card magic-bento-card--border-glow particle-container reveal" style="transition-delay:.2s">
+        <span class="magic-bento-card__stage-bg">05</span>
+        <div class="magic-bento-card__header">
+          <div class="magic-bento-card__label">s6_strategy</div>
+          <div class="magic-bento-card__num">05</div>
+        </div>
+        <div class="magic-bento-card__content">
+          <h2 class="magic-bento-card__title" style="font-size:.95em">Hybrid Strategy</h2>
+          <p class="magic-bento-card__description">LDC cutoff trims peak loads to a supplemental peaker, reducing borefield cost 20&ndash;40%.</p>
+          <p class="magic-bento-card__formula">LDC cutoff &nbsp;·&nbsp; thermal balance &nbsp;·&nbsp; 20&ndash;40% capex saved</p>
+        </div>
       </div>
-    </div>
-
-  </section><!-- /ln-hero -->
-
-
-  <!-- ══════════════════ FEATURES ══════════════════ -->
-  <section class="ln-features" id="features">
-    <div class="ln-section-label">Why GeoSite Advisor</div>
-    <h2 class="ln-section-title">From ZIP code to full report — automatically.</h2>
-
-    <div class="ln-grid">
-      <div class="ln-card">
-        <div class="ln-card-icon">🌍</div>
-        <div class="ln-card-title">Real subsurface geology</div>
-        <div class="ln-card-desc">County-level thermal conductivity from SMU heat-flow measurements and SGMC rock classifications. Blackwell &amp; Richards (2004) IDW interpolation — not a generic lookup table.</div>
-      </div>
-      <div class="ln-card">
-        <div class="ln-card-icon">📐</div>
-        <div class="ln-card-title">ASHRAE-verified sizing</div>
-        <div class="ln-card-desc">Philippe et al. (2010) three-pulse method with iterative Tp correction. Every intermediate step verified against the reference Excel spreadsheet — not an approximation.</div>
-      </div>
-      <div class="ln-card">
-        <div class="ln-card-icon">💰</div>
-        <div class="ln-card-title">Regional cost in 3 scenarios</div>
-        <div class="ln-card-desc">Best, base, and worst-case drilling cost by Census division. Line-item breakdown covering mobilization, rock drilling, grouting, pipe, and trench — ready for contractor comparison.</div>
-      </div>
-      <div class="ln-card">
-        <div class="ln-card-icon">⚡</div>
-        <div class="ln-card-title">Hybrid peaker strategy</div>
-        <div class="ln-card-desc">Load-duration curve analysis identifies optimal GSHP baseload sizing plus supplemental peak capacity. Energy-based (M2) cutoff — ASHRAE 99.6% cap removes top ~35 extreme peak hours before cutoff.</div>
-      </div>
-      <div class="ln-card">
-        <div class="ln-card-icon">🏢</div>
-        <div class="ln-card-title">DOE prototype building loads</div>
-        <div class="ln-card-desc">8,760h EnergyPlus ground loads for 12 commercial building types across 16 ASHRAE climate zones — Deru et al. (2011) NREL prototypes with area and vintage scaling.</div>
-      </div>
-      <div class="ln-card">
-        <div class="ln-card-icon">📋</div>
-        <div class="ln-card-title">Structured feasibility score</div>
-        <div class="ln-card-desc">5-factor GSHP score (0–100) covering load dominance, thermal imbalance, coverage, geology quality, and footprint fit — with AI-powered design advisor Q&amp;A.</div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ══════════════════ METHOD STRIP ══════════════════ -->
-  <section class="ln-method">
-    <div class="ln-method-inner">
-      <div class="ln-section-label">Grounded in peer-reviewed science</div>
-      <h2 class="ln-method-title">Every number traceable to a source.</h2>
-      <p class="ln-method-sub">No black boxes. Every sizing coefficient, thermal property, and cost rate is derived from published literature or official datasets — fully auditable.</p>
-      <div class="ln-method-pills">
-        <span class="ln-method-pill">Philippe et al. (2010) ASHRAE</span>
-        <span class="ln-method-pill">Blackwell &amp; Richards (2004) SMU IDW</span>
-        <span class="ln-method-pill">Clauser &amp; Huenges (1995) SGMC</span>
-        <span class="ln-method-pill">Deru et al. (2011) NREL DOE</span>
-        <span class="ln-method-pill">ASHRAE 90.1 vintage multipliers</span>
-        <span class="ln-method-pill">SSURGO USDA shallow soil</span>
-        <span class="ln-method-pill">Census 2020 county FIPS</span>
+      <!-- Card 6: col4 row3 — small: Cost -->
+      <div class="magic-bento-card magic-bento-card--border-glow particle-container reveal" style="transition-delay:.25s">
+        <span class="magic-bento-card__stage-bg">06</span>
+        <div class="magic-bento-card__header">
+          <div class="magic-bento-card__label">s5_cost</div>
+          <div class="magic-bento-card__num">06</div>
+        </div>
+        <div class="magic-bento-card__content">
+          <h2 class="magic-bento-card__title" style="font-size:.95em">Capital Cost</h2>
+          <p class="magic-bento-card__description">Regional drilling rates times total borefield length. Three scenarios with full line-item breakdown.</p>
+          <p class="magic-bento-card__formula">$/ft &times; L<sub>total</sub> &nbsp;·&nbsp; best / base / worst</p>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-
-  <!-- ══════════════════ FOOTER ══════════════════ -->
-  <footer>
-    <div class="ln-footer">
-      <a href="/landing" class="ln-footer-brand">GeoSite<em>Advisor</em></a>
-      <div class="ln-footer-links">
-        <a href="/">Open Tool</a>
-        <a href="/references">References</a>
-        <a href="/dev">Dev Dashboard</a>
-      </div>
-      <div class="ln-footer-copy">CEE299 · Stanford · ASHRAE · Philippe et al. 2010</div>
+<!-- HOW IT WORKS — text lines -->
+<section class="how" id="how">
+  <div class="how-header inner">
+    <p class="eyebrow" style="margin-bottom:20px;color:var(--muted-l)">How it works</p>
+    <h2 class="reveal">A clear path from<br>building to capital cost.</h2>
+  </div>
+  <div class="how-lines inner">
+    <div class="how-line reveal">
+      <span class="how-line-num">01</span>
+      <h3 class="how-line-title">Enter building info</h3>
+      <p class="how-line-desc">ZIP code, building type, floor area, and envelope class. No spreadsheet, no contractor, no site visit required.</p>
     </div>
-  </footer>
+    <div class="how-line reveal" style="transition-delay:.08s">
+      <span class="how-line-num">02</span>
+      <h3 class="how-line-title">Automatic subsurface pull</h3>
+      <p class="how-line-desc">Soil conductivity and ground temperature from national databases. What costs $5,000 to measure, approximated in seconds.</p>
+    </div>
+    <div class="how-line reveal" style="transition-delay:.16s">
+      <span class="how-line-num">03</span>
+      <h3 class="how-line-title">Borefield sizing</h3>
+      <p class="how-line-desc">EnergyPlus simulates 8,760 hours. ASHRAE three-pulse method sizes the borefield from first principles, traceable to Fourier's law.</p>
+    </div>
+    <div class="how-line reveal" style="transition-delay:.24s">
+      <span class="how-line-num">04</span>
+      <h3 class="how-line-title">Capital cost report</h3>
+      <p class="how-line-desc">Best, base, and worst drilling scenarios benchmarked against conventional HVAC. Hybrid peaker savings quantified as a capital allocation decision.</p>
+    </div>
+  </div>
+</section>
 
+<!-- QUOTE -->
+<section class="quote">
+  <div class="quote-inner">
+    <blockquote class="reveal">"This is a TEA &mdash;<br><em>not just an engineering calc.</em>"</blockquote>
+    <cite class="reveal" style="transition-delay:.15s">Professor Peter Rumsey &middot; Stanford CEE &middot; Advisor</cite>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="tool">
+  <div class="cta-inner">
+    <h2 class="reveal">Ready to model<br><em>your building?</em></h2>
+    <a class="btn-cta" href="/tool">
+      Start your assessment
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <a class="footer-logo" href="/landing">GeoSite<span class="footer-logo-dot"></span></a>
+  <ul class="footer-links">
+    <li><a href="#what">What we model</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="/references">References</a></li>
+    <li><a href="/tool">Tool</a></li>
+  </ul>
+  <span class="footer-copy">Stanford CEE 299 &middot; 2026</span>
+</footer>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+/* ── Custom cursor ── */
+const dot  = document.getElementById('cdot');
+const ring = document.getElementById('cring');
+let mx=0,my=0,rx=0,ry=0;
+const lightSections = new Set(['how','footer']);
+document.addEventListener('mousemove', e => {
+  mx=e.clientX; my=e.clientY;
+  // Detect light vs dark background for cursor color
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  let isLight = false;
+  if (el) {
+    const sec = el.closest('section,footer,nav');
+    isLight = sec && (sec.classList.contains('how') || sec.tagName === 'FOOTER');
+  }
+  dot.classList.toggle('dark', isLight);
+  ring.classList.toggle('dark', isLight);
+});
+(function tick(){
+  dot.style.left=mx+'px'; dot.style.top=my+'px';
+  rx+=(mx-rx)*.14; ry+=(my-ry)*.14;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(tick);
+})();
+
+/* ── Button border glow ── */
+document.querySelectorAll('.btn-primary,.btn-outline,.btn-cta').forEach(btn => {
+  btn.addEventListener('mousemove', e => {
+    const r = btn.getBoundingClientRect();
+    btn.style.setProperty('--btn-glow-x', ((e.clientX-r.left)/r.width*100)+'%');
+    btn.style.setProperty('--btn-glow-y', ((e.clientY-r.top)/r.height*100)+'%');
+    btn.style.setProperty('--btn-glow-a', '0.9');
+  });
+  btn.addEventListener('mouseleave', () => btn.style.setProperty('--btn-glow-a', '0'));
+});
+
+/* ── Nav scroll border ── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40), { passive:true });
+
+/* ── Reveal on scroll ── */
+function checkReveals() {
+  const vpH = window.innerHeight;
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el => {
+    if (el.getBoundingClientRect().top < vpH - 20) el.classList.add('visible');
+  });
+}
+window.addEventListener('scroll', checkReveals, { passive: true });
+checkReveals();
+
+/* ── Counter animation ── */
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target, 10);
+  const duration = 1800;
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.floor(ease * target).toLocaleString();
+    if (t < 1) requestAnimationFrame(step);
+    else el.textContent = target.toLocaleString();
+  }
+  requestAnimationFrame(step);
+}
+const counterIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.counter').forEach(animateCounter);
+      counterIO.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelector('#stats') && counterIO.observe(document.querySelector('#stats'));
+
+/* ── Magic Bento ── */
+(function initMagicBento() {
+  if (typeof gsap === 'undefined') return;
+
+  const GLOW_COLOR_WHAT = '193, 49, 77';   // red
+  const GLOW_COLOR_HOW  = '46, 78, 254';    // blue
+  const PARTICLE_COUNT  = 10;
+  const SPOTLIGHT_RADIUS = 500;
+
+  /* Global spotlight element */
+  const spotlight = document.createElement('div');
+  spotlight.className = 'global-spotlight';
+  document.body.appendChild(spotlight);
+
+  function getGlowColor(card) {
+    const section = card.closest('.bento-section');
+    return section && section.id === 'how-bento' ? GLOW_COLOR_HOW : GLOW_COLOR_WHAT;
+  }
+
+  function updateSpotlight(hex) {
+    spotlight.style.background = `radial-gradient(circle, rgba(${hex},.15) 0%, rgba(${hex},.07) 15%, rgba(${hex},.03) 30%, transparent 65%)`;
+  }
+
+  let lastSectionGlow = GLOW_COLOR_WHAT;
+
+  document.addEventListener('mousemove', e => {
+    const allSections = document.querySelectorAll('.bento-section');
+    let insideAny = false;
+
+    allSections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        insideAny = true;
+        const glowColor = section.id === 'how-bento' ? GLOW_COLOR_HOW : GLOW_COLOR_WHAT;
+        if (glowColor !== lastSectionGlow) { lastSectionGlow = glowColor; updateSpotlight(glowColor); }
+      }
+    });
+
+    if (!insideAny) {
+      gsap.to(spotlight, { opacity: 0, duration: .4, ease: 'power2.out' });
+      return;
+    }
+
+    gsap.set(spotlight, { left: e.clientX, top: e.clientY });
+
+    /* Card glow properties */
+    const cards = document.querySelectorAll('.magic-bento-card--border-glow');
+    let minDist = Infinity;
+    cards.forEach(card => {
+      const r = card.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const d = Math.max(0, Math.hypot(e.clientX - cx, e.clientY - cy) - Math.max(r.width, r.height) / 2);
+      minDist = Math.min(minDist, d);
+      const prox = SPOTLIGHT_RADIUS * 0.5, fade = SPOTLIGHT_RADIUS * 0.75;
+      const intensity = d <= prox ? 1 : d <= fade ? (fade - d) / (fade - prox) : 0;
+      const relX = ((e.clientX - r.left) / r.width) * 100;
+      const relY = ((e.clientY - r.top) / r.height) * 100;
+      card.style.setProperty('--glow-x', relX + '%');
+      card.style.setProperty('--glow-y', relY + '%');
+      card.style.setProperty('--glow-intensity', intensity.toString());
+      card.style.setProperty('--glow-radius', SPOTLIGHT_RADIUS + 'px');
+    });
+
+    const prox = SPOTLIGHT_RADIUS * 0.5, fade = SPOTLIGHT_RADIUS * 0.75;
+    const targetOpacity = minDist <= prox ? 0.85 : minDist <= fade ? ((fade - minDist) / (fade - prox)) * 0.85 : 0;
+    gsap.to(spotlight, { opacity: targetOpacity, duration: targetOpacity > 0 ? .2 : .5, ease: 'power2.out' });
+  });
+
+  /* Per-card: particles + tilt + magnetism */
+  document.querySelectorAll('.particle-container').forEach(card => {
+    let hovering = false;
+    const particles = [];
+    const timeouts = [];
+    const glowColor = getGlowColor(card);
+
+    function spawnParticle() {
+      if (!hovering) return;
+      const { width, height } = card.getBoundingClientRect();
+      const p = document.createElement('div');
+      p.style.cssText = `position:absolute;width:4px;height:4px;border-radius:50%;
+        background:rgba(${glowColor},1);box-shadow:0 0 6px rgba(${glowColor},.6);
+        pointer-events:none;z-index:100;
+        left:${Math.random()*width}px;top:${Math.random()*height}px;`;
+      card.appendChild(p);
+      particles.push(p);
+      gsap.fromTo(p, { scale:0, opacity:0 }, { scale:1, opacity:1, duration:.3, ease:'back.out(1.7)' });
+      gsap.to(p, { x:(Math.random()-.5)*80, y:(Math.random()-.5)*80, rotation:Math.random()*360, duration:2+Math.random()*2, ease:'none', repeat:-1, yoyo:true });
+      gsap.to(p, { opacity:.25, duration:1.5, ease:'power2.inOut', repeat:-1, yoyo:true });
+    }
+
+    function clearParticles() {
+      timeouts.forEach(clearTimeout); timeouts.length = 0;
+      particles.splice(0).forEach(p => {
+        gsap.to(p, { scale:0, opacity:0, duration:.25, ease:'back.in(1.7)', onComplete:() => p.remove() });
+      });
+    }
+
+    card.addEventListener('mouseenter', () => {
+      hovering = true;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        timeouts.push(setTimeout(spawnParticle, i * 80));
+      }
+      gsap.to(card, { rotateX:4, rotateY:4, duration:.3, ease:'power2.out', transformPerspective:1000 });
+    });
+
+    card.addEventListener('mouseleave', () => {
+      hovering = false;
+      clearParticles();
+      gsap.to(card, { rotateX:0, rotateY:0, x:0, y:0, duration:.35, ease:'power2.out' });
+      card.style.setProperty('--glow-intensity', '0');
+    });
+
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      const cx = r.width / 2, cy = r.height / 2;
+      gsap.to(card, {
+        rotateX: ((y - cy) / cy) * -8,
+        rotateY: ((x - cx) / cx) * 8,
+        x: (x - cx) * 0.04,
+        y: (y - cy) * 0.04,
+        duration:.1, ease:'power2.out', transformPerspective:1000
+      });
+    });
+
+    /* Click ripple */
+    card.addEventListener('click', e => {
+      const r = card.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      const md = Math.max(Math.hypot(x,y), Math.hypot(x-r.width,y), Math.hypot(x,y-r.height), Math.hypot(x-r.width,y-r.height));
+      const ripple = document.createElement('div');
+      ripple.style.cssText = `position:absolute;width:${md*2}px;height:${md*2}px;border-radius:50%;
+        background:radial-gradient(circle,rgba(${glowColor},.35) 0%,transparent 65%);
+        left:${x-md}px;top:${y-md}px;pointer-events:none;z-index:999;`;
+      card.appendChild(ripple);
+      gsap.fromTo(ripple, { scale:0, opacity:1 }, { scale:1, opacity:0, duration:.7, ease:'power2.out', onComplete:() => ripple.remove() });
+    });
+  });
+
+  updateSpotlight(lastSectionGlow);
+})();
+
+/* ── CircularText component ── */
+(function() {
+  const text = "By*Almanzo*Gao*Stanford*";
+  const letters = Array.from(text);
+  const container = document.getElementById('circWidget');
+  if (!container) return;
+  const N = letters.length;
+  letters.forEach((letter, i) => {
+    const span = document.createElement('span');
+    span.textContent = letter;
+    const deg = (360 / N) * i;
+    const factor = Math.PI / N;
+    const x = factor * i;
+    const y = factor * i;
+    const t = `rotateZ(${deg}deg) translate3d(${x}px,${y}px,0)`;
+    span.style.cssText = `transform:${t};-webkit-transform:${t}`;
+    container.appendChild(span);
+  });
+})();
+
+/* ── TrueFocus component ── */
+(function() {
+  const words = ['Geothermal', 'feasibility'];
+  const blurAmount = 7;
+  const animSec = 0.8;
+  const pauseSec = 3.2;
+  const border = '#2e4efe';
+
+  const container = document.getElementById('trueFocusContainer');
+  const frame = document.getElementById('focusFrame');
+  if (!container || !frame) return;
+
+  const wordEls = words.map((word, i) => {
+    const span = document.createElement('span');
+    span.className = 'focus-word';
+    span.textContent = word;
+    span.style.filter = i === 0 ? 'blur(0px)' : `blur(${blurAmount}px)`;
+    span.style.transition = `filter ${animSec}s ease`;
+    container.insertBefore(span, frame);
+    return span;
+  });
+
+  // Set corner color from CSS var (already set via .corner selector)
+  let current = 0;
+
+  function moveFocus(idx) {
+    wordEls.forEach((el, i) => {
+      el.style.filter = i === idx ? 'blur(0px)' : `blur(${blurAmount}px)`;
+    });
+    requestAnimationFrame(() => {
+      const pr = container.getBoundingClientRect();
+      const ar = wordEls[idx].getBoundingClientRect();
+      frame.style.left   = (ar.left - pr.left) + 'px';
+      frame.style.top    = (ar.top  - pr.top)  + 'px';
+      frame.style.width  = ar.width  + 'px';
+      frame.style.height = ar.height + 'px';
+      frame.style.transition = `left ${animSec}s ease,top ${animSec}s ease,width ${animSec}s ease,height ${animSec}s ease`;
+      frame.style.opacity = '1';
+    });
+  }
+
+  wordEls.forEach((el, i) => {
+    el.addEventListener('mouseenter', () => { current = i; moveFocus(i); });
+  });
+
+  moveFocus(0);
+  setInterval(() => { current = (current + 1) % words.length; moveFocus(current); },
+    (animSec + pauseSec) * 1000);
+})();
+</script>
+
+<!-- Ferrofluid via OGL (ESM) -->
+<script type="module">
+const CONTAINER = document.getElementById('ferrofluid-container');
+if (!CONTAINER) throw new Error('no container');
+
+let OGL;
+try {
+  OGL = await import('https://esm.sh/ogl@1.0.2');
+} catch(e) {
+  // Fallback: soft aurora blobs (CSS-only, already handles gracefully)
+  console.info('OGL unavailable, skipping ferrofluid shader');
+  initAuroraFallback();
+  throw e; /* stop module execution */
+}
+
+const { Renderer, Program, Mesh, Triangle } = OGL;
+
+const MAX_COLORS = 8;
+const hexToRGB = hex => {
+  const c = hex.replace('#','').padEnd(6,'0');
+  return [parseInt(c.slice(0,2),16)/255, parseInt(c.slice(2,4),16)/255, parseInt(c.slice(4,6),16)/255];
+};
+const prepColors = inp => {
+  const base = (inp&&inp.length?inp:['#4F46E5']).slice(0,MAX_COLORS);
+  const arr=[]; for(let i=0;i<MAX_COLORS;i++) arr.push(hexToRGB(base[Math.min(i,base.length-1)]));
+  const avg=[0,0,0]; for(let i=0;i<base.length;i++){avg[0]+=arr[i][0];avg[1]+=arr[i][1];avg[2]+=arr[i][2];}
+  avg[0]/=base.length; avg[1]/=base.length; avg[2]/=base.length;
+  return {arr, count:base.length, avg};
+};
+
+const vertex=`attribute vec2 position;attribute vec2 uv;varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,0.,1.);}`;
+const fragment=`precision highp float;
+uniform vec3 iResolution;uniform vec2 iMouse;uniform float iTime;
+uniform vec3 uColor0,uColor1,uColor2,uColor3,uColor4,uColor5,uColor6,uColor7;
+uniform int uColorCount;
+uniform vec2 uFlow;uniform float uSpeed,uScale,uTurbulence,uFluidity,uRimWidth,uSharpness,uShimmer,uGlow,uOpacity;
+varying vec2 vUv;
+#define PI 3.14159265
+vec3 palette(float h){
+  int n=uColorCount<1?1:uColorCount;
+  int i=int(floor(clamp(h,0.,0.999999)*float(n)));
+  if(i<=0)return uColor0;if(i==1)return uColor1;if(i==2)return uColor2;if(i==3)return uColor3;
+  if(i==4)return uColor4;if(i==5)return uColor5;if(i==6)return uColor6;return uColor7;
+}
+float hash(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+33.33);return fract((p3.x+p3.y)*p3.z);}
+float smin(float a,float b,float k){float r=exp2(-a/k)+exp2(-b/k);return -k*log2(r);}
+float sinlerp(float a,float b,float w){return mix(a,b,(sin(w*PI-PI/2.)+1.)/2.);}
+float vn(vec2 p,float s,float seed){
+  vec2 c=floor(p/s),r=mod(p,s);
+  float g1=hash(vec3(c,seed)),g2=hash(vec3(c.x+1.,c.y,seed)),g3=hash(vec3(c.x+1.,c.y+1.,seed)),g4=hash(vec3(c.x,c.y+1.,seed));
+  return sinlerp(sinlerp(g1,g2,r.x/s),sinlerp(g4,g3,r.x/s),r.y/s);
+}
+float dbn(vec2 p,float s,float seed){
+  float o=s/2.;
+  return(2.*vn(p,s,seed)+1.5*vn(p+vec2(o,o),s,seed+.1)+1.25*vn(p+vec2(-o,o),s,seed+.2)+1.125*vn(p+vec2(o,-o),s,seed+.3)+vn(p+vec2(-o,-o),s,seed+.4))/7.;
+}
+void main(){
+  float ref=700./max(uScale,.05);
+  vec2 p=vUv*iResolution.xy/iResolution.y*ref;
+  float spd=200.*uSpeed,t=iTime;
+  vec2 dir=uFlow,perp=vec2(-dir.y,dir.x);
+  float d1=vn(p+perp*(t*spd),60.,10.)*50.*uTurbulence;
+  float d2=vn(p-perp*(t*spd),120.,15.)*100.*uTurbulence;
+  float pk1=dbn(p+d1+dir*(t*spd*.5),40.,1.);
+  float pk2=dbn(p+d2-dir*(t*spd*.5),40.,0.);
+  float mp=smin(pk1,pk2,max(uFluidity,.001));
+  float band=(uRimWidth-abs((mp-.4)*2.))*5.;
+  float ltn=clamp(band-vn(p+dir*(t*spd*.5),60.,12.)*uShimmer,0.,1.);
+  ltn=pow(ltn,uSharpness)*uGlow;
+  float h=clamp(.5+(pk1-pk2)*.8,0.,1.);
+  vec3 col=palette(h)*ltn;
+  float a=clamp(max(col.r,max(col.g,col.b)),0.,1.);
+  gl_FragColor=vec4(col,a*uOpacity);
+}`;
+
+const colors = ['#ffffff','#cccccc','#888888','#444444'];
+const { arr, count, avg } = prepColors(colors);
+
+const renderer = new Renderer({ dpr: Math.min(window.devicePixelRatio||1,2), alpha:true, antialias:true });
+const gl = renderer.gl;
+gl.clearColor(0,0,0,0);
+gl.canvas.style.cssText = 'width:100%;height:100%;display:block;';
+CONTAINER.appendChild(gl.canvas);
+
+const uniforms = {
+  iResolution:{ value:[gl.drawingBufferWidth,gl.drawingBufferHeight,1] },
+  iMouse:     { value:[0,0] },
+  iTime:      { value:0 },
+  uColor0:    { value:arr[0] }, uColor1:{ value:arr[1] }, uColor2:{ value:arr[2] },
+  uColor3:    { value:arr[3] }, uColor4:{ value:arr[4] }, uColor5:{ value:arr[5] },
+  uColor6:    { value:arr[6] }, uColor7:{ value:arr[7] },
+  uColorCount:{ value:count },
+  uFlow:      { value:[0,-1] },
+  uSpeed:     { value:0.35 },
+  uScale:     { value:1.6 },
+  uTurbulence:{ value:1.1 },
+  uFluidity:  { value:0.11 },
+  uRimWidth:  { value:0.22 },
+  uSharpness: { value:2.2 },
+  uShimmer:   { value:1.4 },
+  uGlow:      { value:2.8 },
+  uOpacity:   { value:0.75 },
+};
+
+const program  = new Program(gl, { vertex, fragment, uniforms });
+const geometry = new Triangle(gl);
+const mesh     = new Mesh(gl, { geometry, program });
+
+const resize = () => {
+  const r = CONTAINER.getBoundingClientRect();
+  renderer.setSize(r.width, r.height);
+  uniforms.iResolution.value = [gl.drawingBufferWidth, gl.drawingBufferHeight, 1];
+};
+resize();
+new ResizeObserver(resize).observe(CONTAINER);
+
+const hero = document.querySelector('.hero');
+const mouseTarget = [0,0];
+const mousePos    = [0,0];
+if (hero) hero.addEventListener('pointermove', e => {
+  const r = gl.canvas.getBoundingClientRect();
+  const sc = renderer.dpr||1;
+  mouseTarget[0] = (e.clientX - r.left) * sc;
+  mouseTarget[1] = (r.height - (e.clientY - r.top)) * sc;
+});
+
+let lastT = 0;
+(function loop(t) {
+  requestAnimationFrame(loop);
+  uniforms.iTime.value = t * 0.001;
+  const dt = Math.min((t - lastT) / 1000, 0.05); lastT = t;
+  const tau = 0.12;
+  const f = 1 - Math.exp(-dt / tau);
+  mousePos[0] += (mouseTarget[0] - mousePos[0]) * f;
+  mousePos[1] += (mouseTarget[1] - mousePos[1]) * f;
+  uniforms.iMouse.value = mousePos;
+  renderer.render({ scene: mesh });
+})(0);
+
+function initAuroraFallback() {
+  /* Pure CSS aurora blobs as graceful fallback */
+  const style = document.createElement('style');
+  style.textContent = `
+    #ferrofluid-container {
+      background: transparent;
+    }
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+    }
+    .aurora-blob:nth-child(1){width:55vw;height:55vw;top:-10%;left:-8%;background:#c1314d;animation:au1 20s ease-in-out infinite;}
+    .aurora-blob:nth-child(2){width:45vw;height:45vw;top:25%;right:-8%;background:#2e4efe;animation:au2 26s ease-in-out infinite;}
+    .aurora-blob:nth-child(3){width:38vw;height:38vw;bottom:-8%;left:28%;background:#c1314d;animation:au3 18s ease-in-out infinite;}
+    .aurora-blob:nth-child(4){width:28vw;height:28vw;top:40%;left:40%;background:#2e4efe;opacity:.18;animation:au4 22s ease-in-out infinite;}
+    @keyframes au1{0%,100%{transform:translate(0,0)}30%{transform:translate(8vw,12vh)}65%{transform:translate(-4vw,7vh)}}
+    @keyframes au2{0%,100%{transform:translate(0,0)}40%{transform:translate(-7vw,-10vh)}72%{transform:translate(4vw,6vh)}}
+    @keyframes au3{0%,100%{transform:translate(0,0)}25%{transform:translate(-12vw,-8vh)}58%{transform:translate(6vw,4vh)}}
+    @keyframes au4{0%,100%{transform:translate(0,0)}35%{transform:translate(10vw,-6vh)}70%{transform:translate(-5vw,9vh)}}
+  `;
+  document.head.appendChild(style);
+  for (let i = 0; i < 4; i++) {
+    const b = document.createElement('div');
+    b.className = 'aurora-blob';
+    CONTAINER.appendChild(b);
+  }
+}
+</script>
 </body>
 </html>

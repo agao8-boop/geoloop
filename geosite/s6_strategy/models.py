@@ -50,16 +50,7 @@ class StrategyResult:
     ignore_top_pct: float     # % of hours capped (0.4 → ASHRAE 99.6%)
     H_min: float              # minimum borehole depth constraint [m]
 
-    # Method 1 — hours-based
-    m1_cutoff_W: float
-    m1_cutoff_h: int
-    m1_gshp_hours_pct: float
-    m1_gshp_energy_pct: float
-    m1_peaker_kW: float
-    m1_L_after: float
-    m1_H_after: float
-
-    # Method 2 — energy-based
+    # Method 2 — energy-based (only method)
     m2_cutoff_W: float
     m2_cutoff_h: int
     m2_gshp_hours_pct: float
@@ -72,8 +63,7 @@ class StrategyResult:
     nb_min: int | None = None
     nb_max: int | None = None
 
-    # Peaker annual energy [Wh] per cutoff method (professor's LDC-kWh metric)
-    m1_peaker_energy_Wh: float = 0.0
+    # Peaker annual energy [Wh] (professor's LDC-kWh metric)
     m2_peaker_energy_Wh: float = 0.0
 
     def to_dict(self) -> dict:
@@ -111,18 +101,6 @@ class StrategyResult:
             "nb_max": self.nb_max,
             "wells_saved_pct": round(100.0 * (1 - self.m2_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,
             "comparison": {
-                "m1": {
-                    "method": "hours",
-                    "cutoff_W": round(self.m1_cutoff_W, 1),
-                    "cutoff_h": self.m1_cutoff_h,
-                    "gshp_hours_pct": self.m1_gshp_hours_pct,
-                    "gshp_energy_pct": self.m1_gshp_energy_pct,
-                    "peaker_kW": round(self.m1_peaker_kW, 1),
-                    "peaker_energy_kwh": round(self.m1_peaker_energy_Wh / 1000.0, 1),
-                    "L_after": round(self.m1_L_after),
-                    "H_after": round(self.m1_H_after),
-                    "savings_pct": round(100.0 * (1 - self.m1_L_after / self.L_before), 1) if self.L_before > 0 else 0.0,
-                },
                 "m2": {
                     "method": "energy",
                     "cutoff_W": round(self.m2_cutoff_W, 1),

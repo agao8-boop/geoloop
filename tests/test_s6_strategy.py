@@ -136,21 +136,13 @@ def test_strategy_result_has_comparison_key():
     result = run_strategy(**_CHICAGO_PARAMS)
     d = result.to_dict()
     assert "comparison" in d
-    assert "m1" in d["comparison"]
     assert "m2" in d["comparison"]
 
 
-def test_m1_and_m2_both_reduce_borefield():
+def test_m2_reduces_borefield():
     result = run_strategy(**_CHICAGO_PARAMS)
     d = result.to_dict()
-    assert d["comparison"]["m1"]["L_after"] < result.L_before
     assert d["comparison"]["m2"]["L_after"] < result.L_before
-
-
-def test_m2_cutoff_w_less_than_m1_cutoff_w():
-    # Energy method cuts off at a higher load threshold (fewer peaker hours)
-    result = run_strategy(**_CHICAGO_PARAMS)
-    assert result.m2_cutoff_W > result.m1_cutoff_W
 
 
 def test_strategy_no_nb_computes_from_h_min():

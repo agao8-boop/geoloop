@@ -332,6 +332,10 @@ def build_report(data: dict) -> dict:
 
     peak_kw = _peak_kw(loads) if loads.get("q_h") is not None else 0.0
     floor_area_m2 = loads.get("floor_area_m2") or design.get("floor_area_m2")
+    if not floor_area_m2:
+        # Fall back to effective floor area from footprint meta (uses prototype if user omitted it)
+        fp = design.get("footprint") or {}
+        floor_area_m2 = fp.get("floor_area_m2")
     conv_usd_per_sqft = float(data.get("conv_usd_per_sqft") or CONV_USD_PER_SQFT_DEFAULT)
 
     design_section = _design_section(design, site)

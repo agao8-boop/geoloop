@@ -57,9 +57,21 @@ def _peak_correction(q_y: float, k: float, L: float,
     """
     b = B_TP
     H = L / NB                               # Excel: E$35/E$39 — borehole depth
+    if H <= 0:
+        return 0.0
     x = B / H                                # Excel: E44 = E$38/(E$35/E$39)
     ts = H ** 2 / (9.0 * alpha)             # steady-state time [days]
-    y = math.log(365.25 * 10.0 / ts)        # Excel: E45 = LN(365.25*10/ts)
+    t10y = 365.25 * 10.0                     # 10 years in days
+
+    # Validity guard: x = B/H > 1 means H < B (borehole shallower than spacing —
+    # physically unphysical) and the polynomial diverges.  Tp → 0 is the
+    # conservative fallback.  ts >= t10y (y < 0) is NOT guarded: the spreadsheet
+    # evaluates the polynomial for negative y during early iterations and converges
+    # to the correct answer once H grows to its final value.
+    if x > 1.0:
+        return 0.0
+
+    y = math.log(t10y / ts)                  # Excel: E45 = LN(365.25*10/ts)
 
     poly = (b[0]
             + b[1] * x   + b[2] * x**2  + b[3] * x**3
@@ -222,6 +234,7 @@ def size_borefield(
     # ── Step 5: basic L₀ without borefield interaction ───────────────────
     # Excel: D35 = numer / (Tm − Tg)
     L = numer / (T_m - T_g)
+    L0 = L  # saved in case Tp iteration diverges
 
     # ── Step 6: iterate Tp correction to convergence ─────────────────────
     # Excel used 5 fixed passes (E46→E47 … E66→E67); tol=1.0 m converges
@@ -233,7 +246,10 @@ def size_borefield(
             if abs(denom) < 1e-9:   # denominator collapsed — keep last L
                 break
             L_new = numer / denom
-            if not math.isfinite(L_new):
+            if not math.isfinite(L_new) or L_new <= 0:
+                # Tp correction diverged (polynomial out of calibrated range).
+                # Fall back to L₀ — conservative (no inter-borehole correction).
+                L = L0
                 break
             if abs(L_new - L) < tol:
                 L = L_new

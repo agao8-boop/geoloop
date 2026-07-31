@@ -10,17 +10,12 @@ def _flat_profile(n=8760, val=0.0):
     return [val] * n
 
 
-def test_ldc_cutoff_idx_10pct():
-    profile = list(range(1, 8761))  # 1 to 8760 W
-    result = compute_ldc(profile, 10.0, ignore_top_pct=0.0)
-    assert result["cutoff_idx"] == 876
-
-
-def test_ldc_cutoff_value_10pct():
-    # Values 1..8760, sorted desc: 8760, 8759, ..., 7885 at index 876
+def test_ldc_cutoff_aliases_point_to_m2():
+    # backward-compat aliases cutoff_idx and cutoff_W must equal m2_* values
     profile = list(range(1, 8761))
     result = compute_ldc(profile, 10.0, ignore_top_pct=0.0)
-    assert result["cutoff_W"] == pytest.approx(7884.0, abs=1.0)
+    assert result["cutoff_idx"] == result["m2_cutoff_idx"]
+    assert result["cutoff_W"] == pytest.approx(result["m2_cutoff_W"], abs=1.0)
 
 
 def test_ldc_sorted_abs_descending():
@@ -71,13 +66,16 @@ def test_extract_cooling_pulses_dominant_positive():
     assert q_h == pytest.approx(20000.0)
 
 
-def test_extract_one_sided_zeroes_opposite():
-    # Heating only: cooling hours contribute 0 to annual average
-    profile = [-10000.0] * 4380 + [15000.0] * 4380  # half heat, half cool
+def test_extract_one_sided_q_y_is_net_annual_mean():
+    # q_y must be the NET annual mean of the full profile (Philippe 2010), not one-sided.
+    # profile = [-10000] * 4380 + [15000] * 4380
+    # net mean = (-10000*4380 + 15000*4380) / 8760 = 5000*4380/8760 = +2500 W (cooling dominant)
+    profile = [-10000.0] * 4380 + [15000.0] * 4380
     q_h, q_m, q_y = extract_one_sided_pulses(profile, "heating")
-    # q_y = mean of heating-only profile (cooling hours zeroed)
-    # heating contribution: -10000 * 4380 / 8760 = -5000
-    assert q_y == pytest.approx(-5000.0, rel=0.01)
+    assert q_y == pytest.approx(2500.0, rel=0.01)
+    # Same q_y regardless of which mode is used (it's always the net full-profile mean)
+    _, _, q_y_cool = extract_one_sided_pulses(profile, "cooling")
+    assert q_y_cool == pytest.approx(2500.0, rel=0.01)
 
 
 
@@ -92,16 +90,6 @@ def test_ashrae_cap_applied():
     assert all(v == pytest.approx(8725.0, abs=1.0) for v in result["sorted_abs_capped"][:35])
 
 
-def test_m1_cutoff_beyond_cap_idx_unchanged():
-    # For profile 1..8760, m1 cutoff idx=876 is well beyond cap_idx=35
-    # so m1_cutoff_W should equal sorted_abs[876] = 7884 (uncapped region)
-    profile = list(range(1, 8761))
-    result = compute_ldc(profile, 10.0, ignore_top_pct=0.4)
-    assert result["m1_cutoff_idx"] == 876
-    assert result["m1_cutoff_W"] == pytest.approx(7884.0, abs=1.0)
-    assert result["cutoff_W"] == pytest.approx(7884.0, abs=1.0)  # backward compat
-
-
 def test_m2_energy_cutoff_peaker_area():
     # Verify method 2 gives approximately 10% of energy in peaker zone
     profile = list(range(1, 8761))
@@ -109,24 +97,6 @@ def test_m2_energy_cutoff_peaker_area():
     total_Wh = sum(abs(h) for h in profile)
     peaker_Wh = result["m2_peaker_energy_Wh"]
     assert abs(peaker_Wh / total_Wh - 0.10) < 0.001  # within 0.1% of target
-
-
-def test_m2_cutoff_hours_less_than_m1():
-    # Energy-based method should have fewer peaker hours than hours-based
-    # when energy is concentrated in a few high-load hours (typical convex
-    # building LDC). NOTE: a linear ramp profile does NOT satisfy this —
-    # for a triangular LDC the area above the cutoff grows quadratically,
-    # so 10% of energy spans far more than 10% of hours. Use a peaked
-    # profile instead: 50 hours at 10 kW, the rest at 100 W.
-    profile = [10000.0] * 50 + [100.0] * 8710
-    result = compute_ldc(profile, 10.0, ignore_top_pct=0.0)
-    assert result["m2_cutoff_idx"] < result["m1_cutoff_idx"]
-
-
-def test_m1_gshp_hours_pct_is_90():
-    profile = list(range(1, 8761))
-    result = compute_ldc(profile, 10.0, ignore_top_pct=0.0)
-    assert result["m1_gshp_hours_pct"] == pytest.approx(90.0, abs=0.1)
 
 
 def test_m2_gshp_energy_pct_is_90():

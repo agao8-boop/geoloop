@@ -85,3 +85,9 @@ data/reference/*.xlsx
 data/reference/*.xls
 data/reference/*.pdf
 docs/references/*.pdf
+
+# ── PERSONAL / LOCAL-ONLY FILES ──────────────────────────────
+interview_prep_intersect.md
+.codebase-memory/
+docs/methodology_revision_plan_jul28.md
+certs/

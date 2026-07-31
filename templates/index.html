@@ -3,108 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GeoSite Advisor — Geothermal Borefield Sizing</title>
+  <title>GeoSite Advisor — Borefield Sizing</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/tool.css">
 </head>
-<body>
-  <div class="layout">
+<body class="t-body">
 
-    <!-- ── Sidebar ── -->
-    <aside class="sidebar">
-      <div>
-        <div class="sidebar-title">GeoSite Advisor</div>
-        <div class="sidebar-sub">Geothermal borefield feasibility</div>
-      </div>
-      <nav>
-        <ul class="stage-list">
-          <li class="stage-item active-dim">s1 <span class="stage-name">Site</span></li>
-          <li class="stage-item active-dim">s2 <span class="stage-name">Simulation</span></li>
-          <li class="stage-item active-dim">s3 <span class="stage-name">Loads</span></li>
-          <li class="stage-item active"><a href="#">s4 <span class="stage-name">Sizing</span></a></li>
-          <li class="stage-item active-dim">s5 <span class="stage-name">Cost</span></li>
-          <li class="stage-item active-dim">s6 <span class="stage-name">Strategy</span></li>
-          <li class="stage-item active-dim">s7 <span class="stage-name">Report</span></li>
-        </ul>
+  <!-- ── Top nav ── -->
+  <header class="t-nav">
+    <div class="t-nav-inner">
+      <a href="/" class="t-brand">
+        <span class="t-brand-name">GeoSite</span><span class="t-brand-accent">Advisor</span>
+      </a>
+      <nav class="t-nav-links">
+        <a href="/references" class="t-nav-link">References</a>
+        <a href="/dev" class="t-nav-link t-nav-link-dev">Dev</a>
       </nav>
-      <div class="sidebar-footer">
-        <a href="/references" class="sidebar-link">References</a>
-      </div>
-    </aside>
+    </div>
+  </header>
 
-    <!-- ── Main ── -->
-    <main class="main">
-      <h1 class="page-title">Borefield Sizing</h1>
-      <p class="page-sub">Vertical closed-loop ground-source heat pump sizing — ASHRAE three-pulse method (Philippe et&nbsp;al. 2010)</p>
+  <!-- ── Page wrapper ── -->
+  <div class="t-page">
+    <main class="t-main">
 
-      <!-- ── MODE TOGGLE ── -->
-      <div class="mode-toggle">
-        <button class="mode-btn active" id="btn-smart" data-mode="smart">
-          Smart Mode <span class="mode-badge">s1–s4</span>
-        </button>
-        <button class="mode-btn" id="btn-manual" data-mode="manual">
-          Manual Mode <span class="mode-badge">s4 only</span>
-        </button>
+      <!-- Page heading -->
+      <div class="t-page-head">
+        <h1 class="t-title">Borefield Sizing</h1>
+        <p class="t-subtitle">Vertical closed-loop GSHP · ASHRAE three-pulse method (Philippe et al. 2010)</p>
       </div>
 
-      <!-- ════════════════════════════════════════════
-           SMART MODE  (s1 → s2 → s3 → s4)
-           ════════════════════════════════════════════ -->
+      <!-- ════════ SMART MODE ════════ -->
       <section id="panel-smart">
 
-        <!-- ── STEP 1: Site & Building Analysis ── -->
-        <div id="wizard-step1" class="wizard-step">
-          <div class="stage-header">
-            <span class="stage-pill">Step 1</span>
-            <span class="stage-label">Site &amp; Building Analysis</span>
+        <!-- ── STEP 1 ── -->
+        <div id="wizard-step1" class="t-step">
+          <div class="t-step-head">
+            <div class="t-step-num">1</div>
+            <div class="t-step-info">
+              <div class="t-step-title">Site &amp; Building Analysis</div>
+              <div class="t-step-desc">Location, building type, and envelope properties</div>
+            </div>
             <span class="step-status" id="step1-status"></span>
-            <span class="stage-note">Everything the load model needs — no borefield inputs yet</span>
           </div>
 
-        <!-- s1: Site -->
-        <div class="stage-header">
-          <span class="stage-pill">s1</span>
-          <span class="stage-label">Site &amp; Soil</span>
-          <span class="stage-note">Location is looked up automatically — no soil data entry required</span>
-        </div>
-        <div class="card">
-          <div class="field">
-            <label for="zip_code">ZIP Code</label>
-            <div class="input-row">
+          <!-- Location -->
+          <div class="t-group">
+            <div class="t-group-label">Location &amp; Soil</div>
+            <div class="t-group-note">ZIP code is used to look up climate zone, ground temperature, and soil properties automatically</div>
+            <div class="t-field">
+              <label for="zip_code">ZIP Code</label>
               <input type="text" id="zip_code" name="zip_code"
-                     placeholder="e.g. 60601" maxlength="5" pattern="\d{5}">
+                     placeholder="e.g. 60601" maxlength="5" autocomplete="postal-code">
+              <span class="t-field-error field-error" data-for="zip_code"></span>
             </div>
-            <span class="field-error" data-for="zip_code"></span>
-          </div>
-          <div class="field">
-            <label for="soil_confidence">Soil / Rock Data Confidence
-              <span class="hint-inline">— scales effective k; conservative default adds ~20% to borefield length</span>
-            </label>
-            <div class="input-row">
-              <select id="soil_confidence" name="soil_confidence" title="Low: uses rock-class lower bound (dry/loose soil) — conservative, longer borefield. Medium: county-level estimate. High: rock-class upper bound — optimistic, shorter borefield.">
-                <option value="low" selected>Conservative (default) — no site data, k reduced ~17% → longer borefield</option>
-                <option value="medium">Medium — accept county-level k estimate as-is</option>
-                <option value="high">High — site thermal investigation completed, trust the data (k +10%)</option>
+            <div class="t-field">
+              <label for="soil_confidence">Thermal Conductivity Source</label>
+              <select id="soil_confidence" name="soil_confidence">
+                <option value="low" selected>No site investigation — conservative k (longer, safer borefield)</option>
+                <option value="medium">County/regional data only — use lookup value as-is</option>
+                <option value="high">Site thermal response test completed — use measured value</option>
               </select>
+              <span class="t-field-hint">Without a thermal response test, conservative sizing adds ~20% extra length as a safety margin.</span>
             </div>
-            <span class="field-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block">
-              Without a site investigation, conservative sizing is recommended (≈ clay baseline, ~1.4 W/m·K equivalent).
-            </span>
           </div>
-        </div>
 
-        <!-- s2: Building -->
-        <div class="stage-header">
-          <span class="stage-pill">s2</span>
-          <span class="stage-label">Building</span>
-          <span class="stage-note">Matches DOE Commercial Prototype Building Models (ASHRAE 90.1-2019) · Ideal Loads simulation: space loads only — HVAC system loads (ventilation, economizer) not captured</span>
-        </div>
-        <div class="card">
-          <div class="field">
-            <label for="building_type">Building Type</label>
-            <div class="input-row">
+          <!-- Building -->
+          <div class="t-group">
+            <div class="t-group-label">Building</div>
+            <div class="t-group-note">Matches DOE Commercial Prototype Building Models (ASHRAE 90.1-2019)</div>
+            <div class="t-field">
+              <label for="building_type">Building Type</label>
               <select id="building_type" name="building_type">
                 <option value="">— select —</option>
                 <optgroup label="Offices">
@@ -136,301 +107,287 @@
                   <option value="restaurant_sitdown">Full-Service Restaurant</option>
                 </optgroup>
               </select>
+              <div id="dhw-warning" class="t-callout t-callout-warn hidden">
+                This calculation does not include domestic hot water. GSHP sizing covers space heating &amp; cooling only.
+              </div>
+              <span class="t-field-error field-error" data-for="building_type"></span>
             </div>
-            <div id="dhw-warning" class="callout callout-warn hidden">
-              This calculation does not include domestic hot water. GSHP sizing covers space heating &amp; cooling only — DHW is treated as a separate system.
+            <div class="t-field-row">
+              <div class="t-field">
+                <label for="floor_area_m2">Total Floor Area <span class="t-label-hint">optional</span></label>
+                <div class="t-input-unit">
+                  <input type="number" id="floor_area_m2" name="floor_area_m2" min="10" step="1" placeholder="DOE prototype default">
+                  <span class="t-unit">m²</span>
+                </div>
+                <span class="t-field-hint" id="proto-area-hint"></span>
+                <span class="t-field-error field-error" data-for="floor_area_m2"></span>
+              </div>
+              <div class="t-field">
+                <label for="num_floors">Number of Floors <span class="t-label-hint">optional</span></label>
+                <input type="number" id="num_floors" name="num_floors" min="1" max="50" step="1" placeholder="DOE prototype default">
+                <div class="t-field-hint" id="num-floors-hint"></div>
+                <span class="t-field-error field-error" data-for="num_floors"></span>
+              </div>
             </div>
-            <span class="field-error" data-for="building_type"></span>
+            <div class="t-field-row">
+              <div class="t-field">
+                <label for="footprint_shape">Footprint Shape</label>
+                <select id="footprint_shape" name="footprint_shape">
+                  <option value="square">Square (1:1)</option>
+                  <option value="rect_2_1">Rectangle (2:1)</option>
+                  <option value="l_shape">L-shape</option>
+                  <option value="u_shape">U-shape</option>
+                  <option value="elongated" selected>Elongated (9:1)</option>
+                </select>
+              </div>
+              <div class="t-field">
+                <label for="building_age">Building Age</label>
+                <select id="building_age" name="building_age">
+                  <option value="new">New / planned (&lt;5 yrs)</option>
+                  <option value="recent">Recent (5–15 yrs)</option>
+                  <option value="existing" selected>Existing (15–30 yrs)</option>
+                  <option value="old">Older (30+ yrs)</option>
+                </select>
+                <span class="t-field-hint" id="year-factor-hint"></span>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label for="floor_area_m2">Floor Area <span class="hint-inline">— Total conditioned floor area across all floors — footprint = area ÷ floors. Blank uses DOE prototype total.</span></label>
-            <div class="input-row">
-              <input type="number" id="floor_area_m2" name="floor_area_m2" min="10" step="1" placeholder="e.g. 2000">
-              <span class="unit">m²</span>
-            </div>
-            <span class="field-hint" id="proto-area-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
-            <span class="field-error" data-for="floor_area_m2"></span>
-          </div>
-          <div class="field">
-            <label for="load_scale">Prototype Load Correction <span class="hint-inline">— multiplier for building types with unusual energy use (e.g. grocery stores, hospitals with 24/7 process loads). Leave blank or 1.0 for standard DOE prototype.</span></label>
-            <div class="input-row">
-              <input type="number" id="load_scale" name="load_scale" min="0.1" max="10" step="0.1" placeholder="1.0 (default)">
-            </div>
-            <span class="field-hint" id="load-scale-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
-            <span class="field-error" data-for="load_scale"></span>
-          </div>
-          <div class="input-group field">
-            <label for="num_floors">Number of Floors
-              <span class="input-hint hint-inline">— leave blank to use DOE prototype floor count</span>
-            </label>
-            <div class="input-row">
-              <input type="number" id="num_floors" name="num_floors" min="1" max="50" step="1" placeholder="e.g. 3">
-            </div>
-            <div class="input-note field-hint" id="num-floors-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px"></div>
-            <span class="field-error" data-for="num_floors"></span>
-          </div>
-          <div class="input-group field">
-            <label for="footprint_shape">Building Footprint Shape
-              <span class="input-hint hint-inline">— affects layout perimeter and NB range</span>
-            </label>
-            <div class="input-row">
-              <select id="footprint_shape" name="footprint_shape">
-                <option value="square">Square (1:1)</option>
-                <option value="rect_2_1">Rectangle (2:1) — standard commercial</option>
-                <option value="l_shape">L-shape — wing + connector</option>
-                <option value="u_shape">U-shape — courtyard plan</option>
-                <option value="elongated" selected>Elongated (9:1) — hotel / linear wing</option>
-              </select>
-            </div>
-            <span class="field-error" data-for="footprint_shape"></span>
-          </div>
-          <div class="field">
-            <label for="borehole_config">Borehole Field Location
-              <span class="hint-inline">— where the boreholes will be drilled</span>
-            </label>
-            <div class="input-row">
-              <select id="borehole_config" name="borehole_config">
-                <option value="perimeter" selected>Around building perimeter</option>
-                <option value="parking_lot" disabled>Parking lot (coming soon)</option>
-                <option value="under_building" disabled>Under building — new construction (coming soon)</option>
-              </select>
-            </div>
-            <span class="field-error" data-for="borehole_config"></span>
-          </div>
-          <div class="field">
-            <label for="building_age">Building Age</label>
-            <div class="input-row">
-              <select id="building_age" name="building_age">
-                <option value="new">New / planned (&lt; 5 years)</option>
-                <option value="recent">Recent (5–15 years)</option>
-                <option value="existing" selected>Existing (15–30 years)</option>
-                <option value="old">Older (30+ years)</option>
-              </select>
-            </div>
-            <span class="field-hint" id="year-factor-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:block"></span>
-          </div>
-        </div>
 
-        <!-- s2b: Building Design (calibrated peak-load multipliers) -->
-        <div class="stage-header">
-          <span class="stage-pill">s2</span>
-          <span class="stage-label">Building Design</span>
-          <span class="stage-note">Peak-load multipliers applied to borefield sizing</span>
-        </div>
-        <div class="card">
-          <div class="field">
-            <label for="s_wwr">Window-Wall Ratio <span class="hint-inline">— share of wall area that is glass</span></label>
-            <div class="input-row">
+          <!-- Building Design -->
+          <div class="t-group">
+            <div class="t-group-label">Building Design <span class="t-label-optional">optional — leave blank to use prototype baseline</span></div>
+            <div class="t-group-note">Prototype defaults: WWR 30% · Standard infiltration · Double-pane low-E glazing (adjusted for building age)</div>
+            <div class="t-field">
+              <label for="s_wwr">Window-Wall Ratio</label>
               <select id="s_wwr" name="s_wwr">
-                <option value="low">Low (20–40%) &times;0.85</option>
-                <option value="medium" selected>Medium (40–60%, prototype baseline) &times;1.00</option>
-                <option value="high">High (60–80%) &times;1.20</option>
+                <option value="unknown" selected>Prototype default · 30% glazing (ASHRAE 90.1 commercial)</option>
+                <option value="low">Low · 10–20% glazing</option>
+                <option value="medium">Medium · 20–40% glazing</option>
+                <option value="high">High · 60–80% · curtain-wall / all-glass facade</option>
               </select>
             </div>
-            <span class="field-error" data-for="s_wwr"></span>
-          </div>
-          <div class="field">
-            <label for="s_envelope">Envelope Efficiency <span class="hint-inline">— insulation and air sealing</span></label>
-            <div class="input-row">
+            <div class="t-field">
+              <label for="s_envelope">Infiltration &amp; Insulation</label>
               <select id="s_envelope" name="s_envelope">
-                <option value="high">High performance &times;0.90</option>
-                <option value="standard" selected>Standard (code baseline) &times;1.00</option>
-                <option value="low">Low performance &times;1.10</option>
+                <option value="unknown" selected>Prototype default · standard code-minimum (0.5–1.5 ACH)</option>
+                <option value="high">Tight · &le;0.5 ACH · high R-value (post-2015)</option>
+                <option value="standard">Standard · 0.5–1.5 ACH · code minimum</option>
+                <option value="low">Leaky · &gt;1.5 ACH · below code (pre-1990)</option>
               </select>
             </div>
-            <span class="field-error" data-for="s_envelope"></span>
-          </div>
-          <div class="field">
-            <label for="s_glazing">Glazing Type <span class="hint-inline">— bundles U-factor + SHGC; SHGC dominates in warm climates (Miami, Atlanta)</span></label>
-            <div class="input-row">
+            <div class="t-field">
+              <label for="s_glazing">Glazing Type</label>
               <select id="s_glazing" name="s_glazing">
-                <option value="triple">Triple-pane low-E (post-2010)</option>
-                <option value="double" selected>Double-pane low-E (post-2000)</option>
-                <option value="double_legacy">Double-pane clear (pre-2000)</option>
-                <option value="single">Single-pane (pre-1980)</option>
+                <option value="unknown" selected>Prototype default · double-pane low-E (auto-adjusted for building age)</option>
+                <option value="triple">Triple-pane low-E · U &asymp;0.8–1.2 W/m²K (post-2010)</option>
+                <option value="double">Double-pane low-E · U &asymp;1.4–2.0 W/m²K (post-2000)</option>
+                <option value="double_legacy">Double-pane clear · U &asymp;2.5–3.2 W/m²K (pre-2000)</option>
+                <option value="single">Single-pane · U &asymp;5.5–6.5 W/m²K (pre-1980)</option>
               </select>
             </div>
-            <span class="field-error" data-for="s_glazing"></span>
           </div>
-        </div>
 
-          <div id="stage1-error" class="calc-error hidden"></div>
-          <button type="button" id="stage1-btn" class="calc-btn">Analyze Site &amp; Loads &rarr;</button>
+          <div id="stage1-error" class="t-error hidden"></div>
+          <button type="button" id="stage1-btn" class="t-btn-primary">Analyze Site &amp; Loads &rarr;</button>
 
-          <!-- Stage 1 results (hidden until success) -->
-          <div id="stage1-result" class="pipeline-panel hidden">
-            <div class="pipeline-step">
-              <div class="pipeline-label">s1 — Site Data</div>
-              <div class="pipeline-values" id="pipeline-s1">—</div>
-            </div>
-            <div class="pipeline-step">
-              <div class="pipeline-label">s2–s3 — Ground Loads</div>
-              <div class="pipeline-values" id="pipeline-s2">—</div>
-            </div>
-            <div class="pipeline-step">
-              <div class="pipeline-label">Footprint — Borehole Capacity</div>
-              <div class="pipeline-values" id="pipeline-nb">—</div>
+          <!-- Stage 1 results -->
+          <div id="stage1-result" class="t-pipeline hidden">
+            <div class="t-pipeline-row">
+              <div class="t-pipeline-item">
+                <div class="t-pipeline-lbl">Site Data</div>
+                <div class="t-pipeline-val" id="pipeline-s1">—</div>
+              </div>
+              <div class="t-pipeline-item">
+                <div class="t-pipeline-lbl">Ground Loads</div>
+                <div class="t-pipeline-val" id="pipeline-s2">—</div>
+              </div>
+              <div class="t-pipeline-item">
+                <div class="t-pipeline-lbl">Borehole Capacity</div>
+                <div class="t-pipeline-val" id="pipeline-nb">—</div>
+              </div>
             </div>
           </div>
         </div><!-- /wizard-step1 -->
 
-        <!-- ── STEP 2: Borefield Sizing (locked until Step 1 completes) ── -->
-        <div id="wizard-step2" class="wizard-step step-locked">
-          <div class="stage-header">
-            <span class="stage-pill">Step 2</span>
-            <span class="stage-label">Borefield Sizing</span>
-            <span class="step-status" id="step2-status">Complete Step 1 to unlock</span>
-            <span class="stage-note">Borehole count is computed — you only set the geometry</span>
+        <!-- ── STEP 2 ── -->
+        <div id="wizard-step2" class="t-step step-locked">
+          <div class="t-step-head">
+            <div class="t-step-num">2</div>
+            <div class="t-step-info">
+              <div class="t-step-title">Borefield Sizing</div>
+              <div class="t-step-desc">Borehole count is auto-computed from your footprint</div>
+            </div>
+            <span class="step-status" id="step2-status">Complete Step 1 first</span>
           </div>
 
-        <!-- s4: Borefield geometry (still user input) -->
-        <div class="stage-header">
-          <span class="stage-pill">s4</span>
-          <span class="stage-label">Borefield Geometry</span>
-        </div>
-        <div class="card">
-          <div class="field">
-            <label for="s_H_min">Target borehole depth <span class="hint-inline">— preferred depth per borehole (default 125 m). The optimizer may go deeper if the footprint is constrained. Minimum 100 m.</span></label>
-            <div class="input-row">
-              <input type="number" id="s_H_min" name="s_H_min" step="1" min="100" max="300" value="125">
-              <span class="unit">m</span>
-            </div>
-            <span class="field-error" data-for="s_H_min"></span>
-          </div>
-          <div class="field">
-            <label for="s_B">Borehole spacing</label>
-            <div class="input-row">
-              <input type="number" id="s_B" name="s_B" step="0.1" value="6.0">
-              <span class="unit">m</span>
-            </div>
-            <span class="field-error" data-for="s_B"></span>
-          </div>
-          <div class="field">
-            <label for="s_A">Aspect ratio <em>(≥ 1)</em> <span class="hint-inline">— array elongation; 9 = 3×3 to 1×9 range</span></label>
-            <div class="input-row">
-              <input type="number" id="s_A" name="s_A" step="0.1" min="1" value="9.0">
-              <span class="unit">—</span>
-            </div>
-            <span class="field-error" data-for="s_A"></span>
-          </div>
-        </div>
-
-        <!-- Advanced overrides (collapsed) -->
-        <details class="advanced-details">
-          <summary>Advanced overrides <span class="hint-inline">(uses DOE prototype defaults if not set)</span></summary>
-          <div class="card" style="margin-top:12px">
-            <div class="field">
-              <label for="s_T_in_HP_heat">HP inlet temp — heating design (min EWT)</label>
-              <div class="input-row">
-                <input type="number" id="s_T_in_HP_heat" name="s_T_in_HP_heat" step="0.1" placeholder="5.0">
-                <span class="unit">°C</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_T_in_HP_cool">HP inlet temp — cooling design (max EWT)</label>
-              <div class="input-row">
-                <input type="number" id="s_T_in_HP_cool" name="s_T_in_HP_cool" step="0.1" placeholder="40.2">
-                <span class="unit">°C</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_mfls">Flow rate per kW</label>
-              <div class="input-row">
-                <input type="number" id="s_mfls" name="s_mfls" step="0.001" placeholder="0.05">
-                <span class="unit">kg/s·kW</span>
-              </div>
-            </div>
-            <h2 class="card-title" style="margin-top:16px">Borehole &amp; pipe construction</h2>
-            <p class="hint">Typically fixed by the drilling contractor and pipe SDR — leave blank to use defaults.</p>
-            <div class="field">
-              <label for="s_rbore">Borehole radius <em>(0.05 – 0.1)</em></label>
-              <div class="input-row">
-                <input type="number" id="s_rbore" name="s_rbore" step="0.001" placeholder="0.06">
-                <span class="unit">m</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_kgrout">Grout conductivity</label>
-              <div class="input-row">
-                <input type="number" id="s_kgrout" name="s_kgrout" step="0.01" placeholder="1.5">
-                <span class="unit">W/m·K</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_rpin">Pipe inner radius</label>
-              <div class="input-row">
-                <input type="number" id="s_rpin" name="s_rpin" step="0.00001" placeholder="0.01365">
-                <span class="unit">m</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_rpext">Pipe outer radius</label>
-              <div class="input-row">
-                <input type="number" id="s_rpext" name="s_rpext" step="0.00001" placeholder="0.0167">
-                <span class="unit">m</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_kpipe">Pipe conductivity</label>
-              <div class="input-row">
-                <input type="number" id="s_kpipe" name="s_kpipe" step="0.01" placeholder="0.42">
-                <span class="unit">W/m·K</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_LU">U-tube spacing</label>
-              <div class="input-row">
-                <input type="number" id="s_LU" name="s_LU" step="0.0001" placeholder="0.0511">
-                <span class="unit">m</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_Cp">Fluid heat capacity</label>
-              <div class="input-row">
-                <input type="number" id="s_Cp" name="s_Cp" step="1" placeholder="4200">
-                <span class="unit">J/kg·K</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="s_hconv">Convection coefficient</label>
-              <div class="input-row">
-                <input type="number" id="s_hconv" name="s_hconv" step="1" placeholder="1000">
-                <span class="unit">W/m²·K</span>
-              </div>
-            </div>
-          </div>
-        </details>
-
-          <div id="stage2-error" class="calc-error hidden"></div>
-          <button type="button" id="stage2-btn" class="calc-btn" disabled>Size Borefield &rarr;</button>
-
-          <!-- Expert override — deliberately last, two clicks deep -->
-          <details id="expert-nb-details" class="advanced-details expert-toggle">
-            <summary>Expert: fix borehole count manually (not recommended)</summary>
-            <div class="card" style="margin-top:12px">
-              <div class="callout callout-warn">
-                Fixing NB disables the footprint search and depth optimization. The tool exists
-                to compute this number — only override it if you are validating against an
-                external design.
-              </div>
-              <div class="field">
-                <label>
-                  <input type="checkbox" id="expert-nb-enable"> Enable manual borehole count
-                </label>
-              </div>
-              <div class="field">
-                <label for="s_NB">Borehole count override</label>
-                <div class="input-row">
-                  <input type="number" id="s_NB" name="s_NB" min="1" placeholder="auto from footprint" disabled>
-                  <span class="unit">—</span>
+          <!-- Geometry -->
+          <div class="t-group">
+            <div class="t-group-label">Geometry</div>
+            <div class="t-field-row">
+              <div class="t-field">
+                <label for="s_H_min">Desired borehole depth <span class="t-label-optional">optional</span></label>
+                <div class="t-input-unit">
+                  <input type="number" id="s_H_min" name="s_H_min" step="1" min="30" max="600" placeholder="125">
+                  <span class="t-unit">m</span>
                 </div>
-                <span class="field-error" data-for="s_NB"></span>
+                <span class="t-field-hint">Leave blank for default (125 m). Typical range: 100–300 m.</span>
+                <span class="t-field-error field-error" data-for="s_H_min"></span>
+              </div>
+              <div class="t-field">
+                <label for="s_B">Borehole spacing</label>
+                <div class="t-input-unit">
+                  <input type="number" id="s_B" name="s_B" step="0.5" min="4" max="15" value="6.0">
+                  <span class="t-unit">m</span>
+                </div>
+                <span class="t-field-hint">ASHRAE minimum: 6 m center-to-center.</span>
+                <span class="t-field-error field-error" data-for="s_B"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced: Heat pump temps -->
+          <details class="t-advanced">
+            <summary>Advanced — Heat pump design temperatures <span class="t-adv-hint">leave blank for building-type defaults</span></summary>
+            <div class="t-adv-body">
+              <div class="t-field-row">
+                <div class="t-field">
+                  <label for="s_T_in_HP_heat">Min loop temperature (heating)</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_T_in_HP_heat" name="s_T_in_HP_heat" step="0.1" placeholder="5.0">
+                    <span class="t-unit">°C</span>
+                  </div>
+                  <span class="t-field-hint">Coldest EWT the heat pump accepts from the ground. Typical: 5°C.</span>
+                </div>
+                <div class="t-field">
+                  <label for="s_T_in_HP_cool">Max loop temperature (cooling)</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_T_in_HP_cool" name="s_T_in_HP_cool" step="0.1" placeholder="40.2">
+                    <span class="t-unit">°C</span>
+                  </div>
+                  <span class="t-field-hint">Warmest EWT the heat pump returns to the ground. Typical: 40°C.</span>
+                </div>
               </div>
             </div>
           </details>
+
+          <!-- Layout configuration (own group, outside Advanced) -->
+          <div class="t-group">
+            <div class="t-group-label">Borefield Layout
+              <button type="button" class="t-info-btn" onclick="document.getElementById('layout-modal').showModal()" aria-label="Layout diagrams">ⓘ</button>
+            </div>
+            <div class="t-field">
+              <label for="borehole_config">Layout configuration</label>
+              <select id="borehole_config" name="borehole_config">
+                <option value="perimeter" selected>Perimeter — boreholes follow the building footprint edge</option>
+                <option value="parking_lot" disabled>Parking lot — parallel rows in adjacent lot (coming soon)</option>
+                <option value="under_building" disabled>Under building — dense grid below slab (coming soon)</option>
+              </select>
+              <span class="t-field-hint">Perimeter layout is the most common for commercial buildings with available setback.</span>
+            </div>
+          </div>
+
+          <!-- Advanced: Borehole construction -->
+          <details class="t-advanced">
+            <summary>Advanced — Borehole &amp; pipe construction <span class="t-adv-hint">leave blank for ASHRAE defaults</span></summary>
+            <div class="t-adv-body">
+              <div class="t-field-row">
+                <div class="t-field">
+                  <label for="s_rbore">Borehole radius</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_rbore" name="s_rbore" step="0.001" min="0.05" max="0.15" placeholder="0.0762">
+                    <span class="t-unit">m</span>
+                  </div>
+                  <span class="t-field-hint">6″ standard rotary bit: 0.0762 m</span>
+                  <span class="t-field-error field-error" data-for="s_rbore"></span>
+                </div>
+                <div class="t-field">
+                  <label for="s_kgrout">Grout conductivity</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_kgrout" name="s_kgrout" step="0.05" min="0.5" max="4.0" placeholder="2.05">
+                    <span class="t-unit">W/m·K</span>
+                  </div>
+                  <span class="t-field-hint">Thermally enhanced grout (CETCO DP-20): 2.05 W/m·K</span>
+                  <span class="t-field-error field-error" data-for="s_kgrout"></span>
+                </div>
+              </div>
+              <div class="t-field-row">
+                <div class="t-field">
+                  <label for="s_rpin">Pipe inner radius</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_rpin" name="s_rpin" step="0.0001" min="0.005" max="0.05" placeholder="0.01365">
+                    <span class="t-unit">m</span>
+                  </div>
+                  <span class="t-field-hint">SDR-11 ¾″ HDPE default: 0.01365 m</span>
+                  <span class="t-field-error field-error" data-for="s_rpin"></span>
+                </div>
+                <div class="t-field">
+                  <label for="s_rpext">Pipe outer radius</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_rpext" name="s_rpext" step="0.0001" min="0.005" max="0.09" placeholder="0.0167">
+                    <span class="t-unit">m</span>
+                  </div>
+                  <span class="t-field-hint">Must satisfy rpin &lt; rpext &lt; rbore</span>
+                  <span class="t-field-error field-error" data-for="s_rpext"></span>
+                </div>
+              </div>
+              <div class="t-field-row">
+                <div class="t-field">
+                  <label for="s_LU">U-tube shank spacing</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_LU" name="s_LU" step="0.001" min="0.02" max="0.19" placeholder="0.0511">
+                    <span class="t-unit">m</span>
+                  </div>
+                  <span class="t-field-hint">Center-to-center between U-tube legs. Must be &lt; borehole diameter.</span>
+                  <span class="t-field-error field-error" data-for="s_LU"></span>
+                </div>
+                <div class="t-field">
+                  <label for="s_kpipe">Pipe conductivity</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_kpipe" name="s_kpipe" step="0.01" min="0.1" max="2.0" placeholder="0.42">
+                    <span class="t-unit">W/m·K</span>
+                  </div>
+                  <span class="t-field-hint">HDPE default: 0.42 W/m·K</span>
+                  <span class="t-field-error field-error" data-for="s_kpipe"></span>
+                </div>
+              </div>
+              <div class="t-field-row">
+                <div class="t-field">
+                  <label for="s_hconv">Convection coefficient</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_hconv" name="s_hconv" step="50" min="100" max="10000" placeholder="1000">
+                    <span class="t-unit">W/m²·K</span>
+                  </div>
+                  <span class="t-field-hint">Internal fluid convection. Turbulent flow: 1000–3000.</span>
+                  <span class="t-field-error field-error" data-for="s_hconv"></span>
+                </div>
+                <div class="t-field">
+                  <label for="s_Cp">Fluid heat capacity</label>
+                  <div class="t-input-unit">
+                    <input type="number" id="s_Cp" name="s_Cp" step="10" min="1000" max="5000" placeholder="4200">
+                    <span class="t-unit">J/kg·K</span>
+                  </div>
+                  <span class="t-field-hint">Water: 4200. 20% propylene glycol: ~3800.</span>
+                  <span class="t-field-error field-error" data-for="s_Cp"></span>
+                </div>
+              </div>
+              <div class="t-field">
+                <label for="s_mfls">Flow rate per unit peak load</label>
+                <div class="t-input-unit" style="max-width:280px">
+                  <input type="number" id="s_mfls" name="s_mfls" step="0.005" min="0.01" max="0.5" placeholder="0.05">
+                  <span class="t-unit">kg/s·kW</span>
+                </div>
+                <span class="t-field-hint">Typical: 0.04–0.08 kg/s per kW of peak load.</span>
+                <span class="t-field-error field-error" data-for="s_mfls"></span>
+              </div>
+            </div>
+          </details>
+
+          <div id="stage2-error" class="t-error hidden"></div>
+          <button type="button" id="stage2-btn" class="t-btn-primary" disabled>Size Borefield &rarr;</button>
+
         </div><!-- /wizard-step2 -->
 
-        <!-- Smart results -->
+        <!-- ── Sizing Results ── -->
         <div id="smart-result" class="result-panel hidden">
           <div class="result-head">
             <h2 class="result-title">Sizing Result</h2>
@@ -446,19 +403,17 @@
               <span class="stat-value"><span id="sres-H">—</span><span class="stat-unit">m</span></span>
             </div>
             <div class="stat">
-              <span class="stat-label">Boreholes (auto-computed)</span>
+              <span class="stat-label">Boreholes (computed)</span>
               <span class="stat-value"><span id="sres-NB">—</span></span>
               <span class="stat-sub" id="sres-NB-range"></span>
             </div>
           </div>
           <div id="sres-capacity-warning" class="callout callout-warn hidden">
-            <strong>Footprint capacity:</strong> the peak load likely exceeds what the building
-            perimeter can host (15&ndash;70 W/m rule of thumb) — consider the s6 hybrid strategy,
-            deeper boreholes, or off-footprint field area.
+            <strong>Footprint capacity:</strong> peak load likely exceeds what the building perimeter can host (15–70 W/m rule of thumb). Consider the hybrid strategy below, deeper boreholes, or off-footprint field area.
           </div>
           <div id="two-pass-block" class="two-pass hidden">
             <div class="two-pass-title">Two-pass sizing check
-              <span class="two-pass-sub">— heating and cooling evaluated independently; the larger governs</span>
+              <span class="two-pass-sub">— heating and cooling evaluated independently; larger governs</span>
             </div>
             <div class="mode-bars">
               <div class="mode-bar-row">
@@ -474,10 +429,7 @@
             </div>
             <div id="sres-imbalance-line" class="two-pass-note"></div>
             <div id="sres-solar-line" class="callout callout-warn hidden">
-              <strong>Thermal depletion risk:</strong> annual heat extraction exceeds injection (q<sub>y</sub> &lt; 0).
-              Ground temperature will decline over the 10-year design horizon. Consider a
-              <strong>solar thermal supplement</strong> (flat-plate collectors feeding ground-loop preheat)
-              to rebalance annual heat flux and reduce required borefield length.
+              <strong>Thermal depletion risk:</strong> annual heat extraction exceeds injection (q<sub>y</sub> &lt; 0). Ground temperature will decline over the 10-year design horizon. Consider a solar thermal supplement to rebalance annual heat flux.
             </div>
           </div>
           <div class="plan-card">
@@ -486,157 +438,198 @@
           </div>
         </div>
 
-        <!-- s5: Cost Estimate (populated after sizing) -->
-        <div id="cost-section" class="hidden">
-          <div class="stage-header">
-            <span class="stage-pill">s5</span>
-            <span class="stage-label">Cost Estimate</span>
-            <span class="stage-note">Regional drilling rates — <span id="cost-region-tag">—</span></span>
+        <!-- ── s6: Hybrid Strategy (runs first, before cost) ── -->
+        <div id="s6-section" class="hidden">
+          <div class="t-section-head">
+            <div class="t-section-title">Hybrid System Strategy</div>
+            <div class="t-section-note">Peak shaving — a supplemental peaker handles extreme peak hours so the borefield can be significantly reduced in size, lowering borehole drilling costs.</div>
           </div>
 
-          <div class="card cost-range">
-            <div class="cost-range-head">
-              <span class="cost-range-title">Installed cost range</span>
-              <span class="cost-range-total" id="cost-range-label">—</span>
+          <!-- Peaker type selector + Recalculate button -->
+          <div class="s6-controls">
+            <div class="t-field s6-purpose-field">
+              <label for="s6-peaker-purpose">Supplemental peaker type</label>
+              <select id="s6-peaker-purpose" name="s6-peaker-purpose">
+                <option value="none">No peaker — ground-source only</option>
+                <option value="dominant" selected>Dominant load (calculated below)</option>
+                <option value="non-dominant">Non-dominant load (calculated below)</option>
+                <option value="both">Both — handle all extreme peaks</option>
+              </select>
+              <span class="t-field-hint" id="s6-purpose-hint">Run calculation to see dominant vs. non-dominant loads for this building and climate.</span>
             </div>
-            <div class="cost-range-track">
-              <div class="cost-range-marker" id="cost-range-marker"></div>
+            <button type="button" id="s6-recalc-btn" class="t-btn-secondary s6-recalc-btn" disabled>Recalculate</button>
+          </div>
+
+          <div id="s6-headline" class="strategy-headline">Calculating…</div>
+          <div class="stat-grid stat-grid-3">
+            <div class="stat">
+              <span class="stat-label">Borefield without peaker</span>
+              <span class="stat-value" id="s6-before-L">—</span>
+              <span class="stat-sub" id="s6-before-cost">—</span>
             </div>
-            <div class="cost-range-ends">
-              <span id="cost-range-min">—</span>
-              <span id="cost-range-max">—</span>
+            <div class="stat stat-accent">
+              <span class="stat-label">Borefield with peaker</span>
+              <span class="stat-value" id="s6-after-L">—</span>
+              <span class="stat-sub" id="s6-after-cost">—</span>
             </div>
+            <div class="stat stat-warn">
+              <span class="stat-label">Peaker size</span>
+              <span class="stat-value" id="s6-peaker-kw">—</span>
+              <span class="stat-sub" id="s6-peaker-type">—</span>
+            </div>
+          </div>
+
+          <!-- Borehole / cost reduction summary -->
+          <div id="s6-savings-note" class="s6-savings-note hidden"></div>
+
+          <div id="s6-cap-note" class="card cost-note hidden">
+            Design load limit: <strong id="s6-cap-kw">—</strong> kW &nbsp;·&nbsp;
+            Boreholes: <strong id="s6-nb-val">—</strong> &nbsp;·&nbsp;
+            Depth before shaving: <strong id="s6-h-val">—</strong> m
+          </div>
+          <div id="s6-comparison" class="compare-block hidden">
+            <div class="compare-title">Peak-shaving details</div>
+            <table class="files-table">
+              <thead><tr><th></th><th class="num">Value</th></tr></thead>
+              <tbody>
+                <tr><td>Peaker load threshold</td><td id="s6-m2-cutoff" class="num">—</td></tr>
+                <tr><td>Hours handled by peaker/yr</td><td id="s6-m2-hrs" class="num">—</td></tr>
+                <tr><td>GSHP coverage</td><td id="s6-m2-coverage" class="num">—</td></tr>
+                <tr><td>Peaker rated capacity</td><td id="s6-m2-peaker" class="num val-warn">—</td></tr>
+                <tr><td>Reduced borefield length</td><td id="s6-m2-L" class="num val-good">—</td></tr>
+                <tr><td>Savings vs no peaker</td><td id="s6-m2-save" class="num val-good">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Annual load profile + LDC charts side by side -->
+          <div class="s6-charts-row">
+            <div class="s6-chart-panel">
+              <div class="s6-chart-title">Annual Hourly Load Profile</div>
+              <div class="s6-chart-desc">Heating demand (blue) and cooling demand (red) throughout the year — values above zero are cooling, below zero are heating.</div>
+              <div class="chart-wrap s6-chart-wrap">
+                <canvas id="s6-chart-a"></canvas>
+              </div>
+            </div>
+            <div class="s6-chart-panel">
+              <div class="s6-chart-title">Load Duration Curve (LDC)</div>
+              <div class="s6-chart-desc">Hours sorted by load magnitude, highest to lowest. Horizontal lines show the GSHP design limit and peaker threshold — loads above the threshold are handled by the peaker.</div>
+              <div class="chart-wrap s6-chart-wrap">
+                <canvas id="s6-chart-ldc"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── s5: Total System Cost (after strategy) ── -->
+        <div id="cost-section" class="hidden">
+          <div class="t-section-head">
+            <div class="t-section-title">Total System Cost</div>
+            <div class="t-section-note">Drilling + GSHP equipment + peaker equipment — compared to conventional system · <span id="cost-region-tag">—</span></div>
+          </div>
+
+          <!-- System cost summary card (new) -->
+          <div id="cost-system-summary" class="card cost-system-card hidden">
+            <div class="cost-system-title">GSHP System Cost Breakdown</div>
+            <div class="cost-system-rows">
+              <div class="cost-system-row">
+                <span>Borefield drilling (base estimate)</span>
+                <span id="cost-drill-base">—</span>
+              </div>
+              <div class="cost-system-row">
+                <span>GSHP heat pump equipment</span>
+                <span id="cost-hp-equip">—</span>
+              </div>
+              <div class="cost-system-row" id="cost-peaker-row">
+                <span id="cost-peaker-label">Peaker equipment</span>
+                <span id="cost-peaker-equip">—</span>
+              </div>
+              <div class="cost-system-row cost-system-total">
+                <span>Total GSHP system (base)</span>
+                <span id="cost-system-total">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cost-range-wrap">
+            <div class="card cost-range">
+              <div class="cost-range-head">
+                <span class="cost-range-title">Drilling cost range</span>
+                <span class="cost-range-total" id="cost-range-label">—</span>
+              </div>
+              <div class="cost-range-track">
+                <div class="cost-range-marker" id="cost-range-marker"></div>
+              </div>
+              <div class="cost-range-ends">
+                <span id="cost-range-min">—</span>
+                <span id="cost-range-max">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cost-scenario-key">
+            <span><strong>Best:</strong> lower rock content than estimated — easier drilling, lower cost</span>
+            <span><strong>Base:</strong> estimated rock content from site geology data — most likely cost</span>
+            <span><strong>Worst:</strong> higher rock content than estimated — harder drilling, higher cost</span>
           </div>
 
           <div class="cost-grid">
             <div class="card cost-card" id="cost-best">
               <div class="cost-scenario-label">Best Case</div>
               <div class="cost-headline"><span id="cost-best-pft">—</span> <span class="cost-unit">$/ft</span></div>
-              <div class="cost-subline">Total: <span id="cost-best-total">—</span></div>
+              <div class="cost-subline">Drilling: <span id="cost-best-total">—</span></div>
             </div>
             <div class="card cost-card cost-card-base" id="cost-base">
               <div class="cost-scenario-label">Base Case</div>
               <div class="cost-headline"><span id="cost-base-pft">—</span> <span class="cost-unit">$/ft</span></div>
-              <div class="cost-subline">Total: <span id="cost-base-total">—</span></div>
+              <div class="cost-subline">Drilling: <span id="cost-base-total">—</span></div>
             </div>
             <div class="card cost-card" id="cost-worst">
               <div class="cost-scenario-label">Worst Case</div>
               <div class="cost-headline"><span id="cost-worst-pft">—</span> <span class="cost-unit">$/ft</span></div>
-              <div class="cost-subline">Total: <span id="cost-worst-total">—</span></div>
+              <div class="cost-subline">Drilling: <span id="cost-worst-total">—</span></div>
             </div>
           </div>
 
-          <div class="card cost-note">
-            <strong style="color:var(--text);">Contractor comparison:</strong>
-            Your project (<span id="cost-state-tag">—</span>): <strong id="cost-cmp-base">—</strong>/ft &nbsp;|&nbsp;
-            National avg: <strong id="cost-cmp-us">—</strong>/ft &nbsp;|&nbsp;
-            Best case: <strong id="cost-cmp-best">—</strong>/ft &nbsp;|&nbsp;
-            Worst case: <strong id="cost-cmp-worst">—</strong>/ft
-          </div>
+          <!-- Hidden legacy elements (keep IDs for tests) -->
+          <span id="cost-gshp-tons" class="hidden">—</span>
+          <span id="cost-gshp-equip" class="hidden">—</span>
+          <div id="cost-gshp-line" class="hidden"></div>
+          <span id="cost-state-tag" class="hidden">—</span>
+          <span id="cost-cmp-base" class="hidden">—</span>
+          <span id="cost-cmp-us" class="hidden">—</span>
+          <span id="cost-cmp-best" class="hidden">—</span>
+          <span id="cost-cmp-worst" class="hidden">—</span>
 
           <details>
-            <summary class="breakdown-toggle">Show line-item breakdown (base case)</summary>
+            <summary class="breakdown-toggle">Show drilling line-item breakdown (base case)</summary>
             <table class="files-table" id="cost-breakdown-table">
               <thead>
-                <tr>
-                  <th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Subtotal</th>
-                </tr>
+                <tr><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Subtotal</th></tr>
               </thead>
               <tbody id="cost-breakdown-body"></tbody>
             </table>
           </details>
         </div>
 
-        <!-- s6: Hybrid Strategy -->
-        <div id="s6-section" class="hidden">
-          <div class="stage-header">
-            <span class="stage-pill">s6</span>
-            <span class="stage-label">Hybrid System Strategy</span>
-            <span class="stage-note">Load-duration-curve peak shaving (M2 method: energy-based cutoff) · ASHRAE 99.6%: top ~35 extreme peak hrs removed before cutoff</span>
-          </div>
-          <div id="s6-headline" class="strategy-headline">Calculating…</div>
-          <div class="stat-grid stat-grid-3">
-            <div class="stat">
-              <span class="stat-label">Without peaker</span>
-              <span class="stat-value" id="s6-before-L">—</span>
-              <span class="stat-sub" id="s6-before-cost">—</span>
-            </div>
-            <div class="stat stat-accent">
-              <span class="stat-label">With peaker (M2)</span>
-              <span class="stat-value" id="s6-after-L">—</span>
-              <span class="stat-sub" id="s6-after-cost">—</span>
-            </div>
-            <div class="stat stat-warn">
-              <span class="stat-label">Peaker unit</span>
-              <span class="stat-value" id="s6-peaker-kw">—</span>
-              <span class="stat-sub" id="s6-peaker-type">—</span>
-            </div>
-          </div>
-          <div id="s6-cap-note" class="card cost-note hidden">
-            ASHRAE 99.6% design condition cap: <strong id="s6-cap-kw">—</strong> kW &nbsp;·&nbsp;
-            NB: <strong id="s6-nb-val">—</strong> boreholes &nbsp;·&nbsp;
-            H: <strong id="s6-h-val">—</strong> m each
-          </div>
-          <div id="s6-comparison" class="compare-block hidden">
-            <div class="compare-title">M2 method (energy-based cutoff)</div>
-            <table class="files-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th class="num">Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Cutoff load</td>
-                  <td id="s6-m2-cutoff" class="num">—</td>
-                </tr>
-                <tr>
-                  <td>Peaker hours</td>
-                  <td id="s6-m2-hrs" class="num">—</td>
-                </tr>
-                <tr>
-                  <td>GSHP covers</td>
-                  <td id="s6-m2-coverage" class="num">—</td>
-                </tr>
-                <tr>
-                  <td>Peaker size</td>
-                  <td id="s6-m2-peaker" class="num val-warn">—</td>
-                </tr>
-                <tr>
-                  <td>Borefield L</td>
-                  <td id="s6-m2-L" class="num val-good">—</td>
-                </tr>
-                <tr>
-                  <td>Savings vs baseline</td>
-                  <td id="s6-m2-save" class="num val-good">—</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="s6-chart-a"></canvas>
-          </div>
-        </div>
-
-        <!-- s7: Report -->
+        <!-- ── s7: Report ── -->
         <div id="s7-section" class="hidden">
-          <div class="stage-header">
-            <span class="stage-pill">s7</span>
-            <span class="stage-label">Report</span>
-            <span class="stage-note">Fixed-structure summary — design, savings, cost comparison, design advisor</span>
+          <div class="t-section-head">
+            <div class="t-section-title">Report</div>
+            <div class="t-section-note">Fixed-structure summary — design, savings, cost comparison, design advisor</div>
           </div>
-          <div class="field field-inline" style="max-width:480px;margin-bottom:16px">
-            <label for="conv_cost_per_sqft">Conventional system cost <span class="hint-inline">— heating+cooling plant only, excl. distribution (air handlers, ductwork). Research range: $20–45/sqft US commercial; $35 = mid-upper (CA / full scope). Override with project-specific figure.</span></label>
-            <div class="input-row">
+          <div class="t-field" style="max-width:420px;margin-bottom:16px">
+            <label for="conv_cost_per_sqft">Conventional system cost <span class="t-label-hint">heating + cooling plant only, excl. distribution</span></label>
+            <div class="t-input-unit">
               <input type="number" id="conv_cost_per_sqft" value="35" min="10" max="200" step="1">
-              <span class="unit">$/sqft</span>
+              <span class="t-unit">$/sqft</span>
             </div>
+            <span class="t-field-hint">Research range: $20–45/sqft US commercial. Override with project-specific figure.</span>
           </div>
-          <button type="button" id="s7-generate-btn" class="calc-btn">Generate Report</button>
-          <div id="s7-error" class="calc-error hidden"></div>
+          <button type="button" id="s7-generate-btn" class="t-btn-primary">Generate Report</button>
+          <div id="s7-error" class="t-error hidden"></div>
           <div id="s7-report" class="hidden">
-            <div class="score-card hidden" id="r-score-card"></div>
+            <div class="score-card card-glow hidden" id="r-score-card"></div>
             <div class="plan-card">
               <h3>Borefield Layout</h3>
               <canvas id="borehole-plan-report" width="700" height="450" style="width:100%;height:auto"></canvas>
@@ -670,272 +663,78 @@
                 <button class="faq-close-btn" onclick="closeFaqAnswer()">&larr; back to topics</button>
               </div>
             </div>
-            <button type="button" id="s7-copy-btn" class="calc-btn">Copy report as text</button>
+            <button type="button" id="s7-copy-btn" class="t-btn-secondary">Copy report as text</button>
           </div>
         </div>
 
       </section><!-- /panel-smart -->
 
-      <!-- ════════════════════════════════════════════
-           MANUAL MODE  (s4 only — existing form)
-           ════════════════════════════════════════════ -->
-      <section id="panel-manual" class="hidden">
-        <p class="hint" style="margin-bottom:20px">
-          Enter all inputs directly. Use this when you have site investigation data
-          or want to test specific parameter combinations.
-        </p>
-
-        <!-- Tabs -->
-        <div class="tab-strip">
-          <button class="tab-btn active" data-tab="basic">Basic</button>
-          <button class="tab-btn" data-tab="advanced">Advanced</button>
-        </div>
-
-        <form id="sizing-form" novalidate>
-
-          <!-- ── Basic Tab ── -->
-          <div id="tab-basic" class="tab-panel">
-            <div class="card">
-              <h2 class="card-title">Ground Loads</h2>
-              <p class="hint">Negative = heat extraction (heating). Positive = heat injection (cooling).</p>
-              <div class="field">
-                <label for="q_h">Peak hourly load</label>
-                <div class="input-row">
-                  <input type="number" id="q_h" name="q_h" value="12000">
-                  <span class="unit">W</span>
-                </div>
-                <span class="field-error" data-for="q_h"></span>
-              </div>
-              <div class="field">
-                <label for="q_m">Peak monthly load</label>
-                <div class="input-row">
-                  <input type="number" id="q_m" name="q_m" value="6000">
-                  <span class="unit">W</span>
-                </div>
-                <span class="field-error" data-for="q_m"></span>
-              </div>
-              <div class="field">
-                <label for="q_y">Annual average load</label>
-                <div class="input-row">
-                  <input type="number" id="q_y" name="q_y" value="1500">
-                  <span class="unit">W</span>
-                </div>
-                <span class="field-error" data-for="q_y"></span>
-              </div>
-            </div>
-
-            <div class="card">
-              <h2 class="card-title">Building Design</h2>
-              <p class="hint">These multipliers only apply to Manual Mode — in Smart Mode, envelope factors are computed from 840 EnergyPlus parametric runs and applied automatically.</p>
-              <div class="field">
-                <label for="wwr">Window-Wall Ratio</label>
-                <div class="input-row">
-                  <select id="wwr" name="wwr">
-                    <option value="low">Low (20&ndash;40%) &times;0.85</option>
-                    <option value="medium" selected>Medium (40&ndash;60%, prototype baseline) &times;1.00</option>
-                    <option value="high">High (60&ndash;80%) &times;1.20</option>
-                  </select>
-                </div>
-                <span class="field-error" data-for="wwr"></span>
-              </div>
-              <div class="field">
-                <label for="envelope">Envelope Efficiency</label>
-                <div class="input-row">
-                  <select id="envelope" name="envelope">
-                    <option value="high">High performance</option>
-                    <option value="standard" selected>Standard</option>
-                    <option value="low">Low performance</option>
-                  </select>
-                </div>
-                <span class="field-error" data-for="envelope"></span>
-              </div>
-              <div class="field">
-                <label for="glazing">Glazing Type</label>
-                <div class="input-row">
-                  <select id="glazing" name="glazing">
-                    <option value="triple">Triple-pane low-E (post-2010)</option>
-                    <option value="double" selected>Double-pane low-E (post-2000)</option>
-                    <option value="double_legacy">Double-pane clear (pre-2000)</option>
-                    <option value="single">Single-pane (pre-1980)</option>
-                  </select>
-                </div>
-                <span class="field-error" data-for="glazing"></span>
-              </div>
-            </div>
-
-            <div class="card">
-              <h2 class="card-title">Ground Properties</h2>
-              <div class="field">
-                <label for="k">Thermal conductivity</label>
-                <div class="input-row">
-                  <input type="number" id="k" name="k" step="0.01" value="2.0">
-                  <span class="unit">W/m·K</span>
-                </div>
-                <span class="field-error" data-for="k"></span>
-              </div>
-              <div class="field">
-                <label for="alpha">Thermal diffusivity <em>(0.025 – 0.2)</em></label>
-                <div class="input-row">
-                  <input type="number" id="alpha" name="alpha" step="0.001" value="0.086">
-                  <span class="unit">m²/day</span>
-                </div>
-                <span class="field-error" data-for="alpha"></span>
-              </div>
-              <div class="field">
-                <label for="T_g">Undisturbed ground temp</label>
-                <div class="input-row">
-                  <input type="number" id="T_g" name="T_g" step="0.1" value="15">
-                  <span class="unit">°C</span>
-                </div>
-                <span class="field-error" data-for="T_g"></span>
-              </div>
-            </div>
-
-            <div class="card">
-              <h2 class="card-title">Borefield</h2>
-              <div class="field">
-                <label for="B">Borehole spacing</label>
-                <div class="input-row">
-                  <input type="number" id="B" name="B" step="0.1" value="6.1">
-                  <span class="unit">m</span>
-                </div>
-                <span class="field-error" data-for="B"></span>
-              </div>
-              <div class="field">
-                <label for="NB">Number of boreholes</label>
-                <div class="input-row">
-                  <input type="number" id="NB" name="NB" step="1" min="1" value="5">
-                  <span class="unit">—</span>
-                </div>
-                <span class="field-error" data-for="NB"></span>
-              </div>
-              <div class="field">
-                <label for="A">Aspect ratio <em>(≥ 1)</em></label>
-                <div class="input-row">
-                  <input type="number" id="A" name="A" step="0.1" min="1" value="1.0">
-                  <span class="unit">—</span>
-                </div>
-                <span class="field-error" data-for="A"></span>
-              </div>
-              <div class="field">
-                <label for="T_in_HP">HP inlet temperature</label>
-                <div class="input-row">
-                  <input type="number" id="T_in_HP" name="T_in_HP" step="0.1" value="40.2">
-                  <span class="unit">°C</span>
-                </div>
-                <span class="field-error" data-for="T_in_HP"></span>
-              </div>
-              <div class="field">
-                <label for="mfls">Flow rate per kW</label>
-                <div class="input-row">
-                  <input type="number" id="mfls" name="mfls" step="0.001" value="0.05">
-                  <span class="unit">kg/s·kW</span>
-                </div>
-                <span class="field-error" data-for="mfls"></span>
-              </div>
-            </div>
-          </div><!-- /tab-basic -->
-
-          <!-- ── Advanced Tab ── -->
-          <div id="tab-advanced" class="tab-panel hidden">
-            <div class="card">
-              <h2 class="card-title">Borehole &amp; Pipe Details</h2>
-              <p class="hint">Borehole &amp; pipe physical constants — typically fixed by the drilling
-                contractor and pipe SDR; leave at defaults unless you have contractor specs.</p>
-              <div class="field">
-                <label for="rbore">Borehole radius <em>(0.05 – 0.1)</em></label>
-                <div class="input-row">
-                  <input type="number" id="rbore" name="rbore" step="0.001" value="0.06">
-                  <span class="unit">m</span>
-                </div>
-                <span class="field-error" data-for="rbore"></span>
-              </div>
-              <div class="field">
-                <label for="rpin">Pipe inner radius</label>
-                <div class="input-row">
-                  <input type="number" id="rpin" name="rpin" step="0.00001" value="0.01365">
-                  <span class="unit">m</span>
-                </div>
-                <span class="field-error" data-for="rpin"></span>
-              </div>
-              <div class="field">
-                <label for="rpext">Pipe outer radius</label>
-                <div class="input-row">
-                  <input type="number" id="rpext" name="rpext" step="0.00001" value="0.0167">
-                  <span class="unit">m</span>
-                </div>
-                <span class="field-error" data-for="rpext"></span>
-              </div>
-              <div class="field">
-                <label for="kgrout">Grout conductivity</label>
-                <div class="input-row">
-                  <input type="number" id="kgrout" name="kgrout" step="0.01" value="1.5">
-                  <span class="unit">W/m·K</span>
-                </div>
-                <span class="field-error" data-for="kgrout"></span>
-              </div>
-              <div class="field">
-                <label for="kpipe">Pipe conductivity</label>
-                <div class="input-row">
-                  <input type="number" id="kpipe" name="kpipe" step="0.01" value="0.42">
-                  <span class="unit">W/m·K</span>
-                </div>
-                <span class="field-error" data-for="kpipe"></span>
-              </div>
-              <div class="field">
-                <label for="LU">U-tube spacing</label>
-                <div class="input-row">
-                  <input type="number" id="LU" name="LU" step="0.0001" value="0.0511">
-                  <span class="unit">m</span>
-                </div>
-                <span class="field-error" data-for="LU"></span>
-              </div>
-              <div class="field">
-                <label for="hconv">Convection coefficient</label>
-                <div class="input-row">
-                  <input type="number" id="hconv" name="hconv" step="1" value="1000">
-                  <span class="unit">W/m²·K</span>
-                </div>
-                <span class="field-error" data-for="hconv"></span>
-              </div>
-              <div class="field">
-                <label for="Cp">Fluid heat capacity</label>
-                <div class="input-row">
-                  <input type="number" id="Cp" name="Cp" step="1" value="4200">
-                  <span class="unit">J/kg·K</span>
-                </div>
-                <span class="field-error" data-for="Cp"></span>
-              </div>
-            </div>
-          </div><!-- /tab-advanced -->
-
-          <div id="calc-error" class="calc-error hidden"></div>
-          <button type="button" id="calc-btn" class="calc-btn">Calculate</button>
-
-        </form>
-
-        <div id="result-panel" class="result-panel hidden">
-          <h2 class="result-title">Results</h2>
-          <div class="result-grid">
-            <div class="result-item">
-              <span class="result-label">Total borefield length L</span>
-              <span class="result-value"><span id="res-L">—</span> m</span>
-            </div>
-            <div class="result-item">
-              <span class="result-label">Borehole depth H</span>
-              <span class="result-value"><span id="res-H">—</span> m</span>
-            </div>
-            <div class="result-item">
-              <span class="result-label">Number of boreholes</span>
-              <span class="result-value"><span id="res-NB">—</span></span>
-            </div>
-          </div>
-        </div>
-
-      </section><!-- /panel-manual -->
-
     </main>
-  </div>
+  </div><!-- /t-page -->
+
+  <!-- Layout configuration diagram modal -->
+  <dialog id="layout-modal" class="layout-modal">
+    <div class="layout-modal-header">
+      <h3>Borefield Layout Options</h3>
+      <button type="button" class="layout-modal-close" onclick="document.getElementById('layout-modal').close()">✕</button>
+    </div>
+    <div class="layout-modal-body">
+      <div class="layout-diagram">
+        <div class="layout-diagram-title">Perimeter Layout <span class="layout-status-badge">Available</span></div>
+        <svg viewBox="0 0 220 180" width="100%" aria-label="Perimeter layout diagram">
+          <!-- Building footprint -->
+          <rect x="45" y="35" width="130" height="110" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" rx="2"/>
+          <text x="110" y="96" text-anchor="middle" font-size="11" fill="#3b82f6" font-family="sans-serif">Building</text>
+          <!-- Top boreholes -->
+          <circle cx="45"  cy="25" r="4" fill="#1d4ed8"/><circle cx="71"  cy="25" r="4" fill="#1d4ed8"/>
+          <circle cx="97"  cy="25" r="4" fill="#1d4ed8"/><circle cx="123" cy="25" r="4" fill="#1d4ed8"/>
+          <circle cx="149" cy="25" r="4" fill="#1d4ed8"/><circle cx="175" cy="25" r="4" fill="#1d4ed8"/>
+          <!-- Bottom boreholes -->
+          <circle cx="45"  cy="155" r="4" fill="#1d4ed8"/><circle cx="71"  cy="155" r="4" fill="#1d4ed8"/>
+          <circle cx="97"  cy="155" r="4" fill="#1d4ed8"/><circle cx="123" cy="155" r="4" fill="#1d4ed8"/>
+          <circle cx="149" cy="155" r="4" fill="#1d4ed8"/><circle cx="175" cy="155" r="4" fill="#1d4ed8"/>
+          <!-- Left boreholes -->
+          <circle cx="32" cy="61" r="4" fill="#1d4ed8"/><circle cx="32" cy="94" r="4" fill="#1d4ed8"/>
+          <circle cx="32" cy="127" r="4" fill="#1d4ed8"/>
+          <!-- Right boreholes -->
+          <circle cx="188" cy="61" r="4" fill="#1d4ed8"/><circle cx="188" cy="94" r="4" fill="#1d4ed8"/>
+          <circle cx="188" cy="127" r="4" fill="#1d4ed8"/>
+          <!-- Legend -->
+          <circle cx="20" cy="170" r="4" fill="#1d4ed8"/>
+          <text x="30" y="174" font-size="9" fill="#6b7280" font-family="sans-serif">= borehole (top view)</text>
+        </svg>
+        <p class="layout-diagram-note">Boreholes follow the perimeter of the building footprint. Works with typical urban setbacks. Most contractors default to this layout.</p>
+      </div>
+      <div class="layout-diagram layout-diagram-disabled">
+        <div class="layout-diagram-title">Parking Lot Layout <span class="layout-status-badge layout-status-coming">Coming Soon</span></div>
+        <svg viewBox="0 0 220 180" width="100%" aria-label="Parking lot layout diagram">
+          <!-- Building at top -->
+          <rect x="45" y="10" width="130" height="40" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5" rx="2"/>
+          <text x="110" y="35" text-anchor="middle" font-size="11" fill="#9ca3af" font-family="sans-serif">Building</text>
+          <!-- Parking lot rows -->
+          <text x="110" y="65" text-anchor="middle" font-size="9" fill="#9ca3af" font-family="sans-serif">Parking lot / open land</text>
+          <!-- Row 1 -->
+          <circle cx="45"  cy="80" r="4" fill="#9ca3af"/><circle cx="71"  cy="80" r="4" fill="#9ca3af"/>
+          <circle cx="97"  cy="80" r="4" fill="#9ca3af"/><circle cx="123" cy="80" r="4" fill="#9ca3af"/>
+          <circle cx="149" cy="80" r="4" fill="#9ca3af"/><circle cx="175" cy="80" r="4" fill="#9ca3af"/>
+          <!-- Row 2 -->
+          <circle cx="45"  cy="106" r="4" fill="#9ca3af"/><circle cx="71"  cy="106" r="4" fill="#9ca3af"/>
+          <circle cx="97"  cy="106" r="4" fill="#9ca3af"/><circle cx="123" cy="106" r="4" fill="#9ca3af"/>
+          <circle cx="149" cy="106" r="4" fill="#9ca3af"/><circle cx="175" cy="106" r="4" fill="#9ca3af"/>
+          <!-- Row 3 -->
+          <circle cx="45"  cy="132" r="4" fill="#9ca3af"/><circle cx="71"  cy="132" r="4" fill="#9ca3af"/>
+          <circle cx="97"  cy="132" r="4" fill="#9ca3af"/><circle cx="123" cy="132" r="4" fill="#9ca3af"/>
+          <circle cx="149" cy="132" r="4" fill="#9ca3af"/><circle cx="175" cy="132" r="4" fill="#9ca3af"/>
+          <!-- Row 4 -->
+          <circle cx="45"  cy="158" r="4" fill="#9ca3af"/><circle cx="71"  cy="158" r="4" fill="#9ca3af"/>
+          <circle cx="97"  cy="158" r="4" fill="#9ca3af"/><circle cx="123" cy="158" r="4" fill="#9ca3af"/>
+          <circle cx="149" cy="158" r="4" fill="#9ca3af"/><circle cx="175" cy="158" r="4" fill="#9ca3af"/>
+        </svg>
+        <p class="layout-diagram-note">Boreholes drilled in parallel rows across adjacent parking or open land. Maximizes field density. Ideal when building footprint is too small.</p>
+      </div>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="/static/borehole_plan.js"></script>
   <script src="/static/main.js"></script>

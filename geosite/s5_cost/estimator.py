@@ -42,7 +42,7 @@ def _run_scenario(
     total_usd = sum(i["cost_usd"] for i in items)
     return CostResult(
         total_usd=total_usd,
-        cost_per_ft=total_usd / L_ft,
+        cost_per_ft=total_usd / L_ft if L_ft > 0 else 0.0,
         L_ft=L_ft,
         NB=NB,
         breakdown=items,

@@ -12,46 +12,40 @@ def client():
 
 
 REQUIRED_IDS = [
-    "btn-smart", "btn-manual", "panel-smart", "panel-manual",
+    "panel-smart",
     "zip_code", "soil_confidence", "building_type", "floor_area_m2",
-    "building_age", "borehole_config", "proto-area-hint", "year-factor-hint",
-    "s_B", "s_A", "s_T_in_HP_heat", "s_T_in_HP_cool", "s_mfls",
-    "s_Cp", "s_rbore", "s_rpin", "s_rpext", "s_kgrout", "s_kpipe",
-    "s_LU", "s_hconv",
+    "building_age", "proto-area-hint", "year-factor-hint",
     "s_wwr", "s_envelope", "s_glazing",
-    "wwr", "envelope", "glazing",
     "wizard-step1", "stage1-btn", "stage1-error", "stage1-result",
-    "pipeline-nb", "step1-status",
+    "pipeline-nb", "step1-status", "pipeline-s1", "pipeline-s2",
+    "s_H_min", "s_B", "s_T_in_HP_heat", "s_T_in_HP_cool",
+    "borehole_config", "s_rbore", "s_rpin", "s_rpext", "s_LU",
+    "s_kgrout", "s_kpipe", "s_hconv", "s_Cp", "s_mfls",
     "wizard-step2", "stage2-btn", "stage2-error", "step2-status",
-    "expert-nb-details", "expert-nb-enable",
-    "pipeline-s1", "pipeline-s2",
-    "smart-result", "sres-L", "sres-H", "sres-NB",
-    "sres-NB-range",
+    "smart-result", "sres-L", "sres-H", "sres-NB", "sres-NB-range",
     "two-pass-block", "sres-L-heat", "sres-L-cool", "sres-governing",
-    "sres-imbalance-line", "sres-solar-line",
-    "bar-L-heat", "bar-L-cool",
+    "sres-imbalance-line", "sres-solar-line", "bar-L-heat", "bar-L-cool",
     "cost-section", "cost-region-tag", "cost-state-tag",
     "cost-best-pft", "cost-best-total", "cost-base-pft", "cost-base-total",
     "cost-worst-pft", "cost-worst-total",
     "cost-cmp-base", "cost-cmp-us", "cost-cmp-best", "cost-cmp-worst",
     "cost-breakdown-table", "cost-breakdown-body",
     "cost-range-marker", "cost-range-min", "cost-range-max", "cost-range-label",
+    "cost-gshp-line", "cost-gshp-tons", "cost-gshp-equip",
     "s6-section", "s6-headline", "s6-before-L", "s6-before-cost",
     "s6-after-L", "s6-after-cost", "s6-peaker-kw", "s6-peaker-type",
-    "s6-chart-a",
+    "s6-peaker-purpose", "s6-recalc-btn", "s6-savings-note",
+    "s6-chart-a", "s6-chart-ldc",
     "s6-cap-note", "s6-cap-kw", "s6-nb-val", "s6-h-val",
     "s6-comparison", "s6-m2-cutoff", "s6-m2-hrs",
-    "s6-m2-coverage", "s6-m2-peaker",
-    "s6-m2-L", "s6-m2-save",
+    "s6-m2-coverage", "s6-m2-peaker", "s6-m2-L", "s6-m2-save",
+    "cost-system-summary", "cost-drill-base", "cost-hp-equip",
+    "cost-peaker-row", "cost-peaker-label", "cost-peaker-equip", "cost-system-total",
     "s7-section", "s7-generate-btn", "s7-error", "s7-report",
-    "s7-design", "s7-performance", "s7-cost",
-    "s7-copy-btn",
+    "s7-design", "s7-performance", "s7-cost", "s7-copy-btn",
     "r-score-card",
     "borehole-plan", "borehole-plan-report",
-    "r-faq-card", "faq-topics", "faq-answer", "faq-answer-label",
-    "faq-answer-text",
-    "sizing-form", "calc-error", "calc-btn",
-    "result-panel", "res-L", "res-H", "res-NB",
+    "r-faq-card", "faq-topics", "faq-answer", "faq-answer-label", "faq-answer-text",
 ]
 
 
@@ -72,8 +66,7 @@ def test_index_contains_hook_id(index_html, el_id):
 
 
 def test_geometry_input_present(index_html):
-    # s_NB before the methodology-precision plan, s_H_target after
-    assert 'id="s_H_target"' in index_html or 'id="s_NB"' in index_html
+    assert 'id="s_H_min"' in index_html
 
 
 DEV_REQUIRED_IDS = ["t-run", "t-hmin", "t-nb", "s4a-in", "s4a-out",
@@ -85,6 +78,8 @@ DEV_REQUIRED_IDS = ["t-run", "t-hmin", "t-nb", "s4a-in", "s4a-out",
 def dev_html():
     app.config["TESTING"] = True
     with app.test_client() as c:
+        with c.session_transaction() as sess:
+            sess["dev_auth"] = True
         return c.get("/dev").get_data(as_text=True)
 
 
@@ -98,7 +93,16 @@ def test_references_renders(client):
 
 
 def test_dev_renders(client):
+    with client.session_transaction() as sess:
+        sess["dev_auth"] = True
     assert client.get("/dev").status_code == 200
+
+
+def test_dev_requires_auth(client):
+    """Unauthenticated GET /dev must redirect to login (302), never 200."""
+    resp = client.get("/dev")
+    assert resp.status_code == 302, "/dev must redirect unauthenticated users to /dev-login"
+    assert "dev-login" in (resp.headers.get("Location") or "")
 
 
 def test_new_building_types_in_dropdown(index_html):

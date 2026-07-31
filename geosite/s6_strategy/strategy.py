@@ -59,6 +59,7 @@ def run_strategy(
     year_factor: float = 1.0,
     envelope_factor: float = 1.0,
     state=None,
+    peaker_purpose: str = "auto",
     **sizing_params,
 ) -> StrategyResult:
     """Run mandatory hybrid GSHP strategy analysis with ASHRAE 99.6% cap and two LDC cutoff methods.
@@ -80,10 +81,9 @@ def run_strategy(
     scale = year_factor * envelope_factor * (target_area / proxy_area)
     profile = scale_profile(raw_profile, scale)
 
-    # --- LDC: ASHRAE cap + both cutoff methods ---
+    # --- LDC: ASHRAE cap + energy-based cutoff (M2) ---
     ldc = compute_ldc(profile, ldc_cutoff_pct, ignore_top_pct)
     cap_W = ldc["cap_W"]
-    m1_cutoff_W = ldc["m1_cutoff_W"]
     m2_cutoff_W = ldc["m2_cutoff_W"]
 
     # --- Extract raw pulses ---
@@ -110,6 +110,24 @@ def run_strategy(
     else:
         imbalance_ratio = max(L_h_ni, L_c_ni) / min(L_h_ni, L_c_ni)
         dominant_mode = "heating" if L_h_ni >= L_c_ni else "cooling"
+
+    # --- Recompute m2_cutoff_W using dominant-side energy only ---
+    # compute_ldc uses combined abs(heating+cooling) energy, inflating total_Wh ~2x for
+    # single-dominant buildings → target_excess = 10% * 2x = 20% of dominant energy →
+    # very low cutoff → oversized peaker. Fix: compute 10% from dominant side only.
+    if dominant_mode == "cooling":
+        _dom_profile = [max(h, 0.0) for h in profile]
+    elif dominant_mode == "heating":
+        _dom_profile = [-min(h, 0.0) for h in profile]
+    else:  # balanced: combined is correct
+        _dom_profile = [abs(h) for h in profile]
+    _ldc_dom = compute_ldc(_dom_profile, ldc_cutoff_pct, ignore_top_pct)
+    m2_cutoff_W = _ldc_dom["m2_cutoff_W"]
+    ldc["m2_cutoff_W"] = m2_cutoff_W
+    ldc["m2_cutoff_idx"] = _ldc_dom["m2_cutoff_idx"]
+    ldc["m2_gshp_hours_pct"] = _ldc_dom["m2_gshp_hours_pct"]
+    ldc["m2_gshp_energy_pct"] = _ldc_dom["m2_gshp_energy_pct"]
+    ldc["m2_peaker_energy_Wh"] = _ldc_dom["m2_peaker_energy_Wh"]
 
     # --- Compute NB from the building footprint (if not provided) ---
     nb_min = nb_max = None
@@ -141,63 +159,76 @@ def run_strategy(
         q_h_before, q_m_before, q_y_before = q_h_cool, q_m_cool, q_y_cool
         before_mode = "cooling"
 
-    case = 1 if imbalance_ratio > imbalance_threshold else 2
-    trim_mode = dominant_mode if case == 1 else "balanced"
+    # peaker_purpose overrides auto case/mode detection
+    if peaker_purpose == "heating":
+        case = 1
+        trim_mode = "heating"
+        before_mode = "heating"
+        q_h_before, q_m_before, q_y_before = q_h_heat, q_m_heat, q_y_heat
+    elif peaker_purpose == "cooling":
+        case = 1
+        trim_mode = "cooling"
+        before_mode = "cooling"
+        q_h_before, q_m_before, q_y_before = q_h_cool, q_m_cool, q_y_cool
+    elif peaker_purpose == "both":
+        case = 2
+        trim_mode = "balanced"
+    elif peaker_purpose == "none":
+        case = 0
+        trim_mode = before_mode
+    else:  # "auto"
+        case = 1 if imbalance_ratio > imbalance_threshold else 2
+        trim_mode = dominant_mode if case == 1 else "balanced"
 
-    # --- Method 1: hours-based cutoff ---
-    trimmed_m1 = trim_profile(profile, m1_cutoff_W, trim_mode)
-    q_h_t1, q_m_t1, q_y_t1 = extract_one_sided_pulses(trimmed_m1, before_mode)
-    if before_mode == "cooling":
-        q_h_t1 = min(q_h_t1, cap_W)
+    if peaker_purpose == "none":
+        # No peak shaving — return full borefield as-is
+        trimmed_m2 = profile
+        q_h_t2, q_m_t2, q_y_t2 = q_h_before, q_m_before, q_y_before
+        L_after_m2 = L_before
+        H_after_m2 = H_before
+        peaker_kW_m2 = 0.0
+        peaker_heat_kW_m2 = 0.0
+        peaker_cool_kW_m2 = 0.0
+        peaker_kW = 0.0
+        peaker_type = "none"
+        peaker_heat_kW = 0.0
+        peaker_cool_kW = 0.0
     else:
-        q_h_t1 = max(q_h_t1, -cap_W)
-    L_after_m1 = min(_do_size(q_h_t1, q_m_t1, q_y_t1, k, alpha, T_g, before_mode, NB, B, A, adv), L_before)
-    H_after_m1 = L_after_m1 / NB
+        # --- Method 2: energy-based cutoff ---
+        trimmed_m2 = trim_profile(profile, m2_cutoff_W, trim_mode)
+        q_h_t2, q_m_t2, q_y_t2 = extract_one_sided_pulses(trimmed_m2, before_mode)
+        if before_mode == "cooling":
+            q_h_t2 = min(q_h_t2, cap_W)
+        else:
+            q_h_t2 = max(q_h_t2, -cap_W)
+        sized_after = min(_do_size(q_h_t2, q_m_t2, q_y_t2, k, alpha, T_g, before_mode, NB, B, A, adv), L_before)
+        # Enforce H_min on trimmed borefield only when L_before itself satisfies H_min
+        # (user-forced NB can put H_before < H_min; don't compound that issue here)
+        if L_before / NB >= H_min:
+            L_after_m2 = max(sized_after, H_min * NB)
+        else:
+            L_after_m2 = sized_after
+        H_after_m2 = L_after_m2 / NB
 
-    # Peakers m1
-    if case == 1:
-        peaker_heat_kW_m1 = _peaker_side(profile, m1_cutoff_W, cap_W, "heating")
-        peaker_cool_kW_m1 = _peaker_side(profile, m1_cutoff_W, cap_W, "cooling")
-        peaker_kW_m1 = peaker_cool_kW_m1 if dominant_mode == "cooling" else peaker_heat_kW_m1
-    else:
-        peaker_heat_kW_m1 = _peaker_side(profile, m1_cutoff_W, cap_W, "heating")
-        peaker_cool_kW_m1 = _peaker_side(profile, m1_cutoff_W, cap_W, "cooling")
-        peaker_kW_m1 = max(peaker_heat_kW_m1, peaker_cool_kW_m1)
+        # Peakers m2
+        if case == 1:
+            peaker_heat_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "heating")
+            peaker_cool_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "cooling")
+            peaker_kW_m2 = peaker_cool_kW_m2 if dominant_mode == "cooling" else peaker_heat_kW_m2
+        else:
+            peaker_heat_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "heating")
+            peaker_cool_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "cooling")
+            peaker_kW_m2 = max(peaker_heat_kW_m2, peaker_cool_kW_m2)
 
-    # --- Method 2: energy-based cutoff ---
-    trimmed_m2 = trim_profile(profile, m2_cutoff_W, trim_mode)
-    q_h_t2, q_m_t2, q_y_t2 = extract_one_sided_pulses(trimmed_m2, before_mode)
-    if before_mode == "cooling":
-        q_h_t2 = min(q_h_t2, cap_W)
-    else:
-        q_h_t2 = max(q_h_t2, -cap_W)
-    L_after_m2 = min(_do_size(q_h_t2, q_m_t2, q_y_t2, k, alpha, T_g, before_mode, NB, B, A, adv), L_before)
-    H_after_m2 = L_after_m2 / NB
-
-    # Peakers m2
-    if case == 1:
-        peaker_heat_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "heating")
-        peaker_cool_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "cooling")
-        peaker_kW_m2 = peaker_cool_kW_m2 if dominant_mode == "cooling" else peaker_heat_kW_m2
-    else:
-        peaker_heat_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "heating")
-        peaker_cool_kW_m2 = _peaker_side(profile, m2_cutoff_W, cap_W, "cooling")
-        peaker_kW_m2 = max(peaker_heat_kW_m2, peaker_cool_kW_m2)
-
-    # --- Default peaker fields use M2 (energy-based, professor-preferred method) ---
-    if case == 1:
-        if dominant_mode == "heating":
+        if case == 1:
             peaker_kW = peaker_kW_m2
-            peaker_type = "electric_heater"
+            peaker_type = "electric_heater" if dominant_mode == "heating" else "chiller"
         else:
             peaker_kW = peaker_kW_m2
-            peaker_type = "chiller"
-    else:
-        peaker_kW = peaker_kW_m2
-        peaker_type = "electric_heater+chiller"
+            peaker_type = "electric_heater+chiller"
 
-    peaker_heat_kW = peaker_heat_kW_m2
-    peaker_cool_kW = peaker_cool_kW_m2
+        peaker_heat_kW = peaker_heat_kW_m2
+        peaker_cool_kW = peaker_cool_kW_m2
 
     # --- Costs ---
     def _cost(L_m: float) -> dict:
@@ -239,19 +270,11 @@ def run_strategy(
         cost_after=cost_after,
         hourly_profile=profile,
         hourly_trimmed=trimmed_m2,
-        # New fields
         cap_W=cap_W,
         ignore_top_pct=ignore_top_pct,
         H_min=H_min,
         nb_min=nb_min,
         nb_max=nb_max,
-        m1_cutoff_W=m1_cutoff_W,
-        m1_cutoff_h=ldc["m1_cutoff_idx"],
-        m1_gshp_hours_pct=ldc["m1_gshp_hours_pct"],
-        m1_gshp_energy_pct=ldc["m1_gshp_energy_pct"],
-        m1_peaker_kW=peaker_kW_m1,
-        m1_L_after=L_after_m1,
-        m1_H_after=H_after_m1,
         m2_cutoff_W=m2_cutoff_W,
         m2_cutoff_h=ldc["m2_cutoff_idx"],
         m2_gshp_hours_pct=ldc["m2_gshp_hours_pct"],
@@ -259,6 +282,5 @@ def run_strategy(
         m2_peaker_kW=peaker_kW_m2,
         m2_L_after=L_after_m2,
         m2_H_after=H_after_m2,
-        m1_peaker_energy_Wh=ldc["m1_peaker_energy_Wh"],
         m2_peaker_energy_Wh=ldc["m2_peaker_energy_Wh"],
     )

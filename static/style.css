@@ -22,12 +22,12 @@
   --card-bg: #ffffff;
   --muted: #5b6b7b;
 
-  --accent: #0e7c5b;
-  --accent-hover: #0a6448;
-  --accent-active: #084f39;
-  --accent-soft: #e6f4ee;
-  --accent-dark: #084f39;
-  --accent-light: #e6f4ee;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-active: #1e3a8a;
+  --accent-soft: #eff6ff;
+  --accent-dark: #1e3a8a;
+  --accent-light: #eff6ff;
 
   --heat: #2563eb;
   --cool: #dc2626;
@@ -40,11 +40,11 @@
 
   --sidebar-bg: #0f1d29;
   --sidebar-text: #9fb0bf;
-  --sidebar-active-bg: rgba(14, 124, 91, 0.28);
+  --sidebar-active-bg: rgba(29, 78, 216, 0.28);
   --sidebar-active-text: #ffffff;
 
-  --result-bg: #f2faf6;
-  --result-border: #bfe6d4;
+  --result-bg: #eff6ff;
+  --result-border: #bfdbfe;
   --tab-active: var(--accent);
 
   --radius-sm: 6px;
@@ -71,6 +71,49 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+/* ── 1b. Border-glow card effect ── */
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes glow-rotate {
+  to { --glow-angle: 360deg; }
+}
+.card-glow {
+  position: relative;
+  overflow: visible;
+}
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(var(--radius) + 1px);
+  background: conic-gradient(
+    from var(--glow-angle),
+    transparent 0%,
+    rgba(29, 78, 216, 0.45) 10%,
+    rgba(99, 152, 255, 0.6) 20%,
+    transparent 30%,
+    transparent 70%,
+    rgba(220, 38, 38, 0.35) 80%,
+    rgba(29, 78, 216, 0.45) 90%,
+    transparent 100%
+  );
+  animation: glow-rotate 4s linear infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+.card-glow::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--radius) - 1px);
+  background: var(--surface);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ── 3. Shell ── */
@@ -325,7 +368,7 @@ body {
 .input-row select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(14, 124, 91, 0.14);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14);
 }
 
 .input-row input.input-error { border-color: var(--error-color); }
@@ -735,6 +778,79 @@ body {
 .val-warn { color: var(--warn); font-weight: 600; }
 .val-good { color: var(--accent); font-weight: 600; }
 
+/* ── s6 controls row (selector + recalc button) ── */
+.s6-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.s6-purpose-field { flex: 1; min-width: 240px; margin-bottom: 0 !important; }
+.s6-recalc-btn {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  align-self: flex-end;
+  margin-bottom: 4px;
+}
+.s6-recalc-btn:hover { background: var(--accent); color: white; }
+.s6-recalc-btn:disabled { border-color: #9ca3af; color: #9ca3af; cursor: not-allowed; }
+
+/* ── s6 savings note ── */
+.s6-savings-note {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--accent-active);
+  margin-bottom: 14px;
+}
+
+/* ── s6 two-column chart layout ── */
+.s6-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.s6-chart-panel {
+  display: flex;
+  flex-direction: column;
+}
+.s6-chart-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.s6-chart-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  min-height: 3.2em; /* fixed height so both chart panels align regardless of description length */
+}
+.s6-chart-wrap {
+  height: 240px;
+  min-height: 200px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .s6-charts-row { grid-template-columns: 1fr; }
+  .s6-controls { flex-direction: column; align-items: stretch; }
+  .s6-recalc-btn { width: 100%; }
+}
+
 /* ── 16. Tabs (manual mode) ── */
 .tab-strip { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
 
@@ -907,7 +1023,8 @@ body {
 
 /* ── s7 recommendation score card ── */
 .score-card {
-  background: var(--accent-dark);
+  /* background set dynamically by JS based on score (red→blue spectrum) */
+  background: #504060;
   color: white;
   border-radius: 12px;
   padding: 24px 28px;
@@ -915,15 +1032,22 @@ body {
 }
 /* score header row */
 .score-header { display: flex; align-items: center; gap: 18px; margin-bottom: 4px; }
-.score-number { font-size: 3rem; font-weight: 700; line-height: 1; flex-shrink: 0; }
+.score-number { font-size: 3rem; font-weight: 700; line-height: 1; flex-shrink: 0; color: white; }
 .score-grade-badge {
   display: inline-block; padding: 3px 12px; border-radius: 20px;
   font-size: 0.85rem; font-weight: 700; letter-spacing: 0.02em;
+  background: rgba(255,255,255,0.2);
 }
-.grade-excellent { background: #166534; }
-.grade-good      { background: #1e3a8a; }
-.grade-fair      { background: #92400e; }
-.grade-poor      { background: #7f1d1d; }
+.grade-excellent { background: rgba(255,255,255,0.22); }
+.grade-good      { background: rgba(255,255,255,0.18); }
+.grade-fair      { background: rgba(255,255,255,0.18); }
+.grade-poor      { background: rgba(255,255,255,0.18); }
+
+/* Score number always white on the colored card */
+.score-num-excellent { color: white; }
+.score-num-good      { color: white; }
+.score-num-fair      { color: white; }
+.score-num-poor      { color: white; }
 .score-vs-bench  { font-size: 0.8rem; opacity: 0.7; margin-top: 3px; }
 .score-label {
   font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase;
@@ -952,6 +1076,150 @@ body {
 .faq-topics { display: flex; flex-wrap: wrap; gap: 8px; }
 .faq-btn { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; }
 .faq-btn:hover { background: var(--accent); color: white; }
-.faq-answer { margin-top: 14px; background: #f5f9f5; border-radius: 8px; padding: 14px 16px; }
+.faq-answer { margin-top: 14px; background: var(--accent-soft); border-radius: 8px; padding: 14px 16px; }
 .faq-answer-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-dark); margin-bottom: 6px; }
 .faq-close-btn { background: none; border: none; color: var(--accent-dark); font-size: 0.8rem; cursor: pointer; margin-top: 8px; padding: 0; }
+
+/* ── t-info-btn: ⓘ icon button for tooltips ── */
+.t-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.75;
+  vertical-align: middle;
+}
+.t-info-btn:hover { opacity: 1; }
+
+/* ── Layout modal ── */
+.layout-modal {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0;
+  background: var(--surface);
+  max-width: 680px;
+  width: 92vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+}
+.layout-modal::backdrop { background: rgba(0,0,0,0.45); }
+.layout-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.layout-modal-header h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.layout-modal-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.layout-modal-close:hover { background: var(--bg); color: var(--text); }
+.layout-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px;
+}
+@media (max-width: 540px) { .layout-modal-body { grid-template-columns: 1fr; } }
+.layout-diagram {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--bg);
+}
+.layout-diagram-disabled { opacity: 0.5; }
+.layout-diagram-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.layout-status-badge {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #d1fae5;
+  color: #065f46;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.layout-status-coming {
+  background: #fef3c7;
+  color: #92400e;
+}
+.layout-diagram-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Cost scenario key ── */
+.cost-scenario-key {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ── GSHP equipment line ── */
+.cost-gshp-note { color: var(--text-faint); font-style: italic; }
+
+/* ── System cost summary card ── */
+.cost-system-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+
+.cost-system-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cost-system-rows { padding: 4px 0; }
+
+.cost-system-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: var(--text-main);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+.cost-system-row:last-child { border-bottom: none; }
+
+.cost-system-total {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent);
+  border-top: 2px solid var(--accent);
+  margin-top: 2px;
+}
