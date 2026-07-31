@@ -38,7 +38,7 @@ _PUBLIC_DATA = pathlib.Path(__file__).parent / "data" / "public"
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("landing.html")
 
 
 @app.route("/landing")
