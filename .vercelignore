@@ -1,0 +1,36 @@
+# Large simulation input files — not needed at runtime
+data/doe_prototypes/
+data/envelope_study/
+data/energyplus_cache/
+data/epw/
+data/idf_prototypes/
+data/cbecs/
+data/soil_cache/
+data/weather/
+data/research/
+data/wshp_validation/
+
+# Reference spreadsheets — not needed at runtime
+data/reference/
+
+# ML training data / models (app uses pre-computed JSON)
+data/ml/
+ml/
+
+# Dev/research artifacts
+notebooks/
+weekly_progress/
+docs/
+DESIGN-IS-2026-07-18/
+scripts/
+outputs/
+certs/
+
+# Test suite
+tests/
+conftest.py
+
+# Local env and personal files
+.env
+interview_prep_intersect.md
+overnight_summary.txt
