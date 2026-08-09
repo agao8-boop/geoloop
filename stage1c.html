@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GeoLoop — Building Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3f0;
+      --border: #dddbd7;
+      --text:   #1a1814;
+      --muted:  #7a7570;
+      --faint:  #a09c97;
+      --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html, body { height: 100%; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
+
+    /* Nav */
+    .nav { height: 52px; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid var(--border); background: rgba(245,243,240,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
+    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
+
+    /* Main */
+    .main { flex:1; display:flex; flex-direction:column; padding: 28px 24px 40px; }
+
+    /* ── TOP HEADER ── */
+    .top-header { display:flex; align-items:center; gap:16px; margin-bottom:28px; }
+    .stage-badge { width:48px; height:48px; border-radius:50%; background:var(--text); color:#f5f3f0; font-size:13px; font-weight:700; letter-spacing:-0.01em; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sub-stepper { flex:1; display:flex; align-items:center; }
+    .ss-dot { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+    .ss-dot.active  { background:#3d3936; color:#f5f3f0; }
+    .ss-dot.done    { background:#3d3936; color:#f5f3f0; font-size:14px; }
+    .ss-dot.pending { background:#dddbd7; color:var(--muted); }
+    .ss-line { flex:1; height:2px; }
+    .ss-line.dark { background:var(--text); }
+    .ss-line.gray { background:#dddbd7; }
+
+    /* ── SECTION HEADING ── */
+    .section-title { font-size: clamp(20px, 5.5vw, 26px); font-weight:700; letter-spacing:-0.025em; color:var(--text); margin-bottom: 6px; }
+    .section-sub   { font-size: 12px; color: var(--faint); font-weight:400; margin-bottom: 28px; line-height:1.5; }
+
+    /* ── FORM ── */
+    .form-area { flex:1; display:flex; flex-direction:column; }
+    .field { position:relative; margin-bottom: 28px; }
+    .field-header { display:flex; align-items:center; gap:7px; margin-bottom: 8px; }
+    .field-label { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.07em; text-transform:uppercase; }
+
+    .info-btn { width:17px; height:17px; border-radius:50%; border:1.5px solid var(--faint); background:transparent; color:var(--faint); font-size:9px; font-weight:700; font-style:italic; font-family:Georgia,serif; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0; line-height:1; transition:border-color 0.15s,color 0.15s; }
+    .info-btn:hover { border-color:var(--muted); color:var(--muted); }
+
+    .tooltip { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#1a1814; color:#f5f3f0; font-size:11px; font-family:var(--font); line-height:1.55; padding:10px 13px; border-radius:9px; max-width:260px; z-index:50; box-shadow:0 6px 20px rgba(0,0,0,0.18); }
+    .tooltip::before { content:''; position:absolute; top:-5px; left:20px; width:10px; height:5px; background:#1a1814; clip-path:polygon(50% 0%,100% 100%,0% 100%); }
+    .tooltip.show { display:block; }
+
+    select {
+      width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px;
+      font-family:var(--font); font-size:15px; font-weight:400; color:var(--text);
+      background:#fff; outline:none; transition:border-color 0.15s; -webkit-appearance:none; appearance:none;
+    }
+    select:focus { border-color:var(--text); }
+    .field-hint { font-size:11px; color:var(--faint); margin-top:6px; line-height:1.4; }
+
+    /* Select arrow */
+    .select-wrap { position:relative; }
+    .select-wrap::after { content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%); width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid var(--muted); pointer-events:none; }
+
+    /* ── WWR CONTINUOUS SLIDER ── */
+    .wwr-row { display:flex; align-items:center; gap:14px; }
+    .wwr-track { flex:1; }
+    input[type="range"] {
+      -webkit-appearance:none; appearance:none; width:100%; height:4px;
+      background:var(--border); border-radius:2px; outline:none; cursor:pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance:none; appearance:none; width:22px; height:22px;
+      border-radius:50%; background:var(--text); border:none; cursor:pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width:22px; height:22px; border-radius:50%; background:var(--text); border:none; cursor:pointer;
+    }
+    .wwr-val { min-width:42px; text-align:right; font-size:15px; font-weight:600; color:var(--text); letter-spacing:-0.01em; }
+    .slider-ends { display:flex; justify-content:space-between; margin-top:5px; font-size:10px; color:var(--faint); }
+
+    /* ── INFILTRATION SNAP SLIDER (3-stop) ── */
+    .snap-wrap { position:relative; margin-bottom:8px; height:22px; }
+    .snap-wrap input[type="range"] { position:absolute; top:50%; transform:translateY(-50%); left:0; width:100%; }
+    /* snap-marks: child dots are absolutely placed at exact thumb-center positions.
+       Thumb is 22px wide → centers at 11px, 50%, and (100% - 11px) from input edge.
+       Dot is 10px → offset by 5px so its center lands on those positions. */
+    .snap-marks { position:absolute; top:0; bottom:0; left:0; right:0; pointer-events:none; }
+    .snap-mark {
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:10px; height:10px; border-radius:50%;
+      background:var(--border);
+      transition:background 0.15s;
+    }
+    .snap-mark[data-idx="0"] { left:6px; }        /* 11px thumb-center - 5px dot-radius */
+    .snap-mark[data-idx="1"] { left:calc(50% - 5px); }
+    .snap-mark[data-idx="2"] { right:6px; }       /* mirrored */
+    .snap-mark.selected { background:var(--text); }
+    .snap-labels { display:flex; justify-content:space-between; font-size:11px; }
+    .snap-labels span { flex:1; color:var(--muted); }
+    .snap-labels span:first-child { text-align:left; }
+    .snap-labels span:nth-child(2) { text-align:center; }
+    .snap-labels span:last-child { text-align:right; }
+    .snap-sublabels { display:flex; justify-content:space-between; font-size:10px; margin-top:2px; }
+    .snap-sublabels span { flex:1; color:var(--faint); }
+    .snap-sublabels span:first-child { text-align:left; }
+    .snap-sublabels span:nth-child(2) { text-align:center; }
+    .snap-sublabels span:last-child { text-align:right; }
+
+    /* ── BOTTOM BUTTON ── */
+    .btn-bottom { margin-top:auto; padding-top:28px; display:flex; justify-content:center; align-items:center; gap:16px; }
+    .back-btn { position:relative; display:inline-flex; align-items:center; justify-content:center; overflow:visible; isolation:isolate; background:transparent; color:var(--text); font-family:var(--font); font-weight:700; font-size:0.95rem; letter-spacing:0.01em; line-height:1; padding:11px 20px; border-radius:100px; border:none; cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; transition:transform 0.15s ease; }
+    .back-btn:active { transform:scale(0.97); }
+    .back-btn .sb-fx { position:absolute; inset:-20px; pointer-events:none; z-index:1; }
+    .back-btn .sb-fx canvas { display:block; width:100%; height:100%; }
+    .back-btn .sb-label { position:relative; z-index:2; white-space:nowrap; }
+    #analyze-btn { position:relative; display:inline-flex; align-items:center; justify-content:center; overflow:visible; isolation:isolate; background:transparent; color:var(--text); font-family:var(--font); font-weight:700; font-size:0.95rem; letter-spacing:0.01em; line-height:1; padding:11px 28px; min-width:160px; border-radius:100px; border:none; cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; transition:transform 0.15s ease; }
+    #analyze-btn:active { transform:scale(0.97); }
+    #analyze-btn .sb-fx { position:absolute; inset:-20px; pointer-events:none; z-index:1; }
+    #analyze-btn .sb-fx canvas { display:block; width:100%; height:100%; }
+    #analyze-btn .sb-label { position:relative; z-index:2; }
+
+    @media (min-width:640px) { .nav { padding:0 32px; } .main { padding:36px 40px 48px; } }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="welcome.html">
+    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
+    </svg>
+    <span class="nav-name">GeoLoop</span>
+  </a>
+</nav>
+
+<main class="main">
+
+  <div class="top-header">
+    <div class="stage-badge">1/3</div>
+    <div class="sub-stepper" aria-label="Step 3 of 3">
+      <div class="ss-dot done">✓</div>
+      <div class="ss-line dark"></div>
+      <div class="ss-dot done">✓</div>
+      <div class="ss-line dark"></div>
+      <div class="ss-dot active">3</div>
+    </div>
+  </div>
+
+  <div class="section-title">Building Design</div>
+  <div class="section-sub">Defaults are auto-set from building age. Only override if this building has been retrofitted.</div>
+
+  <div class="form-area">
+
+    <!-- Window-Wall Ratio (continuous) -->
+    <div class="field">
+      <div class="field-header">
+        <span class="field-label">Window-Wall Ratio (WWR)</span>
+        <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
+        <div class="tooltip">Fraction of façade area that is glazed. Affects solar gain and heating/cooling loads. 30% is the ASHRAE 90.1 punched-window baseline.</div>
+      </div>
+      <div class="wwr-row">
+        <div class="wwr-track">
+          <input type="range" id="wwr" min="0.10" max="0.90" step="0.05" value="0.30"
+                 oninput="document.getElementById('wwr-val').textContent=Math.round(this.value*100)+'%'">
+          <div class="slider-ends"><span>10% minimal glazing</span><span>90% all-glass</span></div>
+        </div>
+        <div class="wwr-val" id="wwr-val">30%</div>
+      </div>
+    </div>
+
+    <!-- Infiltration & Insulation (3-stop snap slider) -->
+    <div class="field">
+      <div class="field-header">
+        <span class="field-label">Infiltration &amp; Insulation</span>
+        <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
+        <div class="tooltip">Air leakage rate and insulation quality. Affects heating and cooling loads. Tight = post-2015 high-performance; Standard = code minimum; Leaky = pre-1990 below code.</div>
+      </div>
+      <div class="snap-wrap">
+        <input type="range" id="infiltration" min="0" max="2" step="1" value="1"
+               oninput="updateInfiltration(this.value)">
+        <div class="snap-marks">
+          <div class="snap-mark" data-idx="0"></div>
+          <div class="snap-mark selected" data-idx="1"></div>
+          <div class="snap-mark" data-idx="2"></div>
+        </div>
+      </div>
+      <div class="snap-labels">
+        <span>Tight</span>
+        <span>Standard</span>
+        <span>Leaky</span>
+      </div>
+      <div class="snap-sublabels">
+        <span>≤0.5 ACH</span>
+        <span>0.5–1.5 ACH</span>
+        <span>&gt;1.5 ACH</span>
+      </div>
+    </div>
+
+    <!-- Glazing -->
+    <div class="field">
+      <div class="field-header">
+        <span class="field-label">Glazing</span>
+        <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
+        <div class="tooltip">Window construction type. Affects U-value and solar heat gain coefficient used in the EnergyPlus simulation.</div>
+      </div>
+      <div class="select-wrap">
+        <select id="glazing">
+          <option value="unknown" selected>Default, auto-set for building age</option>
+          <option value="triple">Triple-pane low-E · U ≈ 0.8–1.2 W/m²K (post-2010)</option>
+          <option value="double">Double-pane low-E · U ≈ 1.4–2.0 W/m²K (post-2000)</option>
+          <option value="double_legacy">Double-pane clear · U ≈ 2.5–3.2 W/m²K (pre-2000)</option>
+          <option value="single">Single-pane · U ≈ 5.5–6.5 W/m²K (pre-1980)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-bottom">
+      <button class="back-btn" onclick="history.back()"><span class="sb-label">‹ Back</span></button>
+      <button id="analyze-btn" onclick="analyze()">
+        <span class="sb-fx"><canvas></canvas></span>
+        <span class="sb-label">Analyze Site &amp; Loads</span>
+      </button>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ── Tooltip ──
+function toggleTip(btn) {
+  const tip = btn.nextElementSibling;
+  const isOpen = tip.classList.contains('show');
+  document.querySelectorAll('.tooltip.show').forEach(t => t.classList.remove('show'));
+  if (!isOpen) tip.classList.add('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.info-btn')) document.querySelectorAll('.tooltip.show').forEach(t => t.classList.remove('show'));
+});
+
+// ── Infiltration 3-stop snap slider ──
+const INFIL_API = ['high', 'standard', 'low']; // maps slider 0/1/2 → API values
+function updateInfiltration(v) {
+  const i = parseInt(v);
+  document.querySelectorAll('.snap-mark').forEach((m, idx) => {
+    m.classList.toggle('selected', idx === i);
+  });
+}
+// init marks on load
+updateInfiltration(document.getElementById('infiltration').value);
+
+// ── Analyze ──
+function analyze() {
+  const wwr = parseFloat(document.getElementById('wwr').value);
+  const infiltrationIdx = parseInt(document.getElementById('infiltration').value);
+  const glazing = document.getElementById('glazing').value;
+
+  sessionStorage.setItem('gl_wwr', wwr);
+  sessionStorage.setItem('gl_envelope', INFIL_API[infiltrationIdx]);
+  sessionStorage.setItem('gl_glazing', glazing);
+
+  const params = new URLSearchParams({
+    zip:            sessionStorage.getItem('gl_zip')            || '',
+    building_type:  sessionStorage.getItem('gl_building_type')  || '',
+    floor_area_m2:  sessionStorage.getItem('gl_area')           || '',
+    num_floors:     sessionStorage.getItem('gl_floors')         || '',
+    footprint_shape:sessionStorage.getItem('gl_footprint_shape')|| 'rect_2_1',
+    building_age:   sessionStorage.getItem('gl_building_age')   || 'existing',
+    s_wwr:          'wwr_' + Math.round(wwr * 100),
+    s_envelope:     INFIL_API[infiltrationIdx],
+    s_glazing:      glazing,
+    roles:          sessionStorage.getItem('gl_roles')          || ''
+  });
+
+  window.location.href = 'result_1.html?' + params.toString();
+}
+
+// ── SpecularButton WebGL ──
+(function () {
+  const btn = document.getElementById('analyze-btn');
+  const PAD=20, DPR=Math.min(window.devicePixelRatio||1, 2);
+  const RADIUS=100, LINE_COL='#7a6a5a', BASE_COL='#c4a882', INTENSITY=1, SHINE_SZ=10, SHINE_FD=40, THICKNESS=1, SPEED=0.35, PROXIMITY=220;
+  const fx=document.createElement('span'); fx.className='sb-fx'; btn.insertBefore(fx,btn.firstChild);
+  const cv=document.createElement('canvas'); Object.assign(cv.style,{display:'block',width:'100%',height:'100%'}); fx.appendChild(cv);
+  const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:true}); if(!gl) return;
+  gl.clearColor(0,0,0,0); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+  const V=`#version 300 es\nin vec2 p;\nvoid main(){gl_Position=vec4(p,0,1);}`;
+  const F=`#version 300 es
+precision highp float;
+uniform vec2 uC,uH; uniform float uR,uA,uPx,uI,uSS,uSF,uT,uBW; uniform vec3 uLC,uBC; out vec4 o;
+float sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+float gL(float d,float s){float x=d/(s+1e-6);float k=mix(1.,1.6,smoothstep(0.,1.5,x));return exp(-k*x*x);}
+void main(){vec2 p=gl_FragCoord.xy-uC;float d=sdRR(p,uH,uR);vec2 L=vec2(cos(uA),sin(uA));float base=(1.-smoothstep(0.,uBW,abs(d)))*.45;vec2 n=normalize(p/(uH*uH)+1e-6);float phi=acos(clamp(abs(dot(n,L)),0.,1.));float rim=1.-smoothstep(uSS-uSF,uSS+uSF+1e-4,phi);float line=gL(d,uT);float ec=1.-smoothstep(.5*uPx,3.*uPx,abs(d));float hi=line*rim*ec*uI;vec3 col=uBC*base+uLC*hi;o=vec4(col,clamp(base+hi,0.,1.));}`;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;};
+  const pr=gl.createProgram(); gl.attachShader(pr,mk(gl.VERTEX_SHADER,V)); gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,F)); gl.linkProgram(pr); gl.useProgram(pr);
+  const vb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vb); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const va=gl.createVertexArray(); gl.bindVertexArray(va); const pl=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(pl); gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
+  const U=Object.fromEntries(['uC','uH','uR','uA','uPx','uI','uSS','uSF','uT','uBW','uLC','uBC'].map(n=>[n,gl.getUniformLocation(pr,n)]));
+  const h2r=h=>{const c=h.replace('#','');return[parseInt(c.slice(0,2),16)/255,parseInt(c.slice(2,4),16)/255,parseInt(c.slice(4,6),16)/255];};
+  let W=1,H=1;
+  const rsz=()=>{const r=btn.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round((W+PAD*2)*DPR);cv.height=Math.round((H+PAD*2)*DPR);gl.viewport(0,0,cv.width,cv.height);gl.uniform2fv(U.uC,[(PAD+W/2)*DPR,(PAD+H/2)*DPR]);gl.uniform2fv(U.uH,[(W/2)*DPR,(H/2)*DPR]);};
+  new ResizeObserver(rsz).observe(btn); rsz();
+  let pA=null,pT=0; window.addEventListener('pointermove',e=>{const r=btn.getBoundingClientRect();const cx=r.left+W/2,cy=r.top+H/2;const dx=Math.max(r.left-e.clientX,0,e.clientX-r.right),dy=Math.max(r.top-e.clientY,0,e.clientY-r.bottom);const d=Math.hypot(dx,dy);pA=d===0?Math.atan2(2/H,-2/W)+((e.clientX-cx)/(W/2))*.3+((cy-e.clientY)/(H/2))*.15:Math.atan2(cy-e.clientY,e.clientX-cx);pT=Math.pow(Math.max(0,1-d/PROXIMITY),2)*(3-2*Math.max(0,1-d/PROXIMITY));});
+  const lR=h2r(LINE_COL),bR=h2r(BASE_COL); let ang=2.4,idle=2.4,br=0,last=performance.now();
+  (function fr(now){const dt=Math.min((now-last)/1000,.05);last=now;idle+=SPEED*dt;const df=(((pA!==null?pA:idle)-ang+Math.PI*3)%(Math.PI*2))-Math.PI;ang+=df*(1-Math.exp(-dt*7));br+=(pT-br)*(1-Math.exp(-dt*8));const r=Math.min(RADIUS,Math.min(W,H)/2);gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(U.uA,ang);gl.uniform1f(U.uR,r*DPR);gl.uniform1f(U.uPx,DPR);gl.uniform3fv(U.uLC,lR);gl.uniform3fv(U.uBC,bR);gl.uniform1f(U.uI,INTENSITY*br);gl.uniform1f(U.uSS,(SHINE_SZ*Math.PI)/180);gl.uniform1f(U.uSF,(SHINE_FD*Math.PI)/180);gl.uniform1f(U.uT,THICKNESS*DPR);gl.uniform1f(U.uBW,DPR);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(fr);})(performance.now());
+})();
+// ── SpecularButton — Back ──
+(function(){const btn=document.querySelector('.back-btn');if(!btn)return;const PAD=20,DPR=Math.min(window.devicePixelRatio||1,2);const RADIUS=100,LINE_COL='#7a6a5a',BASE_COL='#c4a882',INTENSITY=1,SHINE_SZ=10,SHINE_FD=40,THICKNESS=1,SPEED=0.35,PROXIMITY=220;const fx=document.createElement('span');fx.className='sb-fx';btn.insertBefore(fx,btn.firstChild);const cv=document.createElement('canvas');Object.assign(cv.style,{display:'block',width:'100%',height:'100%'});fx.appendChild(cv);const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:true});if(!gl)return;gl.clearColor(0,0,0,0);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);const V=`#version 300 es\nin vec2 p;\nvoid main(){gl_Position=vec4(p,0,1);}`;const F=`#version 300 es\nprecision highp float;\nuniform vec2 uC,uH;uniform float uR,uA,uPx,uI,uSS,uSF,uT,uBW;uniform vec3 uLC,uBC;out vec4 o;\nfloat sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}\nfloat gL(float d,float s){float x=d/(s+1e-6);float k=mix(1.,1.6,smoothstep(0.,1.5,x));return exp(-k*x*x);}\nvoid main(){vec2 p=gl_FragCoord.xy-uC;float d=sdRR(p,uH,uR);vec2 L=vec2(cos(uA),sin(uA));float base=(1.-smoothstep(0.,uBW,abs(d)))*.45;vec2 n=normalize(p/(uH*uH)+1e-6);float phi=acos(clamp(abs(dot(n,L)),0.,1.));float rim=1.-smoothstep(uSS-uSF,uSS+uSF+1e-4,phi);float line=gL(d,uT);float ec=1.-smoothstep(.5*uPx,3.*uPx,abs(d));float hi=line*rim*ec*uI;vec3 col=uBC*base+uLC*hi;o=vec4(col,clamp(base+hi,0.,1.));}`;const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;};const pr=gl.createProgram();gl.attachShader(pr,mk(gl.VERTEX_SHADER,V));gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,F));gl.linkProgram(pr);gl.useProgram(pr);const vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const va=gl.createVertexArray();gl.bindVertexArray(va);const al=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);const U=Object.fromEntries(['uC','uH','uR','uA','uPx','uI','uSS','uSF','uT','uBW','uLC','uBC'].map(n=>[n,gl.getUniformLocation(pr,n)]));const h2r=h=>{const c=h.replace('#','');return[parseInt(c.slice(0,2),16)/255,parseInt(c.slice(2,4),16)/255,parseInt(c.slice(4,6),16)/255];};let W=1,H=1;const rsz=()=>{const r=btn.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round((W+PAD*2)*DPR);cv.height=Math.round((H+PAD*2)*DPR);gl.viewport(0,0,cv.width,cv.height);gl.uniform2fv(U.uC,[(PAD+W/2)*DPR,(PAD+H/2)*DPR]);gl.uniform2fv(U.uH,[(W/2)*DPR,(H/2)*DPR]);};new ResizeObserver(rsz).observe(btn);rsz();let pA=null,pT=0;window.addEventListener('pointermove',e=>{const r=btn.getBoundingClientRect();const cx=r.left+W/2,cy=r.top+H/2;const dx=Math.max(r.left-e.clientX,0,e.clientX-r.right),dy=Math.max(r.top-e.clientY,0,e.clientY-r.bottom);const dist=Math.hypot(dx,dy);pA=dist===0?Math.atan2(2/H,-2/W)+((e.clientX-cx)/(W/2))*.3+((cy-e.clientY)/(H/2))*.15:Math.atan2(cy-e.clientY,e.clientX-cx);pT=Math.pow(Math.max(0,1-dist/PROXIMITY),2)*(3-2*Math.max(0,1-dist/PROXIMITY));},{passive:true});const lR=h2r(LINE_COL),bR=h2r(BASE_COL);let ang=2.4,idle=2.4,br=0,last=performance.now();(function fr(now){const dt=Math.min((now-last)/1000,.05);last=now;idle+=SPEED*dt;const df=(((pA!==null?pA:idle)-ang+Math.PI*3)%(Math.PI*2))-Math.PI;ang+=df*(1-Math.exp(-dt*7));br+=(pT-br)*(1-Math.exp(-dt*8));const r=Math.min(RADIUS,Math.min(W,H)/2);gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(U.uA,ang);gl.uniform1f(U.uR,r*DPR);gl.uniform1f(U.uPx,DPR);gl.uniform3fv(U.uLC,lR);gl.uniform3fv(U.uBC,bR);gl.uniform1f(U.uI,INTENSITY*br);gl.uniform1f(U.uSS,(SHINE_SZ*Math.PI)/180);gl.uniform1f(U.uSF,(SHINE_FD*Math.PI)/180);gl.uniform1f(U.uT,THICKNESS*DPR);gl.uniform1f(U.uBW,DPR);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(fr);})(performance.now());})();
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoLoop — iPhone Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 40px 20px;
+  }
+
+  .scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .label {
+    color: #4b5563;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* iPhone 15 shell — 390×844 logical px */
+  .phone {
+    position: relative;
+    width: 393px;
+    height: 852px;
+    background: #1a1a1a;
+    border-radius: 54px;
+    box-shadow:
+      inset 0 0 0 1.5px #3a3a3a,
+      inset 0 0 0 3px #141414,
+      0 40px 80px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  /* Side buttons */
+  .phone::before {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: 160px;
+    width: 3px;
+    height: 76px;
+    background: #2a2a2a;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 100px 0 #2a2a2a;
+  }
+  .phone::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 128px;
+    width: 3px;
+    height: 36px;
+    background: #2a2a2a;
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 52px 0 #2a2a2a, 0 104px 0 #2a2a2a;
+  }
+
+  /* Screen area */
+  .screen {
+    position: absolute;
+    inset: 6px;
+    border-radius: 49px;
+    overflow: hidden;
+    background: #faf7f2; /* match welcome.html --bg so status bar gap is seamless */
+  }
+
+  /* Dynamic island */
+  .dynamic-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 10;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+  }
+
+  /* Status bar — sits above iframe, page-color background so it blends */
+  .status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 59px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 28px 8px;
+    z-index: 9;
+    pointer-events: none;
+    background: rgba(250,247,242,0.96);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .status-time {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+  }
+
+  .status-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-icons svg {
+    fill: #1a1a1a;
+  }
+
+  /* Page iframe — starts below the 59px status bar so content isn't hidden */
+  .page-frame {
+    position: absolute;
+    top: 59px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(100% - 59px);
+    border: none;
+    border-radius: 0 0 49px 49px;
+  }
+
+  /* Home indicator */
+  .home-bar {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 3px;
+    z-index: 10;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    max-width: 500px;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+    background: #161616;
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn:hover { background: #222; color: #e5e7eb; }
+  .btn.active { background: #1d4ed8; border-color: #2563eb; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="label">iPhone 15 Preview — 393 × 852</div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="dynamic-island"></div>
+
+      <div class="status-bar" id="statusBar">
+        <span class="status-time" id="clock">9:41</span>
+        <div class="status-icons">
+          <!-- Signal -->
+          <svg width="17" height="12" viewBox="0 0 17 12">
+            <rect x="0" y="8" width="3" height="4" rx="0.5"/>
+            <rect x="4.5" y="5.5" width="3" height="6.5" rx="0.5"/>
+            <rect x="9" y="3" width="3" height="9" rx="0.5"/>
+            <rect x="13.5" y="0" width="3" height="12" rx="0.5"/>
+          </svg>
+          <!-- WiFi -->
+          <svg width="16" height="12" viewBox="0 0 16 12">
+            <path d="M8 10a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+            <path d="M3.5 6.5C4.9 5.1 6.4 4.3 8 4.3s3.1.8 4.5 2.2" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M1 3.5C3 1.5 5.4 0.3 8 0.3s5 1.2 7 3.2" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <!-- Battery -->
+          <svg width="25" height="12" viewBox="0 0 25 12">
+            <rect x="0" y="1" width="21" height="10" rx="2.5" stroke="#1a1a1a" stroke-width="1.2" fill="none"/>
+            <rect x="22" y="3.5" width="2" height="5" rx="1" fill="#1a1a1a" opacity="0.4"/>
+            <rect x="1.5" y="2.5" width="16" height="7" rx="1.5" fill="#1a1a1a"/>
+          </svg>
+        </div>
+      </div>
+
+      <iframe
+        class="page-frame"
+        id="pageFrame"
+        src="/welcome.html"
+        title="GeoLoop welcome page"
+      ></iframe>
+
+      <div class="home-bar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Live clock matching iOS style
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours() % 12 || 12;
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}`;
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
+</script>
+</body>
+</html>

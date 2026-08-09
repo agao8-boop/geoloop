@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GeoLoop — Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3f0;
+      --border: #dddbd7;
+      --text:   #1a1814;
+      --muted:  #7a7570;
+      --faint:  #a09c97;
+      --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
+
+    .nav { height:52px; display:flex; align-items:center; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; justify-content:space-between; }
+    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
+    .nav-back  { font-size:13px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:var(--font); padding:4px 8px; }
+
+    .main { padding:28px 24px 40px; }
+
+    .loading { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:300px; gap:16px; color:var(--muted); font-size:13px; }
+    .spinner { width:32px; height:32px; border:2.5px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .error-msg { text-align:center; padding:40px 24px; color:#e05c4a; font-size:13px; line-height:1.7; }
+
+    .report-head { margin-bottom:24px; }
+    .report-title { font-size:clamp(22px,6vw,30px); font-weight:800; letter-spacing:-0.03em; margin-bottom:4px; }
+    .report-sub { font-size:12px; color:var(--faint); line-height:1.6; }
+
+    /* Score card */
+    .score-card { border-radius:16px; padding:18px; margin-bottom:24px; color:white; }
+    .score-header { display:flex; align-items:flex-start; gap:14px; margin-bottom:10px; }
+    .score-number { font-size:48px; font-weight:800; letter-spacing:-0.04em; line-height:1; }
+    .score-number.score-excellent { color:#a8f0d8; }
+    .score-number.score-good      { color:#bde4ff; }
+    .score-number.score-fair      { color:#ffd88a; }
+    .score-number.score-poor      { color:#ffb3a4; }
+    .score-grade { display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:white; margin-bottom:4px; }
+    .score-delta { font-size:12px; color:rgba(255,255,255,0.75); }
+    .score-label { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.7); margin-bottom:12px; }
+    .score-bench { font-size:11px; color:rgba(255,255,255,0.6); margin-bottom:16px; line-height:1.5; }
+    .factor-row { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+    .factor-label-row { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+    .factor-label-text { font-size:11px; color:rgba(255,255,255,0.8); }
+    .factor-score-wrap { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .factor-pts { font-size:11px; color:rgba(255,255,255,0.8); }
+    .factor-expand-btn { width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,0.2); color:white; border:none; cursor:pointer; font-size:13px; font-weight:300; display:flex; align-items:center; justify-content:center; flex-shrink:0; line-height:1; -webkit-tap-highlight-color:transparent; padding:0; }
+    .factor-bar-bg { height:6px; background:rgba(255,255,255,0.2); border-radius:3px; }
+    .factor-bar { height:6px; background:rgba(255,255,255,0.75); border-radius:3px; transition:width 0.6s ease; }
+    .factor-note { font-size:10px; color:rgba(255,255,255,0.6); line-height:1.5; padding-top:4px; }
+
+    /* PDF button */
+    .pdf-btn { font-family:var(--font); font-size:14px; font-weight:600; color:var(--text); background:white; border:1.5px solid var(--border); border-radius:100px; padding:12px 32px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:opacity 0.15s; }
+    .pdf-btn:active { opacity:0.7; }
+
+    @media print {
+      .nav, .nav-back, .actions { display:none !important; }
+      body { background:white; padding-bottom:0; }
+      .main { padding-bottom:0; }
+      .score-card { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .result-card, .canvas-wrap, .cost-compare .cost-col { break-inside:avoid; }
+      /* FAQ: start on new page, keep all answers expanded, no internal breaks */
+      #faq-section-label { break-before:page; }
+      .faq-a { display:block !important; }
+      .faq-circle { transform:rotate(45deg); }
+      .faq-item { break-inside:avoid; }
+      /* No trailing empty page */
+      #report-state > *:last-child { margin-bottom:0; }
+    }
+
+    .section-label { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.12em; text-transform:uppercase; margin:24px 0 10px; }
+
+    .result-card { background:white; border:1.5px solid var(--border); border-radius:16px; padding:18px; margin-bottom:12px; }
+    .card-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:14px; }
+    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .stat-grid.three { grid-template-columns:1fr 1fr 1fr; }
+    .stat { display:flex; flex-direction:column; gap:4px; }
+    .stat-val { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1; }
+    .stat-unit { font-size:12px; font-weight:400; color:var(--faint); margin-left:3px; }
+    .stat-lbl { font-size:11px; color:var(--muted); line-height:1.4; }
+    .divider { height:1px; background:var(--border); margin:14px 0; }
+
+    .detail-row { display:flex; justify-content:space-between; align-items:flex-start; font-size:12px; padding:7px 0; border-bottom:1px solid var(--border); gap:12px; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-row .dv { font-weight:600; text-align:right; flex-shrink:0; max-width:55%; }
+    .muted-note { font-size:11px; color:var(--muted); line-height:1.6; margin-top:8px; }
+    .warn-row { font-size:11px; color:#b45309; background:#fef3c7; border-radius:8px; padding:8px 12px; margin-top:6px; line-height:1.5; }
+
+    .canvas-wrap { background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
+    .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 8px; }
+    #rp-canvas { display:block; width:100%; height:220px; }
+
+    .cost-compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+    .cost-col { background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; }
+    .cost-col.hi { border-color:var(--text); }
+    .cost-head { font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); margin-bottom:8px; }
+    .cost-head.hi { color:var(--text); }
+    .cost-val { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
+    .cost-sub { font-size:10px; color:var(--muted); margin-top:3px; }
+
+    .faq-item { border-bottom:1px solid var(--border); }
+    .faq-item:last-child { border-bottom:none; }
+    .faq-q { display:flex; align-items:center; gap:14px; padding:14px 0; cursor:pointer; user-select:none; }
+    .faq-circle { width:32px; height:32px; border-radius:50%; background:var(--text); color:#f5f3f0; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:300; flex-shrink:0; line-height:1; transition:transform 0.2s; }
+    .faq-circle.open { transform:rotate(45deg); }
+    .faq-q-text { font-size:13px; font-weight:600; color:var(--text); line-height:1.4; }
+    .faq-a { display:none; font-size:12px; color:var(--muted); line-height:1.7; padding:0 0 14px 46px; }
+    .faq-a.open { display:block; }
+
+    .actions { display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:32px; }
+    .new-analysis-btn { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--muted); cursor:pointer; padding:4px; text-decoration:underline; text-underline-offset:3px; }
+
+    @media (min-width:640px) { .nav { padding:0 32px; } .main { padding:36px 40px 60px; } }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="welcome.html">
+    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
+    </svg>
+    <span class="nav-name">GeoLoop</span>
+  </a>
+  <button class="nav-back" onclick="history.back()">Back</button>
+</nav>
+
+<main class="main">
+
+  <div id="loading-state" class="loading">
+    <div class="spinner"></div>
+    <span>Generating report…</span>
+  </div>
+
+  <div id="error-state" style="display:none" class="error-msg"></div>
+
+  <div id="report-state" style="display:none">
+
+    <div class="report-head">
+      <div class="report-title">GeoLoop Report</div>
+      <div class="report-sub" id="rp-location">Geothermal feasibility analysis</div>
+    </div>
+
+    <!-- Score Card -->
+    <div id="score-card" class="score-card" style="display:none"></div>
+
+    <!-- Borefield Layout -->
+    <div class="section-label">Borefield Layout Plan</div>
+    <div class="canvas-wrap">
+      <div class="canvas-label">Site Plan</div>
+      <canvas id="rp-canvas"></canvas>
+    </div>
+
+    <!-- System Design -->
+    <div class="section-label">System Design</div>
+    <div class="result-card" id="design-card">
+      <div id="design-rows"></div>
+    </div>
+
+    <!-- Estimated Performance -->
+    <div class="section-label" id="perf-label" style="display:none">Estimated Performance</div>
+    <div class="result-card" id="perf-card" style="display:none">
+      <div id="perf-rows"></div>
+    </div>
+
+    <!-- Cost & Savings -->
+    <div class="section-label" id="cost-label" style="display:none">Cost & Savings</div>
+    <div id="cost-section" style="display:none">
+      <div class="cost-compare">
+        <div class="cost-col hi">
+          <div class="cost-head hi">GSHP System</div>
+          <div class="cost-val" id="rp-gshp-cost">—</div>
+          <div class="cost-sub">drilling + equipment</div>
+        </div>
+        <div class="cost-col">
+          <div class="cost-head">Conv. HVAC</div>
+          <div class="cost-val" id="rp-conv-cost">—</div>
+          <div class="cost-sub" id="rp-conv-psf-sub">regional benchmark</div>
+        </div>
+      </div>
+      <div class="result-card">
+        <div id="cost-rows"></div>
+      </div>
+    </div>
+
+    <!-- Design Advisor FAQ -->
+    <div class="section-label" id="faq-section-label">Design Advisor</div>
+    <div class="result-card" style="padding:0 18px">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <div class="faq-circle">+</div>
+          <span class="faq-q-text">Why these boreholes?</span>
+        </div>
+        <div class="faq-a" id="faq-boreholes">The number and depth of boreholes were determined using the Philippe et al. (2010) ASHRAE three-pulse method, which accounts for short-term (1-hour), monthly, and annual heat pulses into the ground. Soil thermal conductivity was predicted from USGS geological data. Building loads were derived from DOE EnergyPlus prototype models scaled to your building type and climate zone.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <div class="faq-circle">+</div>
+          <span class="faq-q-text">Heating vs cooling?</span>
+        </div>
+        <div class="faq-a" id="faq-mode">The borefield is sized for the governing design condition. If heating dominates, the borefield is sized to extract heat from the ground in winter. If cooling dominates, it rejects heat in summer. The non-governing season is also served by the same borefield, but at a lower load. Thermal imbalance occurs when one season extracts significantly more heat than the other injects, which can cause long-term ground temperature drift.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <div class="faq-circle">+</div>
+          <span class="faq-q-text">How does cost compare?</span>
+        </div>
+        <div class="faq-a" id="faq-cost">GSHP systems typically have higher upfront installation costs than conventional HVAC but lower operating costs due to higher efficiency. The conventional benchmark shown is for the heating and cooling plant only (excluding interior air distribution). The GSHP cost includes borefield drilling and heat pump equipment. Operating cost estimates assume US EIA average commercial energy rates.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <div class="faq-circle">+</div>
+          <span class="faq-q-text">What is the peaker?</span>
+        </div>
+        <div class="faq-a" id="faq-peaker">A hybrid system adds a small supplemental heating or cooling unit (the peaker) to handle only the top peak loads, typically the highest 5 to 15 percent of hours per year. By sizing the borefield for the majority of loads rather than the absolute peak, you reduce drilling length and upfront cost while maintaining high efficiency for most operating hours. The GSHP handles the base load; the peaker handles the extreme peaks.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <div class="faq-circle">+</div>
+          <span class="faq-q-text">Is the soil good?</span>
+        </div>
+        <div class="faq-a" id="faq-soil">Higher thermal conductivity means heat moves through the ground more easily, reducing the total borehole length needed. The conductivity value used here was predicted from USGS geological data using machine learning models. For high-value projects, an in-situ Thermal Response Test can confirm this value and may allow a less conservative final design. Higher ground temperature also affects heat pump efficiency.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <div class="faq-circle">+</div>
+          <span class="faq-q-text">Next steps?</span>
+        </div>
+        <div class="faq-a">1. Share this report with 2 to 3 licensed geothermal contractors for competitive bids. 2. Request a Thermal Response Test to confirm soil properties. 3. Verify drilling permits with your local building department. 4. Engage a mechanical engineer for detailed loop design, pump selection, and heat pump specification.</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="pdf-btn" onclick="window.print()">Generate PDF</button>
+      <button class="new-analysis-btn" onclick="startOver()">New Analysis</button>
+    </div>
+
+  </div><!-- /report-state -->
+</main>
+
+<script src="http://127.0.0.1:5001/static/borehole_plan.js"></script>
+<script>
+const FLASK = 'http://127.0.0.1:5001';
+const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Footprint feasibility': 25 };
+
+(async function generate() {
+  const r1       = JSON.parse(sessionStorage.getItem('gl_result1')         || '{}');
+  const sizing   = JSON.parse(sessionStorage.getItem('gl_result_final')    || '{}');
+  const strategy = JSON.parse(sessionStorage.getItem('gl_strategy_result') || 'null');
+  const cost     = JSON.parse(sessionStorage.getItem('gl_cost_result')     || 'null');
+
+  const site  = r1.site  || sizing.site_passthrough || {};
+  const loads = r1.loads || {};
+
+  // Annual heat/cool: prefer server-computed values (added to strategy response),
+  // fall back to client-side loop over hourly_profile if not present.
+  let annualHeatKwh = 0, annualCoolKwh = 0;
+  if (strategy && strategy.annual_heat_kwh_th != null) {
+    annualHeatKwh = strategy.annual_heat_kwh_th;
+    annualCoolKwh = strategy.annual_cool_kwh_th || 0;
+  } else {
+    const profile = strategy && (strategy.hourly_profile || strategy.ldc_profile);
+    if (profile && profile.length) {
+      for (const w of profile) {
+        if (w < 0) annualHeatKwh += Math.abs(w) / 1000;
+        else annualCoolKwh += w / 1000;
+      }
+    }
+  }
+
+  // Conventional benchmark $/sqft by state
+  const HVAC_PSF = {
+    'AL':32,'AK':45,'AZ':34,'AR':30,'CA':48,'CO':40,'CT':52,'DE':44,
+    'FL':33,'GA':33,'HI':55,'ID':36,'IL':44,'IN':38,'IA':36,'KS':34,
+    'KY':34,'LA':33,'ME':46,'MD':46,'MA':52,'MI':42,'MN':44,'MS':30,
+    'MO':36,'MT':40,'NE':34,'NV':38,'NH':48,'NJ':52,'NM':35,'NY':55,
+    'NC':35,'ND':38,'OH':40,'OK':32,'OR':42,'PA':46,'RI':52,'SC':33,
+    'SD':36,'TN':32,'TX':33,'UT':38,'VT':48,'VA':44,'WA':44,'WV':36,
+    'WI':42,'WY':38,'DC':55
+  };
+  const state = site.state_abbrev || '';
+  const convPsf = HVAC_PSF[state] || 35;
+
+  const payload = {
+    design:   sizing,
+    site:     site,
+    loads:    loads,
+    cost:     cost,
+    strategy: strategy,
+    annual_heat_kwh_th: annualHeatKwh,
+    annual_cool_kwh_th: annualCoolKwh,
+    conv_usd_per_sqft:  convPsf,
+  };
+
+  try {
+    const res = await fetch(FLASK + '/api/report', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    renderReport(data, sizing, site, loads, cost, strategy, convPsf);
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('report-state').style.display = '';
+
+    setTimeout(() => {
+      const cv = document.getElementById('rp-canvas');
+      if (cv && typeof drawBoreholePlan === 'function') drawBoreholePlan(cv, sizing, {noInteriorLabels: true});
+    }, 50);
+
+  } catch (err) {
+    document.getElementById('loading-state').style.display = 'none';
+    const el = document.getElementById('error-state');
+    el.style.display = '';
+    el.innerHTML = 'Could not generate report: ' + err.message +
+      '<br><br><button onclick="history.back()" style="font-family:var(--font);font-size:13px;background:none;border:none;cursor:pointer;color:var(--muted);text-decoration:underline">Go back</button>';
+  }
+})();
+
+function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
+  const report = data.report;
+  const rec    = data.recommendation || report.recommendation;
+  const d      = report.design || {};
+  const perf   = report.performance || {};
+  const cs     = report.cost_savings || {};
+
+  // Header location
+  const state = site.state_abbrev || '';
+  const cz    = d.climate_zone || site.climate_zone || '';
+  if (state || cz) {
+    document.getElementById('rp-location').textContent =
+      [state, cz ? 'Climate Zone ' + cz : ''].filter(Boolean).join(' · ');
+  }
+
+  // Score card
+  if (rec) {
+    const SCORE_COLORS = {
+      Excellent: { bg: [20, 100, 60],   numCls: 'score-excellent' },
+      Good:      { bg: [40, 80, 130],   numCls: 'score-good' },
+      Fair:      { bg: [140, 100, 20],  numCls: 'score-fair' },
+      Poor:      { bg: [160, 50, 40],   numCls: 'score-poor' },
+    };
+    const t = Math.max(0, Math.min(1, rec.score / 100));
+    const rBg = Math.round(180 - t * 130);
+    const gBg = Math.round(55 + t * 35);
+    const bBg = Math.round(55 + t * 150);
+    const sc = document.getElementById('score-card');
+    sc.style.background = `rgb(${rBg},${gBg},${bBg})`;
+    const delta = rec.score - (rec.benchmark || 70);
+    const deltaStr = (delta >= 0 ? '+' : '') + delta;
+    const col = SCORE_COLORS[rec.grade] || SCORE_COLORS.Fair;
+    const factorRows = (rec.factors || []).map((f, fi) => {
+      const max = FACTOR_MAX[f.label] || 40;
+      const pct = Math.min(100, Math.round((f.contribution / max) * 100));
+      return `<div class="factor-row">
+        <div class="factor-label-row">
+          <span class="factor-label-text">${f.label}</span>
+          <span class="factor-score-wrap">
+            <span class="factor-pts">${f.contribution} / ${max} pts</span>
+            ${f.note ? `<button class="factor-expand-btn" onclick="toggleFactorNote(this)" aria-label="Expand explanation">+</button>` : ''}
+          </span>
+        </div>
+        <div class="factor-bar-bg"><div class="factor-bar" style="width:${pct}%"></div></div>
+        ${f.note ? `<div class="factor-note" style="display:none">${f.note}</div>` : ''}
+      </div>`;
+    }).join('');
+    sc.innerHTML = `
+      <div class="score-header">
+        <div class="score-number ${col.numCls}">${rec.score}</div>
+        <div>
+          <div><span class="score-grade">${rec.grade}</span></div>
+          <div class="score-delta">${deltaStr} vs benchmark</div>
+        </div>
+      </div>
+      <div class="score-label">GSHP Feasibility Score / 100</div>
+      <div class="score-bench">Benchmark: ${rec.benchmark || 70} pts — zone-5A (Chicago) medium office reference</div>
+      ${factorRows}`;
+    sc.style.display = '';
+  }
+
+  // System Design rows
+  const fi = (v, dec=0) => v != null ? (+v).toFixed(dec) : '—';
+  const designRows = [
+    ['Building type / Climate zone', `${d.building_type ?? '—'} · zone ${d.climate_zone ?? '—'}`],
+    ['Number of boreholes', (() => {
+      let s = `${fi(d.NB)}`;
+      if (d.nb_min != null) s += ` (footprint fits ${d.nb_min}–${d.nb_max})`;
+      return s;
+    })()],
+    ['Depth per borehole', `${fi(d.H_m)} m`],
+    ['Total drilled length', `${fi(d.L_m)} m  (${fi(d.L_ft)} ft)`],
+    ['Borehole spacing / array ratio', `${d.B_m ?? '—'} m spacing · ${d.A ?? '—'} aspect ratio`],
+    ['Governing design condition', d.governing === 'cooling' ? 'Cooling (summer peak)' : d.governing === 'heating' ? 'Heating (winter peak)' : (d.governing ?? '—')],
+    ['Required length — heating / cooling', (() => {
+      let s = `${fi(d.L_heat_m)} / ${fi(d.L_cool_m)} m`;
+      if (d.imbalance_m != null) s += ` — thermal imbalance ${fi(d.imbalance_m)} m`;
+      return s;
+    })()],
+    ['Building footprint', d.footprint_m2 != null
+      ? `${d.footprint_shape ?? 'Footprint'}, ${Math.round(d.footprint_m2).toLocaleString('en-US')} m², ${d.n_floors} floor(s)` : '—'],
+    ['Subsurface conditions', `k = ${d.k_effective ?? '—'} W/m·K · alpha = ${d.alpha ?? '—'} m²/day · T_g = ${d.T_g ?? '—'} °C`],
+  ];
+  if (d.nb_source === 'depth_too_deep') designRows.push(['Depth warning', 'Required borehole depth exceeds 250 m — consider a supplemental peaker or a larger footprint']);
+  else if (d.capacity_warning) designRows.push(['Footprint note', 'Peak load density exceeds what the available footprint can supply at minimum depth']);
+  if (d.solar_thermal_recommended) designRows.push(['Thermal balance note', 'Net annual heat extraction from the ground — solar thermal supplement is recommended to prevent long-term ground cooling']);
+
+  document.getElementById('design-rows').innerHTML = designRows.map(([k, v]) =>
+    `<div class="detail-row"><span>${k}</span><span class="dv">${v}</span></div>`
+  ).join('');
+
+  // Performance
+  if (perf.available) {
+    const m2 = perf.m2 || {};
+    const pkW = perf.peaker_kW;
+    const pkT = (perf.peaker_type || '').replace(/_/g, ' ');
+    const perfRows = [
+      ['Dominant load mode', perf.dominant_mode ?? '—'],
+      ['Peaker capacity', pkW != null ? `${Math.round(pkW)} kW${pkT ? ' (' + pkT + ')' : ''}` : '—'],
+      ['GSHP coverage (hours)', m2.gshp_hours_pct != null ? `${m2.gshp_hours_pct.toFixed(1)}%` : '—'],
+      ['GSHP coverage (energy)', m2.gshp_energy_pct != null ? `${m2.gshp_energy_pct.toFixed(1)}%` : '—'],
+      ['Borefield reduction (hybrid)', m2.savings_pct != null ? `${m2.savings_pct.toFixed(1)}%` : '—'],
+    ].filter(([, v]) => v !== '—');
+    document.getElementById('perf-rows').innerHTML = perfRows.map(([k, v]) =>
+      `<div class="detail-row"><span>${k}</span><span class="dv">${v}</span></div>`
+    ).join('');
+    document.getElementById('perf-label').style.display = '';
+    document.getElementById('perf-card').style.display = '';
+  }
+
+  // Cost & Savings
+  if (cs.available) {
+    const usd = v => v != null ? '$' + Math.round(v).toLocaleString() : '—';
+    document.getElementById('rp-gshp-cost').textContent = usd(cs.gshp_capex_usd);
+    document.getElementById('rp-conv-cost').textContent = usd(cs.conv_capex_usd);
+    document.getElementById('rp-conv-psf-sub').textContent = `$${cs.conv_usd_per_sqft ?? convPsf}/ft² regional benchmark`;
+
+    const costRows = [
+      ['Drilling (best / base / worst)', (() => {
+        const b = cs.borefield_best_usd, base = cs.borefield_base_usd, w = cs.borefield_worst_usd;
+        return [b, base, w].map(usd).join(' / ');
+      })()],
+      ['GSHP equipment', usd(cs.hp_equipment_usd)],
+      ['Conventional HVAC (benchmark)', usd(cs.conv_capex_usd)],
+      ['Annual GSHP operating cost', usd(cs.gshp_opex_usd_yr) + '/yr'],
+      ['Annual conventional operating cost', usd(cs.conv_opex_usd_yr) + '/yr'],
+      ['Annual energy savings', usd(cs.annual_savings_usd_yr) + '/yr'],
+      ['Simple payback', cs.gshp_lower_upfront ? 'GSHP lower upfront cost' : cs.simple_payback_yr != null ? `${cs.simple_payback_yr.toFixed(1)} yrs` : '—'],
+    ];
+    document.getElementById('cost-rows').innerHTML = costRows.map(([k, v]) =>
+      `<div class="detail-row"><span>${k}</span><span class="dv">${v}</span></div>`
+    ).join('') + `<div class="muted-note">${cs.note || ''}</div>`;
+
+    document.getElementById('cost-label').style.display = '';
+    document.getElementById('cost-section').style.display = '';
+  }
+
+  // Populate dynamic FAQ answers
+  const nb = fi(d.NB), H = fi(d.H_m), L = fi(d.L_m);
+  const gov = d.governing === 'heating' ? 'heating' : d.governing === 'cooling' ? 'cooling' : 'heating';
+  const k = d.k_effective, tg = d.T_g;
+
+  document.getElementById('faq-boreholes').textContent =
+    `${nb} boreholes at ${H} m each (${L} m total) were sized using the Philippe et al. (2010) ASHRAE three-pulse method for ${d.building_type ?? 'this building type'} in climate zone ${d.climate_zone ?? '—'}. ` +
+    `The borefield depth and count were optimized to minimize total length while keeping each borehole under 250 m. ` +
+    `Soil thermal conductivity (${k ?? '—'} W/m·K) was predicted from USGS geological data using machine learning.`;
+
+  document.getElementById('faq-mode').textContent =
+    `This building is ${gov}-dominant. The borefield is sized for the governing ${gov} condition (${fi(gov === 'heating' ? d.L_heat_m : d.L_cool_m)} m). ` +
+    (d.imbalance_m != null ? `Thermal imbalance is ${fi(d.imbalance_m)} m — the annual net ground extraction differs between heating and cooling seasons. ` : '') +
+    (d.solar_thermal_recommended ? 'Net annual heat extraction is detected; solar thermal recharge is recommended to prevent long-term ground cooling.' : '');
+
+  document.getElementById('faq-cost').textContent =
+    cs.available
+      ? `GSHP system cost (${usdFmt(cs.gshp_capex_usd)}) vs conventional HVAC benchmark (${ usdFmt(cs.conv_capex_usd)}). ` +
+        `Operating savings of approx. ${usdFmt(cs.annual_savings_usd_yr)}/year are estimated based on US EIA commercial energy rates. ` +
+        `These are screening-level estimates; actual results vary by contractor, equipment selection, and energy prices.`
+      : 'Cost comparison is not available for this analysis. Provide floor area to enable cost estimates.';
+
+  if (perf.available && perf.peaker_kW) {
+    document.getElementById('faq-peaker').textContent =
+      `A ${Math.round(perf.peaker_kW)} kW supplemental ${(perf.peaker_type || 'peaker').replace(/_/g, ' ')} was recommended for this building. ` +
+      `The GSHP handles the base load; the peaker handles peak hours only. ` +
+      `This reduces required borefield length by approximately ${(perf.m2 && perf.m2.savings_pct != null) ? perf.m2.savings_pct.toFixed(1) + '%' : 'the modeled percentage'}, ` +
+      `lowering upfront drilling cost while maintaining high efficiency for most operating hours.`;
+  }
+
+  document.getElementById('faq-soil').textContent =
+    `Effective soil thermal conductivity is ${k ?? '—'} W/m·K and undisturbed ground temperature is ${tg ?? '—'} °C for this site. ` +
+    (k >= 2.5 ? 'This is good conductivity — the ground transfers heat efficiently, reducing required borehole length. ' :
+     k >= 1.5 ? 'This is moderate conductivity — typical for mixed geology. ' :
+     'Conductivity is below average, which increases required borehole length. ') +
+    'These values were predicted from USGS geological surveys. A Thermal Response Test (TRT) can confirm them for final design.';
+}
+
+function usdFmt(v) {
+  return v != null ? '$' + Math.round(v).toLocaleString() : '—';
+}
+
+function toggleFactorNote(btn) {
+  const row = btn.closest('.factor-row');
+  const note = row.querySelector('.factor-note');
+  if (!note) return;
+  const isOpen = note.style.display !== 'none';
+  note.style.display = isOpen ? 'none' : '';
+  btn.textContent = isOpen ? '+' : '−';
+}
+
+function toggleFaq(qEl) {
+  const circle = qEl.querySelector('.faq-circle');
+  const answer = qEl.nextElementSibling;
+  const open = answer.classList.toggle('open');
+  circle.classList.toggle('open', open);
+}
+
+function startOver() {
+  sessionStorage.clear();
+  window.location.href = 'stage1a.html';
+}
+</script>
+</body>
+</html>
