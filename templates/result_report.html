@@ -251,6 +251,7 @@
 
     <div class="actions">
       <button class="pdf-btn" onclick="window.print()">Generate PDF</button>
+      <button class="new-analysis-btn" onclick="saveProject()" style="font-weight:600;color:var(--text)">Save this project →</button>
       <button class="new-analysis-btn" onclick="startOver()">New Analysis</button>
     </div>
 
@@ -538,6 +539,10 @@ function toggleFaq(qEl) {
   const answer = qEl.nextElementSibling;
   const open = answer.classList.toggle('open');
   circle.classList.toggle('open', open);
+}
+
+function saveProject() {
+  window.location.href = 'signup.html';
 }
 
 function startOver() {

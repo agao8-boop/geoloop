@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GeoLoop — My Projects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3f0;
+      --border: #dddbd7;
+      --text:   #1a1814;
+      --muted:  #7a7570;
+      --faint:  #a09c97;
+      --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html, body { height: 100%; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-bottom:env(safe-area-inset-bottom); }
+
+    .nav { height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
+    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
+    .nav-signout { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--muted); cursor:pointer; }
+    .nav-signout:hover { color:var(--text); }
+
+    .main { flex:1; padding:32px 24px 40px; max-width:540px; margin:0 auto; width:100%; }
+
+    .user-row { display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+    .avatar { width:44px; height:44px; border-radius:50%; background:var(--text); color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; flex-shrink:0; }
+    .user-info {}
+    .user-name  { font-size:17px; font-weight:700; letter-spacing:-0.02em; }
+    .user-email { font-size:12px; color:var(--muted); margin-top:1px; }
+
+    .section-label { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:14px; }
+
+    .empty-state { text-align:center; padding:48px 0; color:var(--muted); }
+    .empty-state p { font-size:14px; line-height:1.6; }
+
+    .project-list { display:flex; flex-direction:column; gap:10px; margin-bottom:28px; }
+
+    .project-card {
+      background:white; border:1.5px solid var(--border); border-radius:14px;
+      padding:16px 18px; cursor:pointer; transition:border-color 0.15s, transform 0.1s;
+      display:flex; align-items:center; gap:14px;
+    }
+    .project-card:hover { border-color:#b5b0a8; transform:translateY(-1px); }
+    .project-card:active { transform:scale(0.99); }
+
+    .project-icon { width:36px; height:36px; border-radius:8px; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .project-body { flex:1; min-width:0; }
+    .project-name { font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .project-meta { font-size:11px; color:var(--muted); margin-top:3px; }
+    .project-delete { background:none; border:none; cursor:pointer; padding:4px 6px; color:var(--faint); font-size:16px; line-height:1; border-radius:6px; transition:color 0.15s, background 0.15s; }
+    .project-delete:hover { color:#e05c4a; background:#fdf0ee; }
+
+    .new-btn { width:100%; font-family:var(--font); font-size:15px; font-weight:700; background:var(--text); color:#f5f3f0; border:none; border-radius:100px; padding:14px; cursor:pointer; transition:opacity 0.15s; }
+    .new-btn:active { opacity:0.8; }
+
+    .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(26,24,20,0.4); z-index:100; align-items:center; justify-content:center; padding:24px; }
+    .confirm-overlay.show { display:flex; }
+    .confirm-box { background:white; border-radius:18px; padding:24px; max-width:320px; width:100%; }
+    .confirm-title { font-size:16px; font-weight:700; margin-bottom:8px; }
+    .confirm-sub   { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+    .confirm-btns  { display:flex; gap:10px; }
+    .confirm-cancel { flex:1; font-family:var(--font); font-size:14px; font-weight:600; background:var(--bg); color:var(--text); border:1.5px solid var(--border); border-radius:100px; padding:11px; cursor:pointer; }
+    .confirm-delete { flex:1; font-family:var(--font); font-size:14px; font-weight:600; background:#e05c4a; color:white; border:none; border-radius:100px; padding:11px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="welcome.html">
+    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
+    </svg>
+    <span class="nav-name">GeoLoop</span>
+  </a>
+  <button class="nav-signout" onclick="signOut()">Sign out</button>
+</nav>
+
+<main class="main" id="main-content" style="display:none">
+
+  <div class="user-row">
+    <div class="avatar" id="avatar-initials"></div>
+    <div class="user-info">
+      <div class="user-name" id="user-name-display"></div>
+      <div class="user-email" id="user-email-display"></div>
+    </div>
+  </div>
+
+  <div class="section-label">Saved projects</div>
+
+  <div id="project-list-container"></div>
+
+  <button class="new-btn" onclick="window.location.href='welcome.html'">+ Start new analysis</button>
+
+</main>
+
+<!-- Delete confirm overlay -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Delete project?</div>
+    <p class="confirm-sub">This can't be undone.</p>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-delete" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let pendingDeleteId = null;
+
+function init() {
+  const user = JSON.parse(localStorage.getItem('gl_current_user') || 'null');
+  if (!user) { window.location.href = 'signup.html'; return; }
+
+  // Populate user info
+  document.getElementById('user-name-display').textContent = user.name;
+  document.getElementById('user-email-display').textContent = user.email;
+  const initials = user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials;
+
+  renderProjects(user);
+  document.getElementById('main-content').style.display = '';
+}
+
+function renderProjects(user) {
+  const projects = JSON.parse(localStorage.getItem('gl_projects_' + user.email) || '[]');
+  const container = document.getElementById('project-list-container');
+
+  if (!projects.length) {
+    container.innerHTML = `<div class="empty-state"><p>No saved projects yet.<br>Run an analysis and save it to see it here.</p></div>`;
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'project-list';
+
+  projects.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+
+    const date = new Date(p.savedAt);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const metaParts = [p.zip, p.building_type, p.NB ? `${p.NB} boreholes` : null].filter(Boolean);
+
+    card.innerHTML = `
+      <div class="project-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="3" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="8" y1="1" x2="8" y2="4" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8" y1="12" x2="8" y2="15" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="1" y1="8" x2="4" y2="8" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="12" y1="8" x2="15" y2="8" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="project-body">
+        <div class="project-name">${escHtml(p.name)}</div>
+        <div class="project-meta">${dateStr}${metaParts.length ? ' · ' + metaParts.map(escHtml).join(' · ') : ''}</div>
+      </div>
+      <button class="project-delete" title="Delete" onclick="event.stopPropagation(); askDelete('${escHtml(p.id)}')">×</button>
+    `;
+    card.addEventListener('click', () => openProject(p));
+    list.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(list);
+}
+
+function openProject(p) {
+  // Restore key session data so result pages can render
+  if (p.zip)           sessionStorage.setItem('gl_result1',       JSON.stringify({ site: { zip: p.zip }, building_type: p.building_type }));
+  if (p.building_type) sessionStorage.setItem('gl_building_type', p.building_type);
+  if (p.region)        sessionStorage.setItem('gl_region',        p.region);
+  if (p.units)         sessionStorage.setItem('gl_units',         p.units);
+  if (p.NB !== undefined) {
+    sessionStorage.setItem('gl_result_final', JSON.stringify({ NB: p.NB, H: p.H_m, L: p.L_m }));
+  }
+  window.location.href = 'result_report.html';
+}
+
+function askDelete(id) {
+  pendingDeleteId = id;
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+function closeConfirm() {
+  pendingDeleteId = null;
+  document.getElementById('confirm-overlay').classList.remove('show');
+}
+function confirmDelete() {
+  const user = JSON.parse(localStorage.getItem('gl_current_user') || 'null');
+  if (!user || !pendingDeleteId) { closeConfirm(); return; }
+  const key = 'gl_projects_' + user.email;
+  const projects = JSON.parse(localStorage.getItem(key) || '[]');
+  localStorage.setItem(key, JSON.stringify(projects.filter(p => p.id !== pendingDeleteId)));
+  closeConfirm();
+  renderProjects(user);
+}
+
+function signOut() {
+  localStorage.removeItem('gl_current_user');
+  window.location.href = 'welcome.html';
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>

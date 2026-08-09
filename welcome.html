@@ -136,12 +136,15 @@
     /* ── Button: anchored to bottom ── */
     .btn-row {
       position: absolute;
-      bottom: 36px;
+      bottom: 28px;
       left: 0;
       right: 0;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
     }
+    .account-link { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--muted); cursor:pointer; padding:4px; text-decoration:underline; text-underline-offset:3px; }
 
     /* ── SpecularButton shell ── */
     #spec-btn {
@@ -236,6 +239,7 @@
             <span class="sb-arrow">→</span>
           </span>
         </button>
+        <button class="account-link" onclick="window.location.href='account.html'">Already have an account?</button>
       </div>
 
     </div>

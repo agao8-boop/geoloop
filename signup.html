@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GeoLoop — Save your analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3f0;
+      --border: #dddbd7;
+      --text:   #1a1814;
+      --muted:  #7a7570;
+      --faint:  #a09c97;
+      --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html, body { height: 100%; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-bottom:env(safe-area-inset-bottom); }
+
+    .nav { height:52px; display:flex; align-items:center; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
+    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
+
+    .main { flex:1; padding:32px 24px 40px; max-width:480px; margin:0 auto; width:100%; }
+
+    .page-title { font-size:clamp(22px,6vw,28px); font-weight:800; letter-spacing:-0.03em; margin-bottom:6px; }
+    .page-sub   { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:28px; }
+
+    .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+    label { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; }
+    input { font-family:var(--font); font-size:15px; background:white; border:1.5px solid var(--border); border-radius:12px; padding:13px 16px; color:var(--text); outline:none; transition:border-color 0.15s; }
+    input:focus { border-color:var(--text); }
+    input::placeholder { color:var(--faint); }
+
+    .err { font-size:12px; color:#e05c4a; margin-bottom:12px; display:none; }
+    .err.show { display:block; }
+
+    .submit-btn { width:100%; font-family:var(--font); font-size:15px; font-weight:700; background:var(--text); color:#f5f3f0; border:none; border-radius:100px; padding:14px; cursor:pointer; transition:opacity 0.15s; margin-top:8px; }
+    .submit-btn:active { opacity:0.8; }
+
+    .divider { text-align:center; color:var(--faint); font-size:12px; margin:20px 0; }
+    .alt-link { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:3px; display:block; text-align:center; margin-top:8px; }
+
+    /* project-name panel — hidden until after signup */
+    #name-panel { display:none; }
+    #name-panel .panel-title { font-size:18px; font-weight:700; letter-spacing:-0.02em; margin-bottom:6px; }
+    #name-panel .panel-sub   { font-size:13px; color:var(--muted); margin-bottom:20px; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="welcome.html">
+    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
+    </svg>
+    <span class="nav-name">GeoLoop</span>
+  </a>
+</nav>
+
+<main class="main">
+
+  <!-- Signup form -->
+  <div id="signup-panel">
+    <div class="page-title">Save your analysis</div>
+    <p class="page-sub">Create a free account to save and revisit this project.</p>
+
+    <div class="form-group">
+      <label for="inp-name">Your name</label>
+      <input id="inp-name" type="text" placeholder="Jane Smith" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label for="inp-email">Email</label>
+      <input id="inp-email" type="email" placeholder="jane@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="inp-pw">Password</label>
+      <input id="inp-pw" type="password" placeholder="8+ characters" autocomplete="new-password">
+    </div>
+
+    <div class="err" id="signup-err"></div>
+    <button class="submit-btn" onclick="doSignup()">Create account</button>
+
+    <div class="divider">or</div>
+    <button class="alt-link" onclick="showLogin()">Already have an account? Sign in</button>
+    <button class="alt-link" onclick="history.back()" style="margin-top:6px;color:var(--faint)">Go back without saving</button>
+  </div>
+
+  <!-- Login form (toggled) -->
+  <div id="login-panel" style="display:none">
+    <div class="page-title">Welcome back</div>
+    <p class="page-sub">Sign in to save this analysis to your account.</p>
+
+    <div class="form-group">
+      <label for="li-email">Email</label>
+      <input id="li-email" type="email" placeholder="jane@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="li-pw">Password</label>
+      <input id="li-pw" type="password" placeholder="Your password" autocomplete="current-password">
+    </div>
+
+    <div class="err" id="login-err"></div>
+    <button class="submit-btn" onclick="doLogin()">Sign in</button>
+    <button class="alt-link" onclick="showSignup()" style="margin-top:12px">New here? Create an account</button>
+  </div>
+
+  <!-- Name project panel -->
+  <div id="name-panel">
+    <div class="panel-title">Name this project</div>
+    <p class="panel-sub">Give it a name so you can find it later.</p>
+    <div class="form-group">
+      <label for="inp-proj">Project name</label>
+      <input id="inp-proj" type="text" placeholder="e.g. Stanford Office Study" autocomplete="off">
+    </div>
+    <div class="err" id="proj-err"></div>
+    <button class="submit-btn" onclick="saveAndGo()">Save project</button>
+    <button class="alt-link" onclick="saveAndGo(true)" style="margin-top:8px">Skip — save without a name</button>
+  </div>
+
+</main>
+
+<script>
+function showLogin()  { document.getElementById('signup-panel').style.display='none'; document.getElementById('login-panel').style.display=''; }
+function showSignup() { document.getElementById('login-panel').style.display='none'; document.getElementById('signup-panel').style.display=''; }
+
+function doSignup() {
+  const name  = document.getElementById('inp-name').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const pw    = document.getElementById('inp-pw').value;
+  const err   = document.getElementById('signup-err');
+  if (!name)            { showErr(err, 'Please enter your name.'); return; }
+  if (!email.includes('@')) { showErr(err, 'Please enter a valid email.'); return; }
+  if (pw.length < 8)    { showErr(err, 'Password must be at least 8 characters.'); return; }
+
+  // Check if email already exists
+  const users = JSON.parse(localStorage.getItem('gl_users') || '[]');
+  if (users.find(u => u.email === email)) { showErr(err, 'An account with this email already exists. Sign in instead.'); return; }
+
+  const user = { name, email, pwHash: btoa(pw), createdAt: new Date().toISOString() };
+  users.push(user);
+  localStorage.setItem('gl_users', JSON.stringify(users));
+  localStorage.setItem('gl_current_user', JSON.stringify({ name, email }));
+
+  showNamePanel();
+}
+
+function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pw    = document.getElementById('li-pw').value;
+  const err   = document.getElementById('login-err');
+
+  const users = JSON.parse(localStorage.getItem('gl_users') || '[]');
+  const user  = users.find(u => u.email === email && u.pwHash === btoa(pw));
+  if (!user) { showErr(err, 'Email or password incorrect.'); return; }
+
+  localStorage.setItem('gl_current_user', JSON.stringify({ name: user.name, email: user.email }));
+  showNamePanel();
+}
+
+function showNamePanel() {
+  document.getElementById('signup-panel').style.display = 'none';
+  document.getElementById('login-panel').style.display  = 'none';
+  document.getElementById('name-panel').style.display   = '';
+  // Prefill with date-based default
+  const d = new Date();
+  document.getElementById('inp-proj').value =
+    `Analysis ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function saveAndGo(skipName) {
+  const nameEl = document.getElementById('inp-proj');
+  const projName = skipName ? 'Untitled Analysis' : (nameEl.value.trim() || 'Untitled Analysis');
+
+  // Collect current analysis data from sessionStorage
+  const sizing   = JSON.parse(sessionStorage.getItem('gl_result_final')    || '{}');
+  const r1       = JSON.parse(sessionStorage.getItem('gl_result1')         || '{}');
+  const strategy = JSON.parse(sessionStorage.getItem('gl_strategy_result') || 'null');
+
+  const project = {
+    id:        Date.now().toString(),
+    name:      projName,
+    savedAt:   new Date().toISOString(),
+    // inputs
+    zip:           r1.site?.zip || '',
+    building_type: r1.building_type || sessionStorage.getItem('gl_building_type') || '',
+    region:        sessionStorage.getItem('gl_region') || 'US',
+    units:         sessionStorage.getItem('gl_units')  || 'imperial',
+    // key results only (not full hourly profiles)
+    NB:    sizing.NB, H_m: sizing.H, L_m: sizing.L,
+    score: null, grade: null, // populated below
+  };
+
+  // Grab score if available
+  const user = JSON.parse(localStorage.getItem('gl_current_user') || '{}');
+  const projects = JSON.parse(localStorage.getItem('gl_projects_' + user.email) || '[]');
+  projects.unshift(project);
+  localStorage.setItem('gl_projects_' + user.email, JSON.stringify(projects));
+
+  window.location.href = 'account.html';
+}
+
+function showErr(el, msg) { el.textContent = msg; el.classList.add('show'); }
+</script>
+</body>
+</html>
