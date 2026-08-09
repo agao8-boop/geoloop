@@ -1,4 +1,5 @@
 import csv as csv_mod
+import re
 import sys
 import os
 import json
@@ -49,6 +50,35 @@ def landing():
 @app.route("/tool")
 def tool():
     return render_template("index.html")
+
+
+@app.route("/mobile")
+def mobile():
+    """GeoLoop mobile wizard — phone preview with all wizard pages."""
+    return render_template("phone_preview.html")
+
+
+@app.route("/app")
+def app_web():
+    """GeoLoop mobile wizard — direct web access without phone frame."""
+    return render_template("welcome.html")
+
+
+@app.route("/<page>.html")
+def serve_html_page(page):
+    """Serve any mobile-flow template by its .html filename.
+    Allows relative navigation links (e.g. stage1a.html → /stage1a.html) to work
+    both inside the phone iframe and when accessed directly in a browser.
+    """
+    allowed = {
+        "welcome", "onboarding_1", "onboarding_2",
+        "stage1a", "stage1b", "stage1c", "stage2",
+        "result_1", "result_final", "result_strategy", "result_report",
+    }
+    if page not in allowed:
+        from flask import abort
+        abort(404)
+    return render_template(f"{page}.html")
 
 
 @app.route("/calculate", methods=["POST"])
@@ -319,6 +349,8 @@ def _resolve_site_and_loads(data):
             return None, _field_err(field)
 
     zip_code = str(data["zip_code"]).strip()
+    if not re.match(r'^\d{5}$', zip_code):
+        return None, _field_err("zip_code", "Please enter a valid 5-digit US ZIP code (e.g. 60601).")
     building_type = str(data["building_type"]).strip()
 
     # Optional: floor area scaling
@@ -356,24 +388,20 @@ def _resolve_site_and_loads(data):
         # unknown tier → silently fall back to default 2020
     year_factor = _year_to_load_factor(year_built)
 
-    # Optional: soil confidence → safety factor on k
-    _CONFIDENCE_K_FACTORS = {
-        "high":   1.10,   # site investigation data — relax k 10% upward
-        "medium": 1.00,   # county-level estimate — use as-is
-        "low":    0.83,   # uncertain geology — reduce k 17% (≈ 20% longer L)
-    }
-    soil_confidence = str(data.get("soil_confidence", "low")).strip().lower()
-    if soil_confidence not in _CONFIDENCE_K_FACTORS:
-        soil_confidence = "medium"
-    k_factor = _CONFIDENCE_K_FACTORS[soil_confidence]
+    # Soil confidence: always use the ML-predicted k value directly (no user input).
+    # The tool's value proposition is the public dataset + ML model — no manual confidence tier needed.
+    soil_confidence = "medium"
+    k_factor = 1.00
 
-    # Infer glazing/envelope defaults from building age when user omits them.
-    # Pre-1985: likely single pane + leaky; 1985+ standard double pane.
+    # Infer glazing/envelope defaults from building age when user omits them or selects "unknown".
+    # Pre-1985: likely single pane + leaky; 1985+ double-pane clear (not low-E, which is post-2000).
     _data = dict(data)
-    if not str(_data.get("glazing", "")).strip():
-        _data["glazing"] = "single" if year_built < 1985 else "double"
-    if not str(_data.get("envelope", "")).strip():
+    if not str(_data.get("glazing", "")).strip() or _data.get("glazing") == "unknown":
+        _data["glazing"] = "single" if year_built < 1985 else "double_legacy"
+    if not str(_data.get("envelope", "")).strip() or _data.get("envelope") == "unknown":
         _data["envelope"] = "low" if year_built < 1985 else "standard"
+    if not str(_data.get("wwr", "")).strip() or _data.get("wwr") == "unknown":
+        _data["wwr"] = "wwr_20_40"  # prototype default: ~30% glazing (midpoint of 20-40% bin)
 
     design, err = _parse_design_fields(_data)
     if err:
@@ -451,18 +479,8 @@ def _resolve_site_and_loads(data):
     # Dominant mode for backward-compat labels and single-pass fallback
     mode = "heating" if loads.q_h < 0 else "cooling"
 
-    # Physics-grounded confidence: use Clauser-Huenges class bounds when available
-    _k_min_ok = site.k_min == site.k_min  # True when not NaN
-    _k_max_ok = site.k_max == site.k_max
-    if _k_min_ok and _k_max_ok:
-        if soil_confidence == "low":
-            effective_k = site.k_min
-        elif soil_confidence == "high":
-            effective_k = min(site.k_max, site.k * 1.25)
-        else:
-            effective_k = site.k
-    else:
-        effective_k = site.k * k_factor
+    # Use ML-predicted k directly as the effective value (no manual confidence factor).
+    effective_k = site.k
 
     def _nan_none(v: float):
         return None if v != v else v
@@ -500,9 +518,11 @@ def _resolve_site_and_loads(data):
             "glazing": glazing,
             "heat_factor": heat_f,
             "cool_factor": cool_f,
-            # envelope_factor for /api/strategy: use governing-mode factor so S6 hourly
-            # profile scaling is consistent with the S4 two-pass sizing.
-            "envelope_factor": heat_f if mode == "heating" else cool_f,
+            # envelope_factor for /api/strategy: conservative max(heat, cool) is correct
+            # because strategy.py applies a single scalar to the full 8760h profile.
+            # Using mode-dependent selection was wrong when energy-volume dominance
+            # disagreed with L_h vs L_c dominance (item 27).
+            "envelope_factor": max(heat_f, cool_f),
             "load_scale": load_scale,
         },
         "building_type": building_type,
@@ -714,7 +734,7 @@ def calculate_smart():
             return jsonify({"error": "field", "field": "NB",
                             "message": "NB must be an integer"}), 400
     try:
-        H_min = float(data.get("H_min", 125.0))
+        H_min = float(data.get("H_min", 150.0))
     except (ValueError, TypeError):
         return jsonify({"error": "field", "field": "H_min",
                         "message": "H_min must be a number"}), 400
@@ -772,7 +792,7 @@ def calculate_stage1():
         return jsonify({"error": "field", "field": "building_type",
                         "message": str(exc)}), 400
 
-    load_check = _load_density_check(payload["loads"], 125.0, nb_max)
+    load_check = _load_density_check(payload["loads"], 150.0, nb_max)
 
     return jsonify({
         "site": payload["site"],
@@ -851,7 +871,7 @@ def calculate_stage2():
                             "message": "Floor area must be a number"}), 400
 
     try:
-        H_min = float(data.get("H_min", 125.0))
+        H_min = float(data.get("H_min", 150.0))
     except (ValueError, TypeError):
         return jsonify({"error": "field", "field": "H_min",
                         "message": "H_min must be a number"}), 400
@@ -1033,13 +1053,15 @@ def openloop_wells_api():
     return jsonify(data)
 
 
-@app.route("/api/cost", methods=["POST"])
+@app.route("/api/cost", methods=["POST", "OPTIONS"])
 def cost_api():
     """Estimate borefield installation cost given sizing output.
 
     Required body fields: L (meters), NB (int), B (meters), state (2-letter abbrev or null)
     Optional: rock_class (SGMC rock class name), distance_to_house_ft (float, default 100)
     """
+    if request.method == "OPTIONS":
+        return _cors_headers(jsonify({}))
     try:
         data = request.get_json(force=True)
     except BadRequest:
@@ -1137,7 +1159,7 @@ def cost_api():
         out["peaker_equipment_usd"] = peaker_equipment_usd
         out["peaker_kw"] = round(float(raw_peaker_kw), 1)
         out["peaker_type"] = raw_peaker_type
-    return jsonify(out)
+    return _cors_headers(jsonify(out))
 
 
 @app.route("/api/cost/map")
@@ -1179,7 +1201,7 @@ def hourly_loads_api():
     return json.loads(p.read_text()), 200, {"Content-Type": "application/json"}
 
 
-@app.route("/api/strategy", methods=["POST"])
+@app.route("/api/strategy", methods=["POST", "OPTIONS"])
 def strategy_api():
     """Run mandatory hybrid GSHP strategy analysis.
 
@@ -1188,6 +1210,8 @@ def strategy_api():
               floor_area_m2, year_built (int), year_factor (float, overrides year_built)
               Advanced: Cp, mfls, rbore, rpin, rpext, kgrout, kpipe, LU, hconv
     """
+    if request.method == "OPTIONS":
+        return _cors_headers(jsonify({}))
     try:
         data = request.get_json(force=True)
     except BadRequest:
@@ -1217,7 +1241,7 @@ def strategy_api():
 
     ldc_cutoff_pct      = float(data.get("ldc_cutoff_pct", 10.0))
     imbalance_threshold = float(data.get("imbalance_threshold", 1.25))
-    H_min               = float(data.get("H_min") or 125.0)
+    H_min               = float(data.get("H_min") or 150.0)
     ignore_top_pct      = float(data.get("ignore_top_pct", 0.4))
     peaker_purpose      = str(data.get("peaker_purpose") or "auto").strip()
     if peaker_purpose not in ("auto", "heating", "cooling", "both", "none"):
@@ -1248,6 +1272,17 @@ def strategy_api():
     if err:
         return err
 
+    # Accept pre-computed q values from the analyze pipeline so the strategy
+    # uses the exact same thermal loads as /size (prevents H_before vs H mismatch).
+    precomputed_q = {}
+    for qkey in ("q_h_heat", "q_m_heat", "q_h_cool", "q_m_cool", "q_y"):
+        v = data.get(qkey)
+        if v is not None:
+            try:
+                precomputed_q[qkey] = float(v)
+            except (TypeError, ValueError):
+                pass
+
     try:
         result = run_strategy(
             building_type=building_type,
@@ -1263,6 +1298,7 @@ def strategy_api():
             envelope_factor=envelope_factor,
             state=state,
             peaker_purpose=peaker_purpose,
+            precomputed_q=precomputed_q if precomputed_q else None,
             **sizing_params,
         )
     except KeyError as exc:
@@ -1270,16 +1306,55 @@ def strategy_api():
     except Exception as exc:
         return jsonify({"error": "calculation", "message": str(exc)}), 500
 
-    return jsonify(result.to_dict())
+    # --- Hybrid two-option cost comparison ---
+    # Option A: same NB boreholes, reduce depth (H_after = L_after/NB)
+    # Option B: same depth as base (H_before), reduce borehole count
+    d = result.to_dict()
+
+    # Compute annual heat/cool from hourly profile server-side so result_report.html
+    # doesn't need to loop 8760 values client-side (avoids sessionStorage truncation risks).
+    _profile = result.hourly_profile
+    _heat_kwh = round(sum(abs(w) for w in _profile if w < 0) / 1000, 1)
+    _cool_kwh = round(sum(w for w in _profile if w > 0) / 1000, 1)
+    d['annual_heat_kwh_th'] = _heat_kwh
+    d['annual_cool_kwh_th'] = _cool_kwh
+    try:
+        _NB = result.NB
+        _H_before = result.H_before
+        _L_after = result.L_after
+        _H_after = result.H_after
+
+        _NB_b = max(1, math.ceil(_L_after / _H_before)) if _H_before > 0 else _NB
+        _L_b = _NB_b * _H_before
+
+        _ca = estimate_cost(L_m=_L_after, NB=_NB, B_m=B, state=state)
+        _cb = estimate_cost(L_m=_L_b, NB=_NB_b, B_m=B, state=state)
+
+        _cheaper = 'a' if _ca['base'].total_usd <= _cb['base'].total_usd else 'b'
+        d['hybrid_opt_a'] = {
+            'NB': _NB, 'H': round(_H_after), 'L': round(_L_after),
+            'cost_usd': round(_ca['base'].total_usd),
+        }
+        d['hybrid_opt_b'] = {
+            'NB': _NB_b, 'H': round(_H_before), 'L': round(_L_b),
+            'cost_usd': round(_cb['base'].total_usd),
+        }
+        d['hybrid_cheaper'] = _cheaper
+    except Exception:
+        pass  # non-critical; frontend falls back to existing H_after/L_after
+
+    return _cors_headers(jsonify(d))
 
 
-@app.route("/api/report", methods=["POST"])
+@app.route("/api/report", methods=["POST", "OPTIONS"])
 def report_api():
     """s7 — fixed-structure deterministic report + recommendation score.
 
     Body: {design, site, loads: dict; cost, strategy: dict|null;
            annual_heat_kwh_th, annual_cool_kwh_th: float}
     """
+    if request.method == "OPTIONS":
+        return _cors_headers(jsonify({}))
     data = request.get_json(force=True, silent=True)
     if data is None:
         return jsonify({"error": "field", "message": "Request body must be valid JSON"}), 400
@@ -1306,8 +1381,8 @@ def report_api():
     except Exception as exc:
         return jsonify({"error": "calculation", "message": str(exc)}), 500
 
-    return jsonify({"report": report,
-                    "recommendation": report["recommendation"]})
+    return _cors_headers(jsonify({"report": report,
+                                  "recommendation": report["recommendation"]}))
 
 
 @app.route("/dev")
@@ -1369,6 +1444,268 @@ def dev_login():
         error = True
     from flask import render_template_string
     return render_template_string(_DEV_LOGIN_HTML, error=error)
+
+
+# ── Mobile UI routes ─────────────────────────────────────────────────────────
+# Thin shims that bridge the GeoLoop mobile HTML field names to the existing
+# pipeline endpoints.  Served at /analyze and /size; both accept CORS so the
+# pages load correctly whether served from Flask (5001) or Live Server (5501).
+
+def _cors_headers(resp):
+    resp.headers["Access-Control-Allow-Origin"]  = "*"
+    resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    resp.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    return resp
+
+def _mobile_wwr_to_bin(s_wwr: str) -> str:
+    """Map 'wwr_NN' (pct) from the slider to the API range-bin key."""
+    try:
+        pct = int(str(s_wwr).replace("wwr_", ""))
+    except (ValueError, AttributeError):
+        return "wwr_20_40"
+    if pct <= 20: return "wwr_0_20"
+    if pct <= 40: return "wwr_20_40"
+    if pct <= 60: return "wwr_40_60"
+    if pct <= 80: return "wwr_60_80"
+    return "wwr_80_100"
+
+def _suitability_score(k: float, T_g: float, climate_zone: str) -> int:
+    """Heuristic 0-100 geothermal suitability score for the mobile results card."""
+    k_score  = min(40, max(0, (k - 0.5) / 3.5 * 40))
+    tg_score = max(0, 20 - abs(T_g - 13) * 2)
+    zone_pts = {"4A":10,"4B":10,"4C":9,"5A":9,"5B":9,"5C":8,
+                "3A":7,"3B":7,"3C":7,"6A":6,"6B":6,"2A":5,"2B":5}.get(climate_zone, 5)
+    return int(min(100, 30 + k_score + tg_score + zone_pts))
+
+
+@app.route("/analyze", methods=["POST", "OPTIONS"])
+def mobile_analyze():
+    """Mobile wizard stage-1 endpoint: site + loads.
+
+    Accepts mobile UI field names (s_wwr / s_envelope / s_glazing) and returns
+    a flattened response shaped for result_1.html.
+    """
+    if request.method == "OPTIONS":
+        return _cors_headers(jsonify({}))
+
+    try:
+        raw = request.get_json(force=True, silent=True) or {}
+    except Exception:
+        raw = {}
+
+    # Remap mobile field names to the pipeline's expected names
+    data = dict(raw)
+    data["wwr"]           = _mobile_wwr_to_bin(str(raw.get("s_wwr", "wwr_30")))
+    data["envelope"]      = str(raw.get("s_envelope", "standard"))
+    data["glazing"]       = str(raw.get("s_glazing", "double_legacy"))
+    data["borehole_config"] = "perimeter"
+
+    # Normalise unknown/empty glazing/envelope so _resolve_site_and_loads auto-infers
+    if data["glazing"]  in ("", "unknown"):  data["glazing"]  = "unknown"
+    if data["envelope"] in ("", "unknown"):  data["envelope"] = "standard"
+
+    payload, err = _resolve_site_and_loads(data)
+    if err:
+        return _cors_headers(err[0]), err[1]
+
+    site  = payload["site"]
+    loads = payload["loads"]
+
+    # Borehole count hint from footprint (default 6 m spacing)
+    nb_hint = None
+    try:
+        nb_min, nb_max, _ = compute_nb_range(
+            payload["floor_area_m2"], payload["building_type"], spacing_m=6.0,
+            shape=payload["footprint_shape"], num_floors=payload["num_floors"])
+        nb_hint = round((nb_min + nb_max) / 2)
+    except Exception:
+        nb_min = nb_max = None
+
+    q_h_display = loads.get("q_h_heat") or abs(loads["q_h"])
+    q_c_display = loads.get("q_h_cool") or abs(loads["q_h"])
+
+    result = {
+        # Site fields
+        "k":            round(site["k"], 2),
+        "T_ground":     round(site["T_g"], 1),
+        "climate_zone": site["climate_zone"],
+        # Load fields — peaks only
+        "q_h":  round(abs(q_h_display), 1),
+        "q_c":  round(abs(q_c_display), 1),
+        # Borehole capacity
+        "n_boreholes_hint": nb_hint,
+        "nb_min": nb_min,
+        "nb_max": nb_max,
+        # Pass-through for /size
+        "site":  site,
+        "loads": loads,
+        "building_type":   payload["building_type"],
+        "floor_area_m2":   payload["floor_area_m2"],
+        "footprint_shape": payload["footprint_shape"],
+        "num_floors":      payload["num_floors"],
+    }
+    return _cors_headers(jsonify(result))
+
+
+@app.route("/size", methods=["POST", "OPTIONS"])
+def mobile_size():
+    """Mobile wizard stage-2 endpoint: borefield sizing + cost.
+
+    Expects the echoed site/loads dicts from /analyze plus borehole parameters
+    from stage2.html.  Returns a response shaped for result_final.html.
+    """
+    if request.method == "OPTIONS":
+        return _cors_headers(jsonify({}))
+
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+    except Exception:
+        data = {}
+
+    # --- pull echoed stage-1 data ---
+    site_in  = data.get("site")
+    loads_in = data.get("loads")
+    if not isinstance(site_in, dict) or not isinstance(loads_in, dict):
+        return _cors_headers(jsonify({"error": "field",
+                                      "message": "stage-1 site/loads missing"})), 400
+    try:
+        effective_k = float(site_in["k_effective"])
+        alpha       = float(site_in["alpha"])
+        T_g         = float(site_in["T_g"])
+    except (KeyError, TypeError, ValueError):
+        return _cors_headers(jsonify({"error": "field",
+                                      "message": "site data incomplete"})), 400
+
+    q_pulses = {}
+    try:
+        for key in ("q_h", "q_m", "q_y"):
+            q_pulses[key] = float(loads_in[key])
+        for key in ("q_h_heat", "q_m_heat", "q_h_cool", "q_m_cool"):
+            v = loads_in.get(key)
+            q_pulses[key] = float(v) if v is not None else None
+    except (KeyError, TypeError, ValueError):
+        return _cors_headers(jsonify({"error": "field",
+                                      "message": "loads data incomplete"})), 400
+
+    # --- borehole parameters ---
+    try:
+        H_min = float(data.get("borehole_depth", 150.0))
+        B     = float(data.get("borehole_spacing", 6.0))
+    except (ValueError, TypeError):
+        H_min, B = 150.0, 6.0
+    H_min = max(30.0, min(600.0, H_min))
+    B     = max(3.0,  min(20.0, B))
+    A     = 9.0   # default aspect ratio
+
+    building_type  = str(data.get("building_type", "medium_office")).strip()
+    floor_area_m2  = data.get("floor_area_m2")
+    if floor_area_m2:
+        try:
+            floor_area_m2 = float(floor_area_m2)
+        except (ValueError, TypeError):
+            floor_area_m2 = None
+
+    # Optional grout override
+    adv_data = dict(data)
+    if data.get("grout_k") not in (None, ""):
+        adv_data["kgrout"] = data["grout_k"]
+
+    params, err = _parse_advanced_params(adv_data)
+    if err:
+        return _cors_headers(err[0]), err[1]
+
+    # --- sizing ---
+    result, err = _run_sizing(
+        q_pulses=q_pulses, effective_k=effective_k, alpha=alpha, T_g=T_g,
+        building_type=building_type, floor_area_m2=floor_area_m2,
+        NB=None, H_min=H_min, B=B, A=A, params=params, data=adv_data,
+    )
+    if err:
+        return _cors_headers(err[0]), err[1]
+
+    L, NB_out, H = result["L"], result["NB"], result["H"]
+
+    # --- cost ---
+    state = site_in.get("state_abbrev")
+    rock_class = site_in.get("rock_class")
+    try:
+        cost_res = estimate_cost(L_m=float(L), NB=int(NB_out), B_m=B,
+                                 state=state, rock_class_name=rock_class)
+        def _fmt_k(usd): return "$" + str(round(usd / 1000)) + "k"
+        cost_best  = _fmt_k(cost_res["best"].total_usd)
+        cost_base  = _fmt_k(cost_res["base"].total_usd)
+        cost_worst = _fmt_k(cost_res["worst"].total_usd)
+    except Exception:
+        cost_best = cost_base = cost_worst = "—"
+
+    # --- thermal performance estimates ---
+    cop_h = round(3.5 + max(0, (T_g - 5) / 15) * 1.0, 1)  # 3.5–4.5 COP vs T_g
+    eer_c = round(14 + max(0, (20 - T_g) / 10) * 4)        # EER improves w/ lower T_g
+    energy_savings_pct = 45   # typical GSHP vs gas+DX baseline
+
+    # --- hybrid strategy text ---
+    governing = result.get("governing", "heating")
+    solar_rec = result.get("solar_thermal_recommended", False)
+    imbalance = result.get("imbalance_m")
+    if solar_rec:
+        strategy = (
+            f"Annual ground thermal imbalance detected (net extraction). "
+            f"<span class='strategy-highlight'>Solar thermal recharge</span> is recommended "
+            f"to maintain long-term ground temperature. Full geothermal covers "
+            f"all peak {governing} demand."
+        )
+    elif imbalance and imbalance > 200:
+        pct_red = round(min(30, imbalance / L * 100))
+        strategy = (
+            f"<span class='strategy-highlight'>Hybrid peak-shaving</span> boiler recommended "
+            f"for the top ~{pct_red}% of {governing} load. This reduces borefield length "
+            f"by ~{pct_red}% and improves economics without affecting 90%+ of annual "
+            f"energy from the ground loop."
+        )
+    else:
+        strategy = (
+            f"Full geothermal coverage is cost-effective for this building. "
+            f"A <span class='strategy-highlight'>single-stage GSHP</span> without supplemental "
+            f"peak equipment is recommended. The ground loop handles 100% of "
+            f"{governing}-dominated load."
+        )
+
+    # Land footprint estimate
+    land_area = round(NB_out * B * B)
+
+    out = {
+        "n_boreholes":       NB_out,
+        "borehole_depth":    round(H),
+        "total_length":      L,
+        "land_area":         land_area,
+        "borehole_spacing":  B,
+        "NB":                NB_out,
+        "H":                 round(H),
+        "L":                 L,
+        "B":                 B,
+        "A":                 A,
+        "building_type":     building_type,
+        "floor_area_m2":     floor_area_m2,
+        "climate_zone":      site_in.get("climate_zone"),
+        "governing":         result.get("governing"),
+        "L_heat":            result.get("L_heat"),
+        "L_cool":            result.get("L_cool"),
+        "imbalance_m":       result.get("imbalance_m"),
+        "nb_source":         result.get("nb_source"),
+        "nb_min":            result.get("nb_min"),
+        "nb_max":            result.get("nb_max"),
+        "solar_thermal_recommended": result.get("solar_thermal_recommended"),
+        "footprint":         result.get("footprint"),
+        "site_passthrough":  site_in,
+        "cost_best":         cost_best,
+        "cost_base":         cost_base,
+        "cost_worst":        cost_worst,
+        "cop_heating":       cop_h,
+        "eer_cooling":       eer_c,
+        "energy_savings_pct": energy_savings_pct,
+        "hybrid_strategy":   strategy,
+    }
+    return _cors_headers(jsonify(out))
 
 
 if __name__ == "__main__":

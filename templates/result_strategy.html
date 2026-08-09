@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GeoLoop — Hybrid Strategy & Cost</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3f0;
+      --border: #dddbd7;
+      --text:   #1a1814;
+      --muted:  #7a7570;
+      --faint:  #a09c97;
+      --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html, body { height: 100%; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
+
+    .nav { height:52px; display:flex; align-items:center; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
+    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
+
+    .main { padding:28px 24px 40px; }
+
+    /* Stepper: badge + dots with absolutely-positioned labels below */
+    .top-header { display:flex; align-items:center; gap:16px; margin-bottom:44px; }
+    /* ↑ align-items:center keeps badge center = dots center; margin-bottom gives room for labels */
+    .stage-badge { width:48px; height:48px; border-radius:50%; background:var(--text); color:#f5f3f0; font-size:13px; font-weight:700; letter-spacing:-0.01em; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sub-stepper { flex:1; display:flex; align-items:center; }
+    .ss-dot-wrap { position:relative; flex-shrink:0; }
+    .ss-dot { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; transition:background 0.2s, color 0.2s; }
+    .ss-dot.active  { background:#3d3936; color:#f5f3f0; }
+    .ss-dot.done    { background:#3d3936; color:#f5f3f0; font-size:14px; }
+    .ss-dot.pending { background:var(--border); color:var(--muted); }
+    .ss-dot-label { position:absolute; top:38px; left:50%; transform:translateX(-50%); white-space:nowrap; font-size:9px; color:var(--muted); text-align:center; pointer-events:none; }
+    .ss-line { flex:1; height:2px; transition:background 0.2s; }
+    .ss-line.dark { background:var(--text); }
+    .ss-line.gray { background:var(--border); }
+
+    .section-title { font-size:clamp(20px,5.5vw,26px); font-weight:700; letter-spacing:-0.025em; margin-bottom:4px; }
+    .section-sub   { font-size:12px; color:var(--faint); margin-bottom:24px; line-height:1.5; }
+
+    .loading { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:200px; gap:16px; color:var(--muted); font-size:13px; }
+    .spinner { width:32px; height:32px; border:2.5px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin 0.8s linear infinite; }
+    .spinner-sm { width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin 0.8s linear infinite; flex-shrink:0; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .sub-loading { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; padding:16px 0; }
+
+    .result-card { background:white; border:1.5px solid var(--border); border-radius:16px; padding:18px; margin-bottom:12px; }
+    .card-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:14px; }
+    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .stat { display:flex; flex-direction:column; gap:4px; }
+    .stat-val { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1; }
+    .stat-unit { font-size:12px; font-weight:400; color:var(--faint); margin-left:3px; }
+    .stat-lbl { font-size:11px; color:var(--muted); line-height:1.4; }
+    .divider { height:1px; background:var(--border); margin:14px 0; }
+
+    .panel-title { font-size:16px; font-weight:700; letter-spacing:-0.02em; margin-bottom:16px; }
+    .panel-btn-row { display:flex; justify-content:center; align-items:center; gap:16px; margin-top:24px; margin-bottom:8px; }
+
+    /* Peaker control row */
+    .control-block { margin-bottom:16px; }
+    .ctrl-label { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
+    .ctrl-select-row { display:flex; align-items:center; gap:8px; }
+    .ctrl-select { font-family:var(--font); font-size:13px; font-weight:500; background:white; border:1.5px solid var(--border); border-radius:12px; padding:10px 38px 10px 14px; color:var(--text); outline:none; -webkit-appearance:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7570' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; flex:1; }
+    .info-circle-btn { width:28px; height:28px; border-radius:50%; background:var(--border); color:var(--text); border:none; cursor:pointer; font-family:var(--font); font-size:16px; font-weight:300; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s; -webkit-tap-highlight-color:transparent; line-height:1; }
+    .info-circle-btn:active { background:#c8c5c0; }
+    .info-panel { background:white; border:1.5px solid var(--border); border-radius:12px; padding:14px 16px; margin-top:10px; font-size:12px; color:var(--muted); line-height:1.7; }
+    .info-panel strong { color:var(--text); font-weight:600; }
+    .recalc-btn { font-family:var(--font); font-size:12px; font-weight:700; background:var(--text); color:#f5f3f0; border:none; border-radius:100px; padding:9px 20px; cursor:pointer; align-self:flex-start; transition:opacity 0.15s; margin-top:10px; }
+    .recalc-btn:active { opacity:0.8; }
+    .dom-mode-pill { display:inline-flex; align-items:center; gap:5px; background:var(--text); color:#f5f3f0; font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:100px; margin-bottom:12px; }
+
+    .compare-row { display:flex; align-items:stretch; gap:10px; margin-bottom:12px; }
+    .compare-col { flex:0.7; background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; display:flex; flex-direction:column; }
+    .compare-col.hi { flex:1.3; border-color:var(--text); }
+    .compare-head { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+    .compare-head.hi { color:var(--text); }
+    .compare-arrow { font-size:18px; color:var(--muted); flex-shrink:0; align-self:center; }
+    .compare-val { font-size:18px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
+    .compare-sub { font-size:10px; color:var(--muted); margin-top:2px; }
+    .compare-spacer { margin-top:8px; }
+
+    .savings-row { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .savings-tag { background:var(--text); color:#f5f3f0; font-size:12px; font-weight:700; padding:5px 12px; border-radius:100px; }
+    .peaker-info { font-size:12px; color:var(--muted); }
+
+    .detail-row { display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:7px 0; border-bottom:1px solid var(--border); }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-row span:last-child { font-weight:600; }
+    .muted-note { font-size:11px; color:var(--muted); line-height:1.6; margin-top:8px; }
+
+    .chart-section { margin-bottom:16px; }
+    .chart-title { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:8px; }
+    .chart-wrap { background:white; border:1.5px solid var(--border); border-radius:14px; padding:12px; height:180px; position:relative; }
+    .chart-wrap canvas { display:block !important; }
+
+    /* System cost */
+    .equip-card { background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; margin-bottom:8px; }
+    .equip-head { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+    .equip-main { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
+    .equip-val { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
+    .equip-cap { font-size:11px; color:var(--muted); }
+
+    .scenario-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .scenario-card { background:white; border:1.5px solid var(--border); border-radius:12px; padding:12px 8px; text-align:center; }
+    .scenario-card.hi { border-color:var(--text); }
+    .sc-label { font-size:10px; font-weight:700; color:var(--faint); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+    .sc-val { font-size:13px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
+
+    .expand-row { display:flex; align-items:center; gap:12px; cursor:pointer; padding:10px 0; user-select:none; -webkit-tap-highlight-color:transparent; }
+    .expand-circle { width:32px; height:32px; border-radius:50%; background:var(--text); color:#f5f3f0; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:300; flex-shrink:0; line-height:1; }
+    .expand-row > span { font-size:13px; font-weight:600; color:var(--text); }
+    .breakdown-table { padding:4px 0 8px; }
+    .bd-row { display:flex; justify-content:space-between; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border); }
+    .bd-row:last-child { border-bottom:none; }
+    .bd-row span:last-child { font-weight:600; }
+
+    /* Cost benchmark */
+    .cost-compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .cost-col { background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; }
+    .cost-col.hi { border-color:var(--text); }
+    .cost-head { font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); margin-bottom:8px; }
+    .cost-head.hi { color:var(--text); }
+    .cost-val { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
+    .cost-sub { font-size:10px; color:var(--muted); margin-top:3px; }
+
+    /* Editable rate input */
+    .rate-input { font-family:var(--font); font-size:12px; font-weight:600; color:var(--text); background:transparent; border:none; border-bottom:1px solid var(--border); width:44px; text-align:right; outline:none; padding:0; -moz-appearance:textfield; }
+    .rate-input::-webkit-outer-spin-button, .rate-input::-webkit-inner-spin-button { -webkit-appearance:none; }
+
+    .back-btn { position:relative; display:inline-flex; align-items:center; justify-content:center; overflow:visible; isolation:isolate; background:transparent; color:var(--text); font-family:var(--font); font-weight:700; font-size:0.95rem; letter-spacing:0.01em; line-height:1; padding:11px 20px; border-radius:100px; border:none; cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; transition:transform 0.15s ease; }
+    .back-btn:active { transform:scale(0.97); }
+    .back-btn .sb-fx { position:absolute; inset:-20px; pointer-events:none; z-index:1; }
+    .back-btn .sb-fx canvas { display:block; width:100%; height:100%; }
+    .back-btn .sb-label { position:relative; z-index:2; white-space:nowrap; }
+    .panel-btn { position:relative; display:inline-flex; align-items:center; justify-content:center; overflow:visible; isolation:isolate; background:transparent; color:var(--text); font-family:var(--font); font-weight:700; font-size:0.95rem; letter-spacing:0.01em; line-height:1; padding:11px 28px; min-width:160px; border-radius:100px; border:none; cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; transition:transform 0.15s ease; }
+    .panel-btn:active { transform:scale(0.97); }
+    .panel-btn .sb-fx { position:absolute; inset:-20px; pointer-events:none; z-index:1; }
+    .panel-btn .sb-fx canvas { display:block; width:100%; height:100%; }
+    .panel-btn .sb-label { position:relative; z-index:2; }
+
+    .new-analysis-btn { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--muted); cursor:pointer; padding:4px; text-decoration:underline; text-underline-offset:3px; }
+    .error-msg { text-align:center; padding:24px; color:#e05c4a; font-size:13px; line-height:1.6; }
+
+    .cs-card-label { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+    .cs-card-label.hi { color:var(--text); }
+    .cs-val { font-size:28px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1; }
+    .cs-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+    .cs-divider { height:1px; background:var(--border); margin:12px 0; }
+    .cs-val2 { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1; }
+    /* Hybrid two-option sub-layout inside cs-card */
+    .cs-opt-wrap { padding:4px 0; }
+    .cs-opt-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+    .cs-opt-tag { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.07em; text-transform:uppercase; }
+    .cs-cheaper-badge { font-size:9px; font-weight:700; background:var(--text); color:#f5f3f0; padding:2px 7px; border-radius:100px; letter-spacing:0.03em; }
+    .cs-opt-val { font-size:15px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1.2; }
+    .cs-opt-sub { font-size:10px; color:var(--muted); margin-top:2px; }
+
+    @media (min-width:640px) { .nav { padding:0 32px; } .main { padding:36px 40px 60px; } }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="welcome.html">
+    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
+      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
+      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
+      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
+      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
+    </svg>
+    <span class="nav-name">GeoLoop</span>
+  </a>
+</nav>
+
+<main class="main">
+
+  <!-- stage badge + sub-stepper with labels below dots -->
+  <div class="top-header">
+    <div class="stage-badge">3/3</div>
+    <div class="sub-stepper">
+      <div class="ss-dot-wrap">
+        <div class="ss-dot active" id="ss-dot-1">1</div>
+        <div class="ss-dot-label">Hybrid Strategy</div>
+      </div>
+      <div class="ss-line gray" id="ss-line-1"></div>
+      <div class="ss-dot-wrap">
+        <div class="ss-dot pending" id="ss-dot-2">2</div>
+        <div class="ss-dot-label">System Cost</div>
+      </div>
+      <div class="ss-line gray" id="ss-line-2"></div>
+      <div class="ss-dot-wrap">
+        <div class="ss-dot pending" id="ss-dot-3">3</div>
+        <div class="ss-dot-label">Cost Benchmark</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" id="panel-title">Hybrid Strategy</div>
+  <div class="section-sub" id="panel-sub">peak-shaving optimization</div>
+
+  <div class="loading" id="loading-state">
+    <div class="spinner"></div>
+    <span>Loading strategy analysis…</span>
+  </div>
+
+  <div id="error-state" style="display:none" class="error-msg"></div>
+
+  <div id="content-state" style="display:none">
+
+    <!-- Panel 1: Hybrid Strategy -->
+    <div id="panel-1">
+      <!-- Dominant mode pill (filled after data loads) -->
+      <div id="dom-mode-row" style="display:none; margin-bottom:12px;">
+        <span class="dom-mode-pill">dominant load: <span id="dom-mode-text">—</span></span>
+      </div>
+
+      <!-- Peaker selector + info circle -->
+      <div class="control-block">
+        <label class="ctrl-label">Supplemental system</label>
+        <div class="ctrl-select-row">
+          <select id="peaker-select" class="ctrl-select">
+            <option value="auto">Auto (recommended)</option>
+            <option value="heating">Heating only (boiler)</option>
+            <option value="cooling">Cooling only (chiller)</option>
+            <option value="both">Both heating and cooling</option>
+            <option value="none">No hybrid system</option>
+          </select>
+          <button class="info-circle-btn" id="peaker-info-btn" onclick="togglePeakerInfo()" aria-label="Mode explanation">+</button>
+        </div>
+        <div id="peaker-info-panel" class="info-panel" style="display:none">
+          <strong>Auto (recommended)</strong> — picks the option below that gives the best cost reduction for your building's load profile.<br><br>
+          <strong>Dominant load shaving</strong> (e.g. cooling chiller when cooling dominates) — reduces borefield length by 30–65%, directly cutting drilling cost. Best when upfront cost is the priority.<br><br>
+          <strong>Non-dominant load shaving</strong> (e.g. boiler when cooling dominates) — corrects seasonal thermal imbalance: when one season extracts far more heat than the other injects, the ground temperature drifts over years. A non-dominant peaker rebalances extraction/rejection, protecting long-term efficiency. Smaller borefield savings but better ground stability.<br><br>
+          <strong>Both</strong> — adds a peaker on each side. Recommended when heating and cooling loads are nearly equal, or in climates with both harsh winters and hot summers.<br><br>
+          <strong>None</strong> — no supplemental system. Sizes borefield for the full peak load. Highest drilling cost but 100% ground-source coverage.
+        </div>
+        <button class="recalc-btn" onclick="recalcStrategy()">Recalculate</button>
+      </div>
+
+      <div id="strategy-loading" class="sub-loading">
+        <div class="spinner-sm"></div>
+        <span>Analyzing hybrid strategy…</span>
+      </div>
+
+      <div id="strategy-content" style="display:none">
+        <!-- Before / After: static compare-row -->
+        <div class="compare-row" id="cs-wrap">
+          <div class="compare-col" id="cs-card-0">
+            <div class="compare-head">Base GSHP</div>
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+              <div class="cs-val" id="st-h-before">—<span class="stat-unit" style="font-size:13px;font-weight:400;color:var(--faint);margin-left:3px;">m</span></div>
+              <div class="cs-sub">depth each</div>
+            </div>
+            <div class="cs-divider"></div>
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+              <div class="cs-val2" id="st-l-before">—</div>
+              <div class="cs-sub">m total length</div>
+            </div>
+          </div>
+          <div class="compare-arrow">→</div>
+          <div class="compare-col hi" id="cs-card-1">
+            <div class="compare-head hi">Hybrid GSHP</div>
+            <!-- Option A: same borehole count, reduce depth -->
+            <div class="cs-opt-wrap">
+              <div class="cs-opt-row">
+                <span class="cs-opt-tag">Reduce Depth</span>
+                <span class="cs-cheaper-badge" id="cs-badge-a" style="display:none">✓ Cheaper</span>
+              </div>
+              <div class="cs-opt-val"><span id="st-opt-a-nb">—</span> bores × <span id="st-opt-a-h">—</span>m each</div>
+              <div class="cs-opt-sub" id="st-opt-a-l">— m total</div>
+            </div>
+            <div class="cs-divider"></div>
+            <!-- Option B: same depth as base, reduce borehole count -->
+            <div class="cs-opt-wrap">
+              <div class="cs-opt-row">
+                <span class="cs-opt-tag">Reduce Count</span>
+                <span class="cs-cheaper-badge" id="cs-badge-b" style="display:none">✓ Cheaper</span>
+              </div>
+              <div class="cs-opt-val"><span id="st-opt-b-nb">—</span> bores × <span id="st-opt-b-h">—</span>m each</div>
+              <div class="cs-opt-sub" id="st-opt-b-l">— m total</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="savings-row">
+          <div class="savings-tag" id="st-savings-tag">Hybrid analysis</div>
+          <div class="peaker-info">+ <span id="st-peaker-kw">—</span> kW <span id="st-peaker-type">peaker</span></div>
+        </div>
+
+        <div class="result-card">
+          <div class="card-label">Peak-Shaving Details</div>
+          <div class="detail-row"><span>Peaker capacity</span><span><span id="st-peaker-kw2">—</span> kW</span></div>
+          <div class="detail-row"><span>Hours shaped by peaker</span><span id="st-cutoff-hrs">—</span></div>
+          <div class="detail-row"><span>Borefield reduction</span><span id="st-savings-pct">—</span></div>
+          <div class="detail-row"><span>GSHP energy coverage</span><span id="st-gshp-energy-pct">—</span></div>
+        </div>
+
+        <div class="chart-section">
+          <div class="chart-title">Annual Ground Load (kWh/month)</div>
+          <div class="chart-wrap"><canvas id="chart-annual"></canvas></div>
+        </div>
+        <div class="chart-section">
+          <div class="chart-title">Load Duration Curve</div>
+          <div class="chart-wrap"><canvas id="chart-ldc"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel-btn-row">
+        <button class="back-btn" id="btn-back" onclick="history.back()"><span class="sb-label">‹ Back</span></button>
+        <button class="panel-btn" id="btn-to-cost" onclick="goToStep(2)">
+          <span class="sb-fx"><canvas></canvas></span>
+          <span class="sb-label">System Cost</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel 2: System Cost -->
+    <div id="panel-2" style="display:none">
+      <div id="cost-loading" class="sub-loading">
+        <div class="spinner-sm"></div>
+        <span>Estimating installation costs…</span>
+      </div>
+      <div id="cost-content" style="display:none">
+        <!-- GSHP equipment card -->
+        <div class="equip-card">
+          <div class="equip-head">GSHP System</div>
+          <div class="equip-main">
+            <div class="equip-val" id="c-hp-usd">—</div>
+            <div class="equip-cap" id="c-hp-cap"></div>
+          </div>
+          <div style="font-size:11px; color:var(--muted)">Heat pump + MER pumps + piping + controls</div>
+        </div>
+        <!-- Peaker equipment card -->
+        <div class="equip-card">
+          <div class="equip-head">Peaker Unit</div>
+          <div class="equip-main">
+            <div class="equip-val" id="c-pk-usd">—</div>
+            <div class="equip-cap" id="c-pk-cap"></div>
+          </div>
+          <div style="font-size:11px; color:var(--muted)" id="c-pk-type-note">Supplemental peaker unit</div>
+        </div>
+
+        <div class="card-label" style="margin:4px 0 10px">Drilling Cost Scenarios</div>
+        <div class="scenario-cards">
+          <div class="scenario-card">
+            <div class="sc-label">Best</div>
+            <div class="sc-val" id="c-best">—</div>
+          </div>
+          <div class="scenario-card hi">
+            <div class="sc-label">Base</div>
+            <div class="sc-val" id="c-base">—</div>
+          </div>
+          <div class="scenario-card">
+            <div class="sc-label">Worst</div>
+            <div class="sc-val" id="c-worst">—</div>
+          </div>
+        </div>
+        <div class="expand-row" onclick="toggleBreakdown()">
+          <div class="expand-circle" id="expand-circle">+</div>
+          <span>Base scenario line items</span>
+        </div>
+        <div id="breakdown-panel" style="display:none">
+          <div id="breakdown-rows" class="breakdown-table"></div>
+        </div>
+      </div>
+      <div class="panel-btn-row">
+        <button class="panel-btn" id="btn-to-benchmark" onclick="goToStep(3)">
+          <span class="sb-label">Cost Benchmark</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel 3: Cost Benchmark -->
+    <div id="panel-3" style="display:none">
+      <div class="cost-compare">
+        <div class="cost-col hi">
+          <div class="cost-head hi">GSHP System</div>
+          <div class="cost-val" id="r3-gshp-cost">—</div>
+          <div class="cost-sub">drilling + equipment</div>
+        </div>
+        <div class="cost-col">
+          <div class="cost-head">Conv. HVAC</div>
+          <div class="cost-val" id="r3-hvac-cost">—</div>
+          <div class="cost-sub" id="r3-hvac-sub">regional benchmark</div>
+        </div>
+      </div>
+      <div class="result-card">
+        <div class="card-label">Conventional HVAC Benchmark</div>
+        <div class="detail-row">
+          <span>Location</span>
+          <span id="r3-location">—</span>
+        </div>
+        <div class="detail-row">
+          <span>Regional rate (editable)</span>
+          <span style="display:flex; align-items:center; gap:4px;">
+            <input id="r3-hvac-psf-input" class="rate-input" type="number" step="1" min="1" max="300"
+              onchange="recalcBenchmark()" oninput="recalcBenchmark()">
+            <span style="font-weight:600;">$/ft²</span>
+          </span>
+        </div>
+        <div class="expand-row" onclick="toggleBenchmarkSource()" style="margin-top:4px; padding:8px 0 0;">
+          <div class="expand-circle" id="bench-src-circle" style="width:24px;height:24px;font-size:15px;">+</div>
+          <span style="font-size:11px; color:var(--muted); font-weight:400;">Data source</span>
+        </div>
+        <div id="bench-src-panel" style="display:none" class="muted-note">
+          Source: RS Means regional cost data. Conventional scope: heating + cooling plant only, excluding interior distribution (air handlers, ductwork, VAV boxes). Actual costs vary by contractor, building type, and market conditions. You can edit the rate above to match a local quote.
+        </div>
+      </div>
+      <div class="panel-btn-row">
+        <button class="panel-btn" id="btn-generate" onclick="goToReport()">
+          <span class="sb-label">Generate Report</span>
+        </button>
+      </div>
+      <div class="panel-btn-row">
+        <button class="new-analysis-btn" onclick="startOver()">New Analysis</button>
+      </div>
+    </div>
+
+  </div><!-- /content-state -->
+</main>
+
+<script>
+
+const FLASK = 'http://127.0.0.1:5001';
+const HVAC_PSF = {
+  'AL':32,'AK':45,'AZ':34,'AR':30,'CA':48,'CO':40,'CT':52,'DE':44,
+  'FL':33,'GA':33,'HI':55,'ID':36,'IL':44,'IN':38,'IA':36,'KS':34,
+  'KY':34,'LA':33,'ME':46,'MD':46,'MA':52,'MI':42,'MN':44,'MS':30,
+  'MO':36,'MT':40,'NE':34,'NV':38,'NH':48,'NJ':52,'NM':35,'NY':55,
+  'NC':35,'ND':38,'OH':40,'OK':32,'OR':42,'PA':46,'RI':52,'SC':33,
+  'SD':36,'TN':32,'TX':33,'UT':38,'VT':48,'VA':44,'WA':44,'WV':36,
+  'WI':42,'WY':38,'DC':55
+};
+const PANEL_TITLES = { 1: 'Hybrid Strategy', 2: 'System Cost', 3: 'Cost Benchmark' };
+const PANEL_SUBS   = {
+  1: 'peak-shaving optimization',
+  2: 'equipment + drilling cost estimate',
+  3: 'GSHP vs conventional HVAC comparison'
+};
+
+let sizeData = null, strategyData = null, costData = null;
+let currentStep = 1;
+let chartAnnual = null, chartLdc = null;
+let breakdownOpen = false, peakerInfoOpen = false, benchSrcOpen = false;
+const _initedBtns = new Set();
+
+// ── Init ──
+(function init() {
+  sizeData = JSON.parse(sessionStorage.getItem('gl_result_final') || 'null');
+  if (!sizeData) {
+    document.getElementById('loading-state').style.display = 'none';
+    const el = document.getElementById('error-state');
+    el.style.display = '';
+    el.textContent = 'No sizing data found. Please complete the borefield sizing step first.';
+    return;
+  }
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('content-state').style.display = '';
+  initSBtn('btn-to-cost');
+  initSBtn('btn-back');
+  runStrategy(document.getElementById('peaker-select').value);
+})();
+
+// ── Strategy ──
+async function runStrategy(peakerPurpose) {
+  document.getElementById('strategy-loading').style.display = '';
+  document.getElementById('strategy-content').style.display = 'none';
+  const r1    = JSON.parse(sessionStorage.getItem('gl_result1') || '{}');
+  const site  = r1.site  || sizeData.site_passthrough || {};
+  const loads = r1.loads || {};
+
+  // Use sizeData as the authoritative source for building_type and NB — they come from the same
+  // /size call. r1 may be from an older run if the user navigated back.
+  // Pass pre-computed q values from r1.loads so the strategy uses the exact same thermal loads
+  // as the /size call (ensuring H_before matches the H shown on the borefield results page).
+  const body = {
+    building_type:   sizeData.building_type || r1.building_type || sessionStorage.getItem('gl_building_type') || '',
+    climate_zone:    site.climate_zone || sizeData.climate_zone || '',
+    k:               site.k || site.k_effective || 2.0,
+    alpha:           site.alpha || 0.1,
+    T_g:             site.T_g || 12,
+    NB:              sizeData.NB || sizeData.n_boreholes || null,
+    B:               sizeData.B || sizeData.borehole_spacing || 6,
+    A:               sizeData.A || 9.0,
+    state:           site.state_abbrev || null,
+    floor_area_m2:   r1.floor_area_m2 || null,
+    year_factor:     loads.year_factor || 1.0,
+    envelope_factor: loads.envelope_factor || 1.0,
+    peaker_purpose:  peakerPurpose || 'auto',
+    // Pre-computed q values from the analyze pipeline — if provided, the strategy API
+    // skips re-extraction from the hourly profile and uses these directly for sizing.
+    q_h_heat:        loads.q_h_heat != null ? loads.q_h_heat : undefined,
+    q_m_heat:        loads.q_m_heat != null ? loads.q_m_heat : undefined,
+    q_h_cool:        loads.q_h_cool != null ? loads.q_h_cool : undefined,
+    q_m_cool:        loads.q_m_cool != null ? loads.q_m_cool : undefined,
+    q_y:             loads.q_y     != null ? loads.q_y     : undefined,
+  };
+
+  try {
+    const res = await fetch(FLASK + '/api/strategy', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || `HTTP ${res.status}`); }
+    strategyData = await res.json();
+    sessionStorage.setItem('gl_strategy_result', JSON.stringify(strategyData));
+    populateStrategy(strategyData);
+    document.getElementById('strategy-loading').style.display = 'none';
+    document.getElementById('strategy-content').style.display = '';
+    drawStrategyCharts(strategyData);
+  } catch (err) {
+    document.getElementById('strategy-loading').style.display = 'none';
+    const sc = document.getElementById('strategy-content');
+    sc.innerHTML = `<div class="muted-note" style="padding:12px 0">Strategy analysis unavailable: ${err.message}</div>`;
+    sc.style.display = '';
+  }
+  runCost();
+}
+
+function recalcStrategy() {
+  strategyData = null; costData = null;
+  document.getElementById('cost-content').style.display = 'none';
+  document.getElementById('cost-loading').style.display = '';
+  runStrategy(document.getElementById('peaker-select').value);
+}
+
+// ── Cost ──
+async function runCost() {
+  if (!sizeData) return;
+  document.getElementById('cost-loading').style.display = '';
+  document.getElementById('cost-content').style.display = 'none';
+  const r1   = JSON.parse(sessionStorage.getItem('gl_result1') || '{}');
+  const site  = r1.site || sizeData.site_passthrough || {};
+  const loads = r1.loads || {};
+
+  // Use hybrid L_after if available, else full borefield L
+  const m2 = strategyData && strategyData.comparison && strategyData.comparison.m2;
+  const L_use = (m2 && m2.L_after) || strategyData?.L_after || sizeData.L || sizeData.total_length;
+  const NB_use = sizeData.NB || sizeData.n_boreholes;
+
+  const body = {
+    L:     L_use,
+    NB:    NB_use,
+    B:     sizeData.B || sizeData.borehole_spacing,
+    state: site.state_abbrev || null,
+  };
+  const qhW = Math.abs(loads.q_h || 0);
+  if (qhW > 0) body.peak_load_kw = +(qhW / 1000).toFixed(1);
+  if (strategyData) {
+    const pkW = strategyData.peaker_kW || strategyData.peaker_kw;
+    const pkT = strategyData.peaker_type;
+    if (pkW) body.peaker_kw = pkW;
+    if (pkT) body.peaker_type = pkT;
+  }
+
+  try {
+    const res = await fetch(FLASK + '/api/cost', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    costData = await res.json();
+    sessionStorage.setItem('gl_cost_result', JSON.stringify(costData));
+    populateCost(costData);
+    document.getElementById('cost-loading').style.display = 'none';
+    document.getElementById('cost-content').style.display = '';
+  } catch (err) {
+    document.getElementById('cost-loading').style.display = 'none';
+    const cc = document.getElementById('cost-content');
+    cc.innerHTML = `<div class="muted-note" style="padding:12px 0">Cost estimation unavailable: ${err.message}</div>`;
+    cc.style.display = '';
+  }
+}
+
+// ── Step navigation ──
+function goToStep(n) {
+  document.getElementById('panel-1').style.display = 'none';
+  document.getElementById('panel-2').style.display = 'none';
+  document.getElementById('panel-3').style.display = 'none';
+  document.getElementById('panel-' + n).style.display = '';
+  document.getElementById('panel-title').textContent = PANEL_TITLES[n];
+  document.getElementById('panel-sub').textContent = n === 1
+    ? (PANEL_SUBS[1] + (strategyData ? ' · dominant load: ' + (strategyData.dominant_mode || '—') : ''))
+    : PANEL_SUBS[n];
+  currentStep = n;
+
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('ss-dot-' + i);
+    dot.className = i < n ? 'ss-dot done' : (i === n ? 'ss-dot active' : 'ss-dot pending');
+    dot.textContent = i < n ? '✓' : String(i);
+  }
+  for (let i = 1; i <= 2; i++)
+    document.getElementById('ss-line-' + i).className = i < n ? 'ss-line dark' : 'ss-line gray';
+
+  if (n === 2) initSBtn('btn-to-benchmark');
+  if (n === 3) { initSBtn('btn-generate'); populateBenchmark(); }
+
+  document.querySelector('.top-header').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Populate: Strategy ──
+function populateStrategy(d) {
+  // FIX: correct path is d.comparison.m2, not d.mode2
+  const m2  = (d.comparison && d.comparison.m2) || {};
+  const dom = d.dominant_mode || d.mode || '—';
+  const pkW = d.peaker_kW || d.peaker_kw;
+  const pkT = (d.peaker_type || 'peaker').replace(/_/g, ' ');
+
+  // Depths and lengths: top-level H_before/H_after + L_before/L_after
+  const hB  = d.H_before;
+  const hA  = d.H_after != null ? d.H_after : m2.H_after;
+  const lB  = d.L_before;
+  const lA  = d.L_after != null ? d.L_after : m2.L_after;
+  const sav = m2.savings_pct != null ? m2.savings_pct.toFixed(1) : null;
+  // FIX: correct key is cutoff_h, not cutoff_hrs
+  const cHrs = m2.cutoff_h;
+  const energyPct = m2.gshp_energy_pct;
+
+  document.getElementById('st-h-before').innerHTML = hB != null ? hB + '<span class="stat-unit">m</span>' : '—';
+  document.getElementById('st-l-before').textContent = lB != null ? Math.round(lB) : '—';
+  document.getElementById('st-savings-tag').textContent = sav ? sav + '% smaller borefield' : 'Hybrid analysis';
+  document.getElementById('st-peaker-kw').textContent   = pkW != null ? Math.round(pkW) : '—';
+  document.getElementById('st-peaker-type').textContent = pkT;
+  document.getElementById('st-peaker-kw2').textContent  = pkW != null ? Math.round(pkW) : '—';
+  document.getElementById('st-cutoff-hrs').textContent  = cHrs != null ? cHrs + ' hrs/yr' : '—';
+  document.getElementById('st-savings-pct').textContent = sav ? sav + '%' : '—';
+  document.getElementById('st-gshp-energy-pct').textContent = energyPct != null ? energyPct.toFixed(1) + '%' : '—';
+
+  // Hybrid two-option comparison (from new API fields)
+  const optA = d.hybrid_opt_a;
+  const optB = d.hybrid_opt_b;
+  const cheaper = d.hybrid_cheaper;
+
+  const _fmt = v => v != null ? '$' + Math.round(v).toLocaleString() : '';
+  if (optA) {
+    document.getElementById('st-opt-a-nb').textContent = optA.NB;
+    document.getElementById('st-opt-a-h').textContent  = optA.H;
+    document.getElementById('st-opt-a-l').textContent  = optA.L + ' m · ' + _fmt(optA.cost_usd);
+  } else if (hA != null && lA != null) {
+    const nbFull = sizeData && (sizeData.NB || sizeData.n_boreholes);
+    document.getElementById('st-opt-a-nb').textContent = nbFull || '—';
+    document.getElementById('st-opt-a-h').textContent  = hA;
+    document.getElementById('st-opt-a-l').textContent  = Math.round(lA) + ' m total';
+  }
+  if (optB) {
+    document.getElementById('st-opt-b-nb').textContent = optB.NB;
+    document.getElementById('st-opt-b-h').textContent  = optB.H;
+    document.getElementById('st-opt-b-l').textContent  = optB.L + ' m · ' + _fmt(optB.cost_usd);
+  } else if (hB != null && lA != null) {
+    const nbReduced = Math.ceil(lA / hB);
+    document.getElementById('st-opt-b-nb').textContent = nbReduced;
+    document.getElementById('st-opt-b-h').textContent  = hB;
+    document.getElementById('st-opt-b-l').textContent  = Math.round(nbReduced * hB) + ' m total';
+  }
+  // Show cheaper badge with savings delta
+  if (cheaper === 'a' && optA && optB) {
+    const saved = optB.cost_usd - optA.cost_usd;
+    document.getElementById('cs-badge-a').textContent = saved > 0 ? '✓ Saves ' + _fmt(saved) : '✓ Lower cost';
+    document.getElementById('cs-badge-a').style.display = '';
+  } else if (cheaper === 'b' && optA && optB) {
+    const saved = optA.cost_usd - optB.cost_usd;
+    document.getElementById('cs-badge-b').textContent = saved > 0 ? '✓ Saves ' + _fmt(saved) : '✓ Lower cost';
+    document.getElementById('cs-badge-b').style.display = '';
+  } else if (cheaper === 'a') {
+    document.getElementById('cs-badge-a').style.display = '';
+  } else if (cheaper === 'b') {
+    document.getElementById('cs-badge-b').style.display = '';
+  }
+
+  // Dominant mode pill
+  if (dom && dom !== '—') {
+    document.getElementById('dom-mode-text').textContent = dom;
+    document.getElementById('dom-mode-row').style.display = '';
+    // Update subtitle
+    document.getElementById('panel-sub').textContent = PANEL_SUBS[1] + ' · dominant load: ' + dom;
+  }
+}
+
+// ── Populate: Cost ──
+function populateCost(d) {
+  const usd = v => v != null ? '$' + Math.round(v).toLocaleString() : '—';
+
+  document.getElementById('c-hp-usd').textContent = usd(d.hp_equipment_usd);
+  document.getElementById('c-pk-usd').textContent = usd(d.peaker_equipment_usd);
+
+  // Capacity labels
+  if (d.peak_load_kw) {
+    const tons = (d.peak_load_kw / 3.517).toFixed(0);
+    document.getElementById('c-hp-cap').textContent = `${Math.round(d.peak_load_kw)} kW (${tons} tons)`;
+  }
+  if (d.peaker_kw) {
+    const pkT = (d.peaker_type || 'peaker').replace(/_/g, ' ');
+    document.getElementById('c-pk-cap').textContent = `${Math.round(d.peaker_kw)} kW`;
+    document.getElementById('c-pk-type-note').textContent = pkT.charAt(0).toUpperCase() + pkT.slice(1) + ' unit';
+  }
+
+  document.getElementById('c-best').textContent  = usd(d.best  && d.best.total_usd);
+  document.getElementById('c-base').textContent  = usd(d.base  && d.base.total_usd);
+  document.getElementById('c-worst').textContent = usd(d.worst && d.worst.total_usd);
+
+  const bd = (d.base && d.base.breakdown) || [];
+  document.getElementById('breakdown-rows').innerHTML = bd.length
+    ? bd.map(it => `<div class="bd-row"><span>${it.item || it.name || 'Item'}</span><span>$${Math.round(it.cost_usd).toLocaleString()}</span></div>`).join('')
+    : '<div class="bd-row"><span style="color:var(--muted)">No breakdown available</span></div>';
+}
+
+// ── Populate: Benchmark ──
+function populateBenchmark() {
+  const r1    = JSON.parse(sessionStorage.getItem('gl_result1') || '{}');
+  const site  = r1.site || sizeData.site_passthrough || {};
+  const state = site.state_abbrev || sizeData?.site_passthrough?.state_abbrev || '';
+  const area  = r1.floor_area_m2 || (r1.loads && r1.loads.floor_area_m2) || null;
+  const psf   = HVAC_PSF[state] || 40;
+  const sqft  = area ? Math.round(area * 10.764) : null;
+
+  // Set editable rate input to state default
+  const input = document.getElementById('r3-hvac-psf-input');
+  input.value = psf;
+
+  document.getElementById('r3-location').textContent = state ? state + ' regional estimate' : 'National average';
+
+  _updateBenchmarkTotals(psf, sqft);
+}
+
+function recalcBenchmark() {
+  const r1    = JSON.parse(sessionStorage.getItem('gl_result1') || '{}');
+  const site  = r1.site || sizeData.site_passthrough || {};
+  const area  = r1.floor_area_m2 || (r1.loads && r1.loads.floor_area_m2) || null;
+  const sqft  = area ? Math.round(area * 10.764) : null;
+  const psf   = parseFloat(document.getElementById('r3-hvac-psf-input').value) || 40;
+  _updateBenchmarkTotals(psf, sqft);
+}
+
+function _updateBenchmarkTotals(psf, sqft) {
+  const usd = v => v != null ? '$' + Math.round(v).toLocaleString() : '—';
+  const hvacTotal = sqft ? Math.round(sqft * psf) : null;
+
+  const baseDrill = costData && costData.base && costData.base.total_usd;
+  const hpEquip   = costData && costData.hp_equipment_usd;
+  const pkEquip   = costData && costData.peaker_equipment_usd;
+  const gshpTotal = (baseDrill || 0) + (hpEquip || 0) + (pkEquip || 0);
+
+  document.getElementById('r3-gshp-cost').textContent = gshpTotal > 0 ? usd(gshpTotal) : '—';
+  document.getElementById('r3-hvac-cost').textContent = hvacTotal ? usd(hvacTotal) : ('~$' + psf + '/ft²');
+  document.getElementById('r3-hvac-sub').textContent  = `$${psf}/ft² × ${sqft ? sqft.toLocaleString() + ' sqft' : 'floor area'}`;
+}
+
+// ── Charts ──
+function drawStrategyCharts(d) {
+  const profile = d.hourly_profile || d.ldc_profile || [];
+  if (!profile.length) return;
+
+  const DAYS   = [31,28,31,30,31,30,31,31,30,31,30,31];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthly = []; let h = 0;
+  for (let m = 0; m < 12; m++) {
+    let sum = 0, hrs = DAYS[m] * 24;
+    for (let i = 0; i < hrs && h < profile.length; i++, h++) sum += Math.abs(profile[h]);
+    monthly.push(Math.round(sum / 1000));
+  }
+
+  const ca = document.getElementById('chart-annual');
+  if (ca) {
+    if (chartAnnual) chartAnnual.destroy();
+
+    // Seasonal gradient fill: red(winter) → purple → blue(summer) → purple → red
+    const actx = ca.getContext('2d');
+    const grad = actx.createLinearGradient(0, 0, ca.clientWidth || 400, 0);
+    grad.addColorStop(0,    'rgba(200, 60, 60, 0.55)');   // Jan: winter red
+    grad.addColorStop(0.12, 'rgba(200, 60, 60, 0.45)');   // Feb
+    grad.addColorStop(0.25, 'rgba(160, 80, 160, 0.35)');  // Mar-Apr: transition
+    grad.addColorStop(0.42, 'rgba(80, 100, 210, 0.40)');  // May-Jun: cooling blue
+    grad.addColorStop(0.58, 'rgba(60, 80, 200, 0.50)');   // Jul-Aug: peak summer
+    grad.addColorStop(0.72, 'rgba(80, 100, 210, 0.38)');  // Sep: fading
+    grad.addColorStop(0.83, 'rgba(160, 80, 160, 0.38)');  // Oct-Nov: transition
+    grad.addColorStop(1,    'rgba(200, 60, 60, 0.55)');   // Dec: winter red
+
+    // Find peak month index for dot annotation
+    const peakIdx = monthly.indexOf(Math.max(...monthly));
+
+    chartAnnual = new Chart(ca, {
+      type: 'line',
+      data: {
+        labels: MONTHS,
+        datasets: [{
+          data: monthly,
+          borderColor: '#1a1814',
+          borderWidth: 1.8,
+          pointRadius: monthly.map((_, i) => i === peakIdx ? 5 : 0),
+          pointBackgroundColor: '#1a1814',
+          fill: true,
+          backgroundColor: grad,
+          tension: 0.4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#7a7570' } },
+          y: { grid: { color: '#f0eeeb' }, ticks: { font: { size: 9 }, color: '#7a7570' } }
+        }
+      }
+    });
+  }
+
+  const cl = document.getElementById('chart-ldc');
+  if (cl) {
+    const sorted = [...profile].map(Math.abs).sort((a, b) => b - a);
+    const step = Math.max(1, Math.floor(sorted.length / 80));
+    const pts = [];
+    for (let i = 0; i < sorted.length; i += step)
+      pts.push({ x: +((i / sorted.length) * 100).toFixed(1), y: +(sorted[i] / 1000).toFixed(1) });
+
+    // Cutoff threshold line (where peaker kicks in) and peaker upper limit
+    const m2 = d.comparison && d.comparison.m2;
+    const cutoffKw = m2 && m2.cutoff_W != null ? +(m2.cutoff_W / 1000).toFixed(1)
+                   : d.cutoff_W != null ? +(d.cutoff_W / 1000).toFixed(1) : null;
+    const capKw = d.cap_W != null ? +(d.cap_W / 1000).toFixed(1) : null;
+
+    const datasets = [
+      { label: 'Ground load', data: pts, borderColor: '#1a1814', borderWidth: 1.5, pointRadius: 0, fill: true, backgroundColor: 'rgba(26,24,20,0.06)', tension: 0.3 },
+    ];
+    if (cutoffKw != null) {
+      datasets.push({
+        label: 'GSHP limit',
+        data: [{ x: 0, y: cutoffKw }, { x: 100, y: cutoffKw }],
+        borderColor: '#c05a3a',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      });
+    }
+    if (capKw != null && capKw !== cutoffKw) {
+      datasets.push({
+        label: 'Peaker limit',
+        data: [{ x: 0, y: capKw }, { x: 100, y: capKw }],
+        borderColor: '#d97706',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: cutoffKw != null ? { above: 'rgba(217,119,6,0.08)', below: 'transparent', target: { value: cutoffKw } } : false,
+        tension: 0,
+      });
+    }
+
+    if (chartLdc) chartLdc.destroy();
+    chartLdc = new Chart(cl, {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: cutoffKw != null || capKw != null, position: 'top', labels: { font: { size: 9 }, color: '#7a7570', boxWidth: 16, padding: 8 } }
+        },
+        scales: {
+          x: { type: 'linear', min: 0, max: 100, title: { display: true, text: '% of hours', font: { size: 9 }, color: '#7a7570' }, grid: { color: '#f0eeeb' }, ticks: { font: { size: 9 }, color: '#7a7570' } },
+          y: { title: { display: true, text: 'kW', font: { size: 9 }, color: '#7a7570' }, grid: { color: '#f0eeeb' }, ticks: { font: { size: 9 }, color: '#7a7570' } }
+        }
+      }
+    });
+  }
+}
+
+// ── Toggles ──
+function toggleBreakdown() {
+  breakdownOpen = !breakdownOpen;
+  document.getElementById('breakdown-panel').style.display = breakdownOpen ? '' : 'none';
+  document.getElementById('expand-circle').textContent = breakdownOpen ? '−' : '+';
+}
+
+function togglePeakerInfo() {
+  peakerInfoOpen = !peakerInfoOpen;
+  document.getElementById('peaker-info-panel').style.display = peakerInfoOpen ? '' : 'none';
+  document.getElementById('peaker-info-btn').textContent = peakerInfoOpen ? '−' : '+';
+}
+
+function toggleBenchmarkSource() {
+  benchSrcOpen = !benchSrcOpen;
+  document.getElementById('bench-src-panel').style.display = benchSrcOpen ? '' : 'none';
+  document.getElementById('bench-src-circle').textContent = benchSrcOpen ? '−' : '+';
+}
+
+function goToReport() { window.location.href = 'result_report.html'; }
+function startOver() { sessionStorage.clear(); window.location.href = 'stage1a.html'; }
+
+// ── Specular button ──
+function initSBtn(id) {
+  if (_initedBtns.has(id)) return;
+  const btn = document.getElementById(id); if (!btn) return;
+  _initedBtns.add(id);
+  const PAD=20,DPR=Math.min(window.devicePixelRatio||1,2);
+  const RADIUS=100,LINE_COL='#7a6a5a',BASE_COL='#c4a882',INTENSITY=1,SHINE_SZ=10,SHINE_FD=40,THICKNESS=1,SPEED=0.35,PROXIMITY=220;
+  const fx=document.createElement('span'); fx.className='sb-fx'; btn.insertBefore(fx,btn.firstChild);
+  const cv=document.createElement('canvas'); Object.assign(cv.style,{display:'block',width:'100%',height:'100%'}); fx.appendChild(cv);
+  const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:true}); if(!gl) return;
+  gl.clearColor(0,0,0,0); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+  const V=`#version 300 es\nin vec2 p;\nvoid main(){gl_Position=vec4(p,0,1);}`;
+  const F=`#version 300 es\nprecision highp float;\nuniform vec2 uC,uH;uniform float uR,uA,uPx,uI,uSS,uSF,uT,uBW;uniform vec3 uLC,uBC;out vec4 o;\nfloat sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}\nfloat gL(float d,float s){float x=d/(s+1e-6);float k=mix(1.,1.6,smoothstep(0.,1.5,x));return exp(-k*x*x);}\nvoid main(){vec2 p=gl_FragCoord.xy-uC;float d=sdRR(p,uH,uR);vec2 L=vec2(cos(uA),sin(uA));float base=(1.-smoothstep(0.,uBW,abs(d)))*.45;vec2 n=normalize(p/(uH*uH)+1e-6);float phi=acos(clamp(abs(dot(n,L)),0.,1.));float rim=1.-smoothstep(uSS-uSF,uSS+uSF+1e-4,phi);float line=gL(d,uT);float ec=1.-smoothstep(.5*uPx,3.*uPx,abs(d));float hi=line*rim*ec*uI;vec3 col=uBC*base+uLC*hi;o=vec4(col,clamp(base+hi,0.,1.));}`;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;};
+  const pr=gl.createProgram(); gl.attachShader(pr,mk(gl.VERTEX_SHADER,V)); gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,F)); gl.linkProgram(pr); gl.useProgram(pr);
+  const vb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vb); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const va=gl.createVertexArray(); gl.bindVertexArray(va); const al=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(al); gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+  const U=Object.fromEntries(['uC','uH','uR','uA','uPx','uI','uSS','uSF','uT','uBW','uLC','uBC'].map(n=>[n,gl.getUniformLocation(pr,n)]));
+  const h2r=h=>{const c=h.replace('#','');return[parseInt(c.slice(0,2),16)/255,parseInt(c.slice(2,4),16)/255,parseInt(c.slice(4,6),16)/255];};
+  let W=1,H=1;
+  const rsz=()=>{const r=btn.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round((W+PAD*2)*DPR);cv.height=Math.round((H+PAD*2)*DPR);gl.viewport(0,0,cv.width,cv.height);gl.uniform2fv(U.uC,[(PAD+W/2)*DPR,(PAD+H/2)*DPR]);gl.uniform2fv(U.uH,[(W/2)*DPR,(H/2)*DPR]);};
+  new ResizeObserver(rsz).observe(btn); rsz();
+  let pA=null,pT=0; window.addEventListener('pointermove',e=>{const r=btn.getBoundingClientRect();const cx=r.left+W/2,cy=r.top+H/2;const dx=Math.max(r.left-e.clientX,0,e.clientX-r.right),dy=Math.max(r.top-e.clientY,0,e.clientY-r.bottom);const dist=Math.hypot(dx,dy);pA=dist===0?Math.atan2(2/H,-2/W)+((e.clientX-cx)/(W/2))*.3+((cy-e.clientY)/(H/2))*.15:Math.atan2(cy-e.clientY,e.clientX-cx);pT=Math.pow(Math.max(0,1-dist/PROXIMITY),2)*(3-2*Math.max(0,1-dist/PROXIMITY));},{passive:true});
+  const lR=h2r(LINE_COL),bR=h2r(BASE_COL); let ang=2.4,idle=2.4,br=0,last=performance.now();
+  (function fr(now){const dt=Math.min((now-last)/1000,.05);last=now;idle+=SPEED*dt;const df=(((pA!==null?pA:idle)-ang+Math.PI*3)%(Math.PI*2))-Math.PI;ang+=df*(1-Math.exp(-dt*7));br+=(pT-br)*(1-Math.exp(-dt*8));const r=Math.min(RADIUS,Math.min(W,H)/2);gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(U.uA,ang);gl.uniform1f(U.uR,r*DPR);gl.uniform1f(U.uPx,DPR);gl.uniform3fv(U.uLC,lR);gl.uniform3fv(U.uBC,bR);gl.uniform1f(U.uI,INTENSITY*br);gl.uniform1f(U.uSS,(SHINE_SZ*Math.PI)/180);gl.uniform1f(U.uSF,(SHINE_FD*Math.PI)/180);gl.uniform1f(U.uT,THICKNESS*DPR);gl.uniform1f(U.uBW,DPR);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(fr);})(performance.now());
+}
+</script>
+</body>
+</html>

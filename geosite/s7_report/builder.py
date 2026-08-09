@@ -39,6 +39,7 @@ def _design_section(design: dict, site: dict) -> dict:
     fp = design.get("footprint") or {}
     return {
         "building_type": design.get("building_type"),
+        "floor_area_m2": design.get("floor_area_m2"),
         "NB": design.get("NB"),
         "H_m": design.get("H"),
         "L_m": design.get("L"),
@@ -117,10 +118,12 @@ def _cost_savings_section(cost: dict | None, peak_kw: float,
 
     annual_savings = conv_opex - gshp_opex
     extra_capex = gshp_capex - conv_capex
-    if annual_savings > 0:
-        payback = extra_capex / annual_savings if extra_capex > 0 else 0.0
+    if annual_savings > 0 and extra_capex > 0:
+        payback = extra_capex / annual_savings
+    elif extra_capex <= 0:
+        payback = None          # GSHP already cheaper upfront
     else:
-        payback = None
+        payback = None          # operating savings negative — unusual climate/fuel mix
 
     return {
         "available": True,
@@ -136,6 +139,7 @@ def _cost_savings_section(cost: dict | None, peak_kw: float,
         "gshp_opex_usd_yr": gshp_opex,
         "annual_savings_usd_yr": annual_savings,
         "simple_payback_yr": payback,
+        "gshp_lower_upfront": extra_capex <= 0,
         "note": ("Conventional scope: heating+cooling plant only — excludes "
                  "interior distribution (air handlers, ductwork). "
                  "GSHP operating cost excludes peaker energy (additional)."),
@@ -244,7 +248,7 @@ def compute_recommendation_score(report_data: dict) -> dict:
     heat_kwh = float(inputs_echo.get("annual_heat_kwh_th") or 0.0)
     cool_kwh = float(inputs_echo.get("annual_cool_kwh_th") or 0.0)
     floor_m2 = float(
-        review_input.get("floor_area_m2") or design.get("footprint_m2") or 0.0
+        review_input.get("floor_area_m2") or design.get("floor_area_m2") or design.get("footprint_m2") or 0.0
     )
     if floor_m2 > 0 and (heat_kwh + cool_kwh) > 0:
         total_intensity = (heat_kwh + cool_kwh) / floor_m2  # kWh/m²/yr
@@ -293,7 +297,7 @@ def compute_recommendation_score(report_data: dict) -> dict:
     elif nb_source == "depth_too_deep":
         fp_pts, fp_note = 3, "load exceeds drillable depth — nb_max boreholes still require >250 m; hybrid or larger footprint needed"
     elif nb_source == "capacity_capped":
-        fp_pts, fp_note = 6, "load exceeds footprint — clamped to nb_max, deeper boreholes"
+        fp_pts, fp_note = 15, "footprint-constrained — hybrid GSHP designed; feasible with supplemental peaker"
     elif nb_source == "depth_fallback":
         fp_pts, fp_note = 16, "small load — depth-primary sizing; footprint not a constraint"
     else:
