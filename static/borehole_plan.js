@@ -98,11 +98,6 @@
     const [ox1, oy1] = toScreen([Math.max(...xs) + ownership, Math.max(...ys) + ownership]);
     ctx.strokeRect(ox0, oy0, ox1 - ox0, oy1 - oy0);
     ctx.setLineDash([]);
-    // Label
-    ctx.fillStyle = '#388e3c';
-    ctx.font = "10px 'Inter', sans-serif";
-    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-    ctx.fillText('Ownership / Drillable Area', ox0 + 4, oy0 - 3);
 
     // ── Building polygon ──
     const screenPts = pts.map(p => toScreen(p));
@@ -116,18 +111,7 @@
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Building label
-    const cx = screenPts.reduce((s, p) => s + p[0], 0) / screenPts.length;
-    const cy = screenPts.reduce((s, p) => s + p[1], 0) / screenPts.length;
-    const label1 = fp.shape_label || 'Building';
-    const label2 = `${(fp.footprint_m2 || 0).toFixed(0)} m²`;
-    const label3 = fp.n_floors ? `${fp.n_floors} floor(s)` : '';
-    ctx.fillStyle = '#455a64'; ctx.font = 'bold 11px sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(label1, cx, cy - 12);
-    ctx.font = '10px sans-serif';
-    ctx.fillText(label2, cx, cy);
-    if (label3) ctx.fillText(label3, cx, cy + 13);
+    // Building label is rendered as HTML outside the canvas (see canvas-meta div)
 
     // ── Dimension annotations ──
     // Width annotation (horizontal, along bottom edge)
@@ -190,8 +174,10 @@
     ctx.font = '10px monospace';
     lblLines.forEach((ln, i) => ctx.fillText(ln, W - 8, 8 + i * 14));
 
-    // ── Scale bar (bottom-left) ──
-    const barM = 10;
+    // ── Scale bar (bottom-left): pick a nice round number ~20% of building width ──
+    const rawBarM = (maxX - minX) * 0.2;
+    const barM = [1,2,5,10,20,50,100].reduce((best, v) =>
+      Math.abs(v - rawBarM) < Math.abs(best - rawBarM) ? v : best);
     const barPx = barM * scale;
     const barX = 10, barY = H - 20;
     ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.setLineDash([]);
@@ -201,6 +187,13 @@
     ctx.fillStyle = '#333'; ctx.font = '9px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     ctx.fillText(`${barM} m`, barX + barPx / 2, barY + 5);
+
+    // Return metadata for HTML rendering outside canvas
+    return {
+      shape_label: fp.shape_label || 'Building',
+      footprint_m2: fp.footprint_m2 || 0,
+      n_floors: fp.n_floors || null,
+    };
   };
 
   // Helper: point on a rectangle perimeter at arc-length d from top-left corner, clockwise
