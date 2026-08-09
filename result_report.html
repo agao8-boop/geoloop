@@ -74,6 +74,7 @@
       .faq-item { break-inside:avoid; }
       /* No trailing empty page */
       #report-state > *:last-child { margin-bottom:0; }
+      body { min-height:0 !important; }
     }
 
     .section-label { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.12em; text-transform:uppercase; margin:24px 0 10px; }
@@ -95,7 +96,8 @@
     .warn-row { font-size:11px; color:#b45309; background:#fef3c7; border-radius:8px; padding:8px 12px; margin-top:6px; line-height:1.5; }
 
     .canvas-wrap { background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
-    .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 8px; }
+    .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 4px; }
+    .canvas-meta { font-size:11px; color:var(--muted); padding:0 18px 10px; line-height:1.5; }
     #rp-canvas { display:block; width:100%; height:220px; }
 
     .cost-compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
@@ -164,6 +166,7 @@
     <div class="section-label">Borefield Layout Plan</div>
     <div class="canvas-wrap">
       <div class="canvas-label">Site Plan</div>
+      <div class="canvas-meta" id="rp-canvas-meta"></div>
       <canvas id="rp-canvas"></canvas>
     </div>
 
@@ -324,7 +327,13 @@ const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Fo
 
     setTimeout(() => {
       const cv = document.getElementById('rp-canvas');
-      if (cv && typeof drawBoreholePlan === 'function') drawBoreholePlan(cv, sizing, {noInteriorLabels: true});
+      if (cv && typeof drawBoreholePlan === 'function') {
+        const meta = drawBoreholePlan(cv, sizing);
+        if (meta) {
+          const parts = [meta.shape_label, meta.footprint_m2 ? `${Math.round(meta.footprint_m2).toLocaleString()} m²` : null, meta.n_floors ? `${meta.n_floors} floor(s)` : null].filter(Boolean);
+          document.getElementById('rp-canvas-meta').textContent = parts.join(' · ');
+        }
+      }
     }, 50);
 
   } catch (err) {

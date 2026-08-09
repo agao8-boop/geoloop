@@ -47,7 +47,8 @@
     .divider { height:1px; background:var(--border); margin:14px 0; }
 
     .canvas-wrap { background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
-    .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 8px; }
+    .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 4px; }
+    .canvas-meta { font-size:11px; color:var(--muted); padding:0 18px 10px; line-height:1.5; }
     #borefield-canvas { display:block; width:100%; height:220px; }
 
     .btn-bottom { margin-top:auto; padding-top:28px; display:flex; justify-content:center; align-items:center; gap:16px; }
@@ -134,7 +135,8 @@
     </div>
 
     <div class="canvas-wrap">
-      <div class="canvas-label">Borefield Layout Plan</div>
+      <div class="canvas-label">Site Plan</div>
+      <div class="canvas-meta" id="bf-canvas-meta"></div>
       <canvas id="borefield-canvas"></canvas>
     </div>
 
@@ -191,7 +193,13 @@ const FLASK = '';
 
     setTimeout(() => {
       const cv = document.getElementById('borefield-canvas');
-      if (cv && typeof drawBoreholePlan === 'function') drawBoreholePlan(cv, sizeData, {noInteriorLabels: true});
+      if (cv && typeof drawBoreholePlan === 'function') {
+        const meta = drawBoreholePlan(cv, sizeData);
+        if (meta) {
+          const parts = [meta.shape_label, meta.footprint_m2 ? `${Math.round(meta.footprint_m2).toLocaleString()} m²` : null, meta.n_floors ? `${meta.n_floors} floor(s)` : null].filter(Boolean);
+          document.getElementById('bf-canvas-meta').textContent = parts.join(' · ');
+        }
+      }
     }, 50);
 
     initSBtn('next-btn');
