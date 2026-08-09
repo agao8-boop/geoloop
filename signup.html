@@ -135,6 +135,9 @@
 function showLogin()  { document.getElementById('signup-panel').style.display='none'; document.getElementById('login-panel').style.display=''; }
 function showSignup() { document.getElementById('login-panel').style.display='none'; document.getElementById('signup-panel').style.display=''; }
 
+// Auto-show login panel when arriving from "Already have an account?" link
+if (new URLSearchParams(location.search).get('mode') === 'login') showLogin();
+
 function doSignup() {
   const name  = document.getElementById('inp-name').value.trim();
   const email = document.getElementById('inp-email').value.trim();
