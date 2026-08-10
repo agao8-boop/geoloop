@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/design-tokens.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -250,7 +251,7 @@
     </div>
 
     <div class="actions">
-      <button class="pdf-btn" onclick="window.print()">Generate PDF</button>
+      <button class="pdf-btn" onclick="generatePdf()">Generate PDF</button>
       <button class="new-analysis-btn" onclick="saveProject()" style="font-weight:600;color:var(--text)">Save this project →</button>
       <button class="new-analysis-btn" onclick="startOver()">New Analysis</button>
     </div>
@@ -259,9 +260,24 @@
 </main>
 
 <script src="static/borehole_plan.js"></script>
+<script src="/static/unit_convert.js"></script>
 <script>
 const FLASK = '';
 const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Footprint feasibility': 25 };
+
+function generatePdf() {
+  // iPhone Safari does not reliably print an iframe. Open a top-level copy so
+  // its system print sheet can save the report as a PDF.
+  const printable = new URL(window.location.href);
+  printable.searchParams.set('print', '1');
+  if (window.top !== window) {
+    const popup = window.open(printable.href, '_blank');
+    if (popup) popup.addEventListener('load', () => popup.print(), { once: true });
+    else window.top.location.assign(printable.href);
+  } else {
+    window.print();
+  }
+}
 
 (async function generate() {
   const r1       = JSON.parse(sessionStorage.getItem('gl_result1')         || '{}');
@@ -301,6 +317,25 @@ const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Fo
   const state = site.state_abbrev || '';
   const convPsf = HVAC_PSF[state] || 35;
 
+  // Use cached report data when available (saved project loaded from account page)
+  const _cached = JSON.parse(sessionStorage.getItem('gl_report_data') || 'null');
+  if (_cached) {
+    renderReport(_cached, sizing, site, loads, cost, strategy, convPsf);
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('report-state').style.display = '';
+    setTimeout(() => {
+      const cv = document.getElementById('rp-canvas');
+      if (cv && typeof drawBoreholePlan === 'function') {
+        const meta = drawBoreholePlan(cv, sizing);
+        if (meta) {
+          const parts = [meta.shape_label, meta.footprint_m2 ? `${Math.round(meta.footprint_m2).toLocaleString()} m²` : null, meta.n_floors ? `${meta.n_floors} floor(s)` : null].filter(Boolean);
+          document.getElementById('rp-canvas-meta').textContent = parts.join(' · ');
+        }
+      }
+    }, 50);
+    return;
+  }
+
   const payload = {
     design:   sizing,
     site:     site,
@@ -322,6 +357,7 @@ const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Fo
       throw new Error(e.message || `HTTP ${res.status}`);
     }
     const data = await res.json();
+    try { sessionStorage.setItem('gl_report_data', JSON.stringify(data)); } catch (_) {}
     renderReport(data, sizing, site, loads, cost, strategy, convPsf);
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('report-state').style.display = '';
@@ -409,6 +445,8 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
 
   // System Design rows
   const fi = (v, dec=0) => v != null ? (+v).toFixed(dec) : '—';
+  const fL = (v, d=0) => v != null ? GeoUnits.format(+v,'length',d)+'\u00a0'+GeoUnits.label('length') : '—';
+  const fA = (v) => v != null ? Math.round(GeoUnits.value(+v,'area')).toLocaleString('en-US')+'\u00a0'+GeoUnits.label('area') : '—';
   const designRows = [
     ['Building type / Climate zone', `${d.building_type ?? '—'} · zone ${d.climate_zone ?? '—'}`],
     ['Number of boreholes', (() => {
@@ -416,17 +454,17 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
       if (d.nb_min != null) s += ` (footprint fits ${d.nb_min}–${d.nb_max})`;
       return s;
     })()],
-    ['Depth per borehole', `${fi(d.H_m)} m`],
-    ['Total drilled length', `${fi(d.L_m)} m  (${fi(d.L_ft)} ft)`],
-    ['Borehole spacing / array ratio', `${d.B_m ?? '—'} m spacing · ${d.A ?? '—'} aspect ratio`],
+    ['Depth per borehole', fL(d.H_m)],
+    ['Total drilled length', fL(d.L_m)],
+    ['Borehole spacing / array ratio', `${fL(d.B_m, 1)} spacing · ${d.A ?? '—'} aspect ratio`],
     ['Governing design condition', d.governing === 'cooling' ? 'Cooling (summer peak)' : d.governing === 'heating' ? 'Heating (winter peak)' : (d.governing ?? '—')],
     ['Required length — heating / cooling', (() => {
-      let s = `${fi(d.L_heat_m)} / ${fi(d.L_cool_m)} m`;
-      if (d.imbalance_m != null) s += ` — thermal imbalance ${fi(d.imbalance_m)} m`;
+      let s = `${fL(d.L_heat_m)} / ${fL(d.L_cool_m)}`;
+      if (d.imbalance_m != null) s += ` — thermal imbalance ${fL(d.imbalance_m)}`;
       return s;
     })()],
     ['Building footprint', d.footprint_m2 != null
-      ? `${d.footprint_shape ?? 'Footprint'}, ${Math.round(d.footprint_m2).toLocaleString('en-US')} m², ${d.n_floors} floor(s)` : '—'],
+      ? `${d.footprint_shape ?? 'Footprint'}, ${fA(d.footprint_m2)}, ${d.n_floors} floor(s)` : '—'],
     ['Subsurface conditions', `k = ${d.k_effective ?? '—'} W/m·K · alpha = ${d.alpha ?? '—'} m²/day · T_g = ${d.T_g ?? '—'} °C`],
   ];
   if (d.nb_source === 'depth_too_deep') designRows.push(['Depth warning', 'Required borehole depth exceeds 250 m — consider a supplemental peaker or a larger footprint']);
@@ -484,17 +522,17 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
   }
 
   // Populate dynamic FAQ answers
-  const nb = fi(d.NB), H = fi(d.H_m), L = fi(d.L_m);
+  const nb = fi(d.NB), H = fL(d.H_m), L = fL(d.L_m);
   const gov = d.governing === 'heating' ? 'heating' : d.governing === 'cooling' ? 'cooling' : 'heating';
   const k = d.k_effective, tg = d.T_g;
 
   document.getElementById('faq-boreholes').textContent =
-    `${nb} boreholes at ${H} m each (${L} m total) were sized using the Philippe et al. (2010) ASHRAE three-pulse method for ${d.building_type ?? 'this building type'} in climate zone ${d.climate_zone ?? '—'}. ` +
+    `${nb} boreholes at ${H} each (${L} total) were sized using the Philippe et al. (2010) ASHRAE three-pulse method for ${d.building_type ?? 'this building type'} in climate zone ${d.climate_zone ?? '—'}. ` +
     `The borefield depth and count were optimized to minimize total length while keeping each borehole under 250 m. ` +
     `Soil thermal conductivity (${k ?? '—'} W/m·K) was predicted from USGS geological data using machine learning.`;
 
   document.getElementById('faq-mode').textContent =
-    `This building is ${gov}-dominant. The borefield is sized for the governing ${gov} condition (${fi(gov === 'heating' ? d.L_heat_m : d.L_cool_m)} m). ` +
+    `This building is ${gov}-dominant. The borefield is sized for the governing ${gov} condition (${fL(gov === 'heating' ? d.L_heat_m : d.L_cool_m)}). ` +
     (d.imbalance_m != null ? `Thermal imbalance is ${fi(d.imbalance_m)} m — the annual net ground extraction differs between heating and cooling seasons. ` : '') +
     (d.solar_thermal_recommended ? 'Net annual heat extraction is detected; solar thermal recharge is recommended to prevent long-term ground cooling.' : '');
 
@@ -542,7 +580,7 @@ function toggleFaq(qEl) {
 }
 
 function saveProject() {
-  window.location.href = 'signup.html';
+  window.location.href = 'signup.html?source=report';
 }
 
 function startOver() {

@@ -1,0 +1,130 @@
+/**
+ * GeoLoop Design Tokens
+ * ─────────────────────
+ * Process:
+ *  1. Grayscale palette anchored to existing warm-gray brand tones
+ *  2. Primary color: earthy forest green — geothermal earth energy
+ *  3. Semantic accent colors: heat (amber-red), cool (sky blue), error (terracotta)
+ *  4. 10-step grayscale + 10-step green family + 8-step accent families
+ *  5. Semantic aliases so components never reference raw values directly
+ *
+ * Usage: <link rel="stylesheet" href="/static/design-tokens.css">
+ * All templates still work without this file (legacy :root vars unchanged).
+ */
+
+:root {
+  /* ── GRAYSCALE (warm, 10 steps: gray-0 = white, gray-9 = near-black) ── */
+  --gray-0: #ffffff;
+  --gray-1: #faf9f7;
+  --gray-2: #f5f3f0;   /* bg */
+  --gray-3: #ede9e4;
+  --gray-4: #dddbd7;   /* border */
+  --gray-5: #c4bfb9;
+  --gray-6: #a09c97;   /* faint */
+  --gray-7: #7a7570;   /* muted */
+  --gray-8: #4a4540;
+  --gray-9: #1a1814;   /* text */
+
+  /* ── PRIMARY — Earthy Forest Green (10 steps) ── */
+  --green-1: #eef6f1;
+  --green-2: #d0e9db;
+  --green-3: #a3d1bb;
+  --green-4: #72b899;
+  --green-5: #479e7a;
+  --green-6: #2d8a5e;   /* primary action */
+  --green-7: #1e6944;
+  --green-8: #14502f;
+  --green-9: #0c3820;
+  --green-10: #061d10;
+
+  /* ── ACCENT — Heat / Heating mode (amber-red, 8 steps) ── */
+  --heat-1: #fef3f0;
+  --heat-2: #fcddd7;
+  --heat-3: #f8b4a7;
+  --heat-4: #f28776;
+  --heat-5: #e05c4a;   /* primary heat accent */
+  --heat-6: #c4422f;
+  --heat-7: #9c2e1d;
+  --heat-8: #6b1a0e;
+
+  /* ── ACCENT — Cool / Cooling mode (sky blue, 8 steps) ── */
+  --cool-1: #eff7ff;
+  --cool-2: #d6ecff;
+  --cool-3: #a8d4ff;
+  --cool-4: #70b6f8;
+  --cool-5: #3b96f0;   /* primary cool accent */
+  --cool-6: #1b75cc;
+  --cool-7: #0f54a0;
+  --cool-8: #083570;
+
+  /* ── ACCENT — Earth / Ground (warm brown, 8 steps) ── */
+  --earth-1: #faf6f1;
+  --earth-2: #f0e6d6;
+  --earth-3: #d9c4a0;
+  --earth-4: #c4a882;   /* specular button base */
+  --earth-5: #a8854d;
+  --earth-6: #8a6530;
+  --earth-7: #634618;
+  --earth-8: #3d2a09;
+
+  /* ── SEMANTIC ALIASES ── */
+
+  /* Layout */
+  --color-bg:             var(--gray-2);
+  --color-bg-elevated:    var(--gray-0);
+  --color-bg-subtle:      var(--gray-1);
+  --color-surface:        var(--gray-0);
+  --color-surface-hover:  var(--gray-1);
+
+  /* Borders */
+  --color-border:         var(--gray-4);
+  --color-border-strong:  var(--gray-5);
+  --color-border-focus:   var(--gray-9);
+
+  /* Text */
+  --color-text:           var(--gray-9);
+  --color-text-secondary: var(--gray-7);
+  --color-text-tertiary:  var(--gray-6);
+  --color-text-disabled:  var(--gray-5);
+  --color-text-inverse:   var(--gray-2);
+
+  /* Brand primary (green) */
+  --color-primary:          var(--green-6);
+  --color-primary-hover:    var(--green-7);
+  --color-primary-active:   var(--green-8);
+  --color-primary-subtle:   var(--green-1);
+  --color-primary-muted:    var(--green-3);
+
+  /* Heating mode */
+  --color-heat:             var(--heat-5);
+  --color-heat-subtle:      var(--heat-1);
+  --color-heat-muted:       var(--heat-3);
+
+  /* Cooling mode */
+  --color-cool:             var(--cool-5);
+  --color-cool-subtle:      var(--cool-1);
+  --color-cool-muted:       var(--cool-3);
+
+  /* Feedback */
+  --color-error:            var(--heat-5);
+  --color-error-subtle:     var(--heat-1);
+  --color-success:          var(--green-6);
+  --color-success-subtle:   var(--green-1);
+  --color-warning:          #e8a020;
+  --color-warning-subtle:   #fef8ed;
+
+  /* Borehole plan canvas colors */
+  --color-borehole-marker:  var(--green-7);
+  --color-borehole-ring:    var(--green-6);
+  --color-building-fill:    rgba(163, 209, 187, 0.25);
+  --color-building-stroke:  var(--gray-8);
+  --color-setback:          var(--gray-6);
+  --color-ownership:        var(--green-5);
+
+  /* Backward-compatible aliases (match existing :root vars) */
+  --bg:     var(--gray-2);
+  --border: var(--gray-4);
+  --text:   var(--gray-9);
+  --muted:  var(--gray-7);
+  --faint:  var(--gray-6);
+}

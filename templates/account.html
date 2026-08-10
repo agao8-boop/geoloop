@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/design-tokens.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -89,7 +90,7 @@
   <button class="nav-signout" onclick="signOut()">Sign out</button>
 </nav>
 
-<main class="main" id="main-content" style="display:none">
+<main class="main" id="main-content">
 
   <div class="user-row">
     <div class="avatar" id="avatar-initials"></div>
@@ -100,6 +101,7 @@
   </div>
 
   <div class="section-label">Saved projects</div>
+  <p style="font-size:11px;color:var(--faint);margin-bottom:14px;line-height:1.5;">Projects are saved on this device. To access them on another device, export from the report page.</p>
 
   <div id="project-list-container"></div>
 
@@ -123,8 +125,14 @@
 let pendingDeleteId = null;
 
 function init() {
-  const user = JSON.parse(localStorage.getItem('gl_current_user') || 'null');
+  let user = null;
+  try { user = JSON.parse(localStorage.getItem('gl_current_user') || 'null'); } catch (_) {}
   if (!user) { window.location.href = 'signup.html'; return; }
+
+  // Keep a malformed or partially populated local profile from leaving a
+  // completely blank account page on mobile Safari.
+  user.name = String(user.name || 'GeoLoop user');
+  user.email = String(user.email || '');
 
   // Populate user info
   document.getElementById('user-name-display').textContent = user.name;
@@ -137,7 +145,11 @@ function init() {
 }
 
 function renderProjects(user) {
-  const projects = JSON.parse(localStorage.getItem('gl_projects_' + user.email) || '[]');
+  let projects = [];
+  try {
+    const stored = JSON.parse(localStorage.getItem('gl_projects_' + user.email) || '[]');
+    projects = Array.isArray(stored) ? stored : [];
+  } catch (_) {}
   const container = document.getElementById('project-list-container');
 
   if (!projects.length) {
@@ -181,13 +193,9 @@ function renderProjects(user) {
 }
 
 function openProject(p) {
-  // Restore key session data so result pages can render
-  if (p.zip)           sessionStorage.setItem('gl_result1',       JSON.stringify({ site: { zip: p.zip }, building_type: p.building_type }));
-  if (p.building_type) sessionStorage.setItem('gl_building_type', p.building_type);
-  if (p.region)        sessionStorage.setItem('gl_region',        p.region);
-  if (p.units)         sessionStorage.setItem('gl_units',         p.units);
-  if (p.NB !== undefined) {
-    sessionStorage.setItem('gl_result_final', JSON.stringify({ NB: p.NB, H: p.H_m, L: p.L_m }));
+  sessionStorage.clear();
+  if (p.snapshot && typeof p.snapshot === 'object') {
+    Object.entries(p.snapshot).forEach(([key, value]) => sessionStorage.setItem(key, value));
   }
   window.location.href = 'result_report.html';
 }

@@ -1,0 +1,15 @@
+.git
+.github
+.handoff
+.codebase-memory
+.venv
+__pycache__
+*.pyc
+.env
+tests
+docs
+notebooks
+data/doe_prototypes
+data/envelope_study
+data/research
+data/raw

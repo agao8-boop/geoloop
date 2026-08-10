@@ -1,0 +1,14 @@
+# GeoSite Advisor — Python 3.12
+# Use >= floors so pip can select prebuilt wheels for the target Python version
+numpy>=1.26.4,<2.0
+pandas>=2.2.2,<3.0
+scipy>=1.13.1,<2.0
+scikit-learn>=1.5.2,<2.0
+xgboost>=2.1.1,<3.0
+matplotlib>=3.9.2,<4.0
+reportlab>=4.2.2,<5.0
+requests>=2.32.3
+python-dotenv>=1.0.1
+flask>=3.1.1
+gunicorn>=23.0.0
+anthropic>=0.116.0
