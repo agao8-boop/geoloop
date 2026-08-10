@@ -1,0 +1,15 @@
+# secrets and local credentials
+.env
+certs/
+
+# handoff runtime state (audit trail files TASK/RESULT/REVIEW stay tracked)
+.handoff/log/
+.handoff/session-id
+.handoff/state
+.handoff/round
+
+# local noise
+__pycache__/
+*.pyc
+.DS_Store
+.codebase-memory/
