@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoLoop — Design System Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g1:#f0f9f3;--g2:#d4eddf;--g3:#a8d9bc;--g4:#7cc49a;--g5:#50af78;
+  --g6:#2d9a5a;--g7:#1e7a48;--g8:#1a5c38;--g9:#123d25;--g10:#0a1f12;
+  --gray0:#faf9f7;--gray1:#f5f3f0;--gray2:#eeecea;--gray3:#e0ddd9;
+  --gray4:#c8c4be;--gray5:#a09c97;--gray6:#7a7570;--gray7:#4a4540;
+  --gray8:#2e2a26;--gray9:#1a1814;
+  --heat:#f97316;--cool:#3b82f6;--earth:#b45309;
+  --font:'Sora',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:#f0f0ed;color:var(--gray9);padding:0;min-height:100vh}
+
+/* ── Page header ── */
+.page-hero{background:var(--gray9);color:var(--gray1);padding:48px 40px 40px;position:relative;overflow:hidden}
+.page-hero::after{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:var(--g8);opacity:.18}
+.page-hero h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.04em;position:relative}
+.page-hero p{margin-top:10px;color:var(--gray5);font-size:14px;position:relative}
+
+/* ── Section ── */
+section{max-width:1100px;margin:0 auto;padding:40px 32px}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray6);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--gray3)}
+h2{font-size:clamp(20px,3vw,26px);font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.sub{font-size:13px;color:var(--gray6);margin-bottom:28px;line-height:1.6}
+
+/* ── Color palette ── */
+.palette-group{margin-bottom:28px}
+.palette-label{font-size:11px;font-weight:600;color:var(--gray6);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.swatches{display:flex;gap:4px;border-radius:16px;overflow:hidden}
+.swatch{flex:1;height:80px;display:flex;align-items:flex-end;padding:6px 8px;position:relative;cursor:default;transition:transform .15s;min-width:0}
+.swatch:hover{transform:scaleY(1.06);z-index:1}
+.swatch-label{font-size:9px;font-family:var(--mono);font-weight:500;color:rgba(0,0,0,.45);line-height:1.3;display:none}
+.swatch:hover .swatch-label{display:block}
+.swatch.light .swatch-label{color:rgba(0,0,0,.4)}
+.swatch.dark .swatch-label{color:rgba(255,255,255,.5)}
+
+/* ── Typography ── */
+.type-row{background:#fff;border:1.5px solid var(--gray3);border-radius:16px;padding:24px 28px;margin-bottom:12px}
+.type-specimen{margin-bottom:4px}
+.type-meta{font-size:10px;font-family:var(--mono);color:var(--gray5)}
+
+/* ── Animations ── */
+.anim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.anim-card{background:#fff;border:1.5px solid var(--gray3);border-radius:16px;padding:22px;overflow:hidden}
+.anim-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray5);margin-bottom:14px}
+.anim-demo{display:flex;align-items:center;justify-content:center;height:90px}
+
+/* Animation: counter roll */
+.counter-num{font-size:52px;font-weight:800;letter-spacing:-.04em;color:var(--g8);font-variant-numeric:tabular-nums}
+.counter-label{font-size:11px;color:var(--gray5);text-align:center}
+
+/* Animation: shimmer skeleton */
+.shimmer-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--gray2) 25%,var(--gray1) 50%,var(--gray2) 75%);background-size:400px 100%;animation:shimmer 1.4s linear infinite;margin-bottom:8px}
+.shimmer-line.w60{width:60%}
+.shimmer-line.w80{width:80%}
+.shimmer-line.w40{width:40%}
+@keyframes shimmer{from{background-position:-400px 0}to{background-position:400px 0}}
+
+/* Animation: card entrance */
+.entering-card{background:var(--g1);border:1.5px solid var(--g3);border-radius:12px;padding:14px 16px;animation:slideUp .6s cubic-bezier(.2,0,0,1) infinite alternate}
+@keyframes slideUp{from{opacity:.3;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Animation: progress bar */
+.bar-track{width:100%;height:8px;background:var(--gray2);border-radius:4px;overflow:hidden}
+.bar-fill-anim{height:100%;background:linear-gradient(90deg,var(--g7),var(--g5));border-radius:4px;animation:barFill 2s cubic-bezier(.2,0,0,1) infinite alternate}
+@keyframes barFill{from{width:10%}to{width:88%}}
+
+/* Animation: focus glow */
+.input-demo{width:100%;border:1.5px solid var(--gray3);border-radius:10px;padding:10px 14px;font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;color:var(--gray9)}
+.input-demo:focus{border-color:var(--g6);box-shadow:0 0 0 3px var(--g2)}
+
+/* Animation: pulse dot */
+.live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--g5);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+
+/* Animation: score donut */
+.donut-wrap{position:relative;width:80px;height:80px}
+.donut-wrap svg{transform:rotate(-90deg)}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-num{font-size:20px;font-weight:800;color:var(--g8);letter-spacing:-.03em;line-height:1}
+.donut-grade{font-size:9px;font-weight:700;color:var(--g6);letter-spacing:.08em}
+.donut-arc{stroke-dasharray:201;stroke-dashoffset:201;animation:donutFill 2s cubic-bezier(.2,0,0,1) infinite alternate}
+@keyframes donutFill{from{stroke-dashoffset:201}to{stroke-dashoffset:52}}
+
+/* Animation: page slide */
+.slide-demo{display:flex;gap:10px;overflow:hidden;width:100%}
+.slide-page{min-width:60px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:white;flex-shrink:0}
+.slide-p1{background:var(--g8)}
+.slide-p2{background:var(--g6);animation:slideIn 2s cubic-bezier(.2,0,0,1) infinite}
+@keyframes slideIn{0%,30%{transform:translateX(70px);opacity:0}60%,100%{transform:translateX(0);opacity:1}}
+
+/* ── Interactive components ── */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.comp-card{background:#fff;border:1.5px solid var(--gray3);border-radius:16px;padding:22px}
+.comp-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray5);margin-bottom:16px}
+
+/* Soil gauge */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.gauge-svg{overflow:visible}
+.gauge-needle{transform-origin:50px 50px;animation:needleSweep 3s ease-in-out infinite alternate}
+@keyframes needleSweep{from{transform:rotate(-80deg)}to{transform:rotate(30deg)}}
+.gauge-val{font-size:18px;font-weight:800;color:var(--g8)}
+.gauge-sub{font-size:10px;color:var(--gray5)}
+
+/* Score card upgrade */
+.score-demo{background:linear-gradient(135deg,var(--g9) 0%,var(--g7) 100%);border-radius:14px;padding:18px;color:white}
+.score-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:10px}
+.score-big{font-size:48px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff}
+.score-badge{display:inline-block;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,.2);font-size:10px;font-weight:700;letter-spacing:.08em}
+.score-bar-bg{height:5px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;margin-top:6px}
+.score-bar-fg{height:100%;background:rgba(255,255,255,.7);border-radius:3px;animation:barFill 2.5s ease-in-out infinite alternate}
+
+/* Building type cards */
+.btype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btype-card{border:1.5px solid var(--gray3);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:.15s}
+.btype-card:hover{border-color:var(--g4);background:var(--g1)}
+.btype-card.sel{border-color:var(--g6);background:var(--g1)}
+.btype-icon{font-size:20px;margin-bottom:4px}
+.btype-name{font-size:9px;font-weight:600;color:var(--gray6)}
+
+/* Cost comparison */
+.cost-compare{display:flex;flex-direction:column;gap:10px}
+.cost-row{display:flex;align-items:center;gap:10px;font-size:11px}
+.cost-name{width:80px;color:var(--gray6);flex-shrink:0}
+.cost-bar-bg{flex:1;height:24px;background:var(--gray2);border-radius:6px;overflow:hidden}
+.cost-bar-gshp{height:100%;background:linear-gradient(90deg,var(--g7),var(--g5));border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:10px;font-weight:700;color:white;animation:costBar 2.5s ease-in-out infinite alternate}
+.cost-bar-conv{height:100%;background:linear-gradient(90deg,var(--gray6),var(--gray4));border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:10px;font-weight:700;color:white;width:85%;animation:costBarConv 2.5s ease-in-out infinite alternate}
+@keyframes costBar{from{width:50%}to{width:70%}}
+@keyframes costBarConv{from{width:75%}to{width:88%}}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;gap:0}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;z-index:1}
+.step-dot.done{background:var(--g8);color:white}
+.step-dot.active{background:var(--g6);color:white;box-shadow:0 0 0 4px var(--g2)}
+.step-dot.todo{background:var(--gray2);color:var(--gray5)}
+.step-line{flex:1;height:2px;background:var(--gray3)}
+.step-line.done{background:var(--g7)}
+
+/* Tooltip */
+.tooltip-demo{position:relative;display:inline-block}
+.tooltip-target{background:var(--g1);border:1.5px solid var(--g3);border-radius:8px;padding:8px 14px;font-size:12px;cursor:default;font-weight:600;color:var(--g8)}
+.tooltip-bubble{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gray9);color:white;font-size:11px;padding:6px 12px;border-radius:8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.tooltip-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gray9)}
+
+/* Sparkline */
+.spark-wrap{display:flex;align-items:flex-end;gap:2px;height:48px}
+.spark-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px}
+
+/* ── Illustration integration examples ── */
+.illus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.illus-card{border:1.5px solid var(--gray3);border-radius:16px;overflow:hidden}
+.illus-demo{height:140px;position:relative;display:flex;align-items:center;justify-content:center}
+.illus-label-wrap{padding:14px 18px;background:#fff}
+.illus-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.illus-desc{font-size:11px;color:var(--gray6);line-height:1.5}
+
+/* watercolor-style blobs */
+.wc-blob{position:absolute;border-radius:50%;filter:blur(20px);opacity:.35}
+
+/* ── Buttons ── */
+.btn-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font-family:var(--font);font-size:14px;font-weight:700;padding:12px 28px;border-radius:100px;cursor:pointer;border:none;transition:.15s;letter-spacing:-.01em}
+.btn-primary{background:var(--g8);color:white}
+.btn-primary:hover{background:var(--g7)}
+.btn-outline{background:transparent;color:var(--gray9);border:1.5px solid var(--gray3)}
+.btn-outline:hover{border-color:var(--g6);color:var(--g7)}
+.btn-ghost{background:transparent;color:var(--gray6);border:none}
+.btn-ghost:hover{color:var(--gray9)}
+.btn-danger{background:#fdf0ee;color:#c0392b;border:1.5px solid #f5c6c2}
+
+/* ── Tag / pill ── */
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{padding:5px 14px;border-radius:100px;font-size:12px;font-weight:600}
+.tag-green{background:var(--g1);color:var(--g8);border:1.5px solid var(--g3)}
+.tag-heat{background:#fff3e0;color:#b45309;border:1.5px solid #fde8c3}
+.tag-cool{background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe}
+.tag-gray{background:var(--gray2);color:var(--gray6);border:1.5px solid var(--gray3)}
+
+footer{background:var(--gray9);color:var(--gray6);text-align:center;font-size:11px;padding:24px;margin-top:48px}
+</style>
+</head>
+<body>
+
+<div class="page-hero">
+  <h1>GeoLoop Design System</h1>
+  <p>Color palette · Typography · Animations · Components · Illustration integration</p>
+</div>
+
+<!-- ════════════════════════════════════════ COLOR PALETTE -->
+<section>
+  <div class="sec-title">01 Color palette</div>
+  <h2>Forest green + warm grayscale</h2>
+  <p class="sub">Single-hue green primary (earthy, geothermal) · Warm stone neutrals · Heat / cool / earth accents for data encoding</p>
+
+  <div class="palette-group">
+    <div class="palette-label">Primary greens — 10 steps (anchor: #1a5c38)</div>
+    <div class="swatches">
+      <div class="swatch light" style="background:#f0f9f3"><div class="swatch-label">--g1<br>#f0f9f3</div></div>
+      <div class="swatch light" style="background:#d4eddf"><div class="swatch-label">--g2<br>#d4eddf</div></div>
+      <div class="swatch light" style="background:#a8d9bc"><div class="swatch-label">--g3<br>#a8d9bc</div></div>
+      <div class="swatch light" style="background:#7cc49a"><div class="swatch-label">--g4<br>#7cc49a</div></div>
+      <div class="swatch light" style="background:#50af78"><div class="swatch-label">--g5<br>#50af78</div></div>
+      <div class="swatch dark" style="background:#2d9a5a"><div class="swatch-label">--g6<br>#2d9a5a</div></div>
+      <div class="swatch dark" style="background:#1e7a48"><div class="swatch-label">--g7<br>#1e7a48</div></div>
+      <div class="swatch dark" style="background:#1a5c38"><div class="swatch-label">--g8<br>#1a5c38</div></div>
+      <div class="swatch dark" style="background:#123d25"><div class="swatch-label">--g9<br>#123d25</div></div>
+      <div class="swatch dark" style="background:#0a1f12"><div class="swatch-label">--g10<br>#0a1f12</div></div>
+    </div>
+  </div>
+
+  <div class="palette-group">
+    <div class="palette-label">Warm grayscale — neutrals (stone, not cool)</div>
+    <div class="swatches">
+      <div class="swatch light" style="background:#faf9f7"><div class="swatch-label">--gray0</div></div>
+      <div class="swatch light" style="background:#f5f3f0"><div class="swatch-label">--gray1</div></div>
+      <div class="swatch light" style="background:#eeecea"><div class="swatch-label">--gray2</div></div>
+      <div class="swatch light" style="background:#e0ddd9"><div class="swatch-label">--gray3</div></div>
+      <div class="swatch light" style="background:#c8c4be"><div class="swatch-label">--gray4</div></div>
+      <div class="swatch dark" style="background:#a09c97"><div class="swatch-label">--gray5</div></div>
+      <div class="swatch dark" style="background:#7a7570"><div class="swatch-label">--gray6</div></div>
+      <div class="swatch dark" style="background:#4a4540"><div class="swatch-label">--gray7</div></div>
+      <div class="swatch dark" style="background:#2e2a26"><div class="swatch-label">--gray8</div></div>
+      <div class="swatch dark" style="background:#1a1814"><div class="swatch-label">--gray9</div></div>
+    </div>
+  </div>
+
+  <div class="palette-group">
+    <div class="palette-label">Data accents — heat (heating load) · cool (cooling load) · earth (soil / geology)</div>
+    <div class="swatches">
+      <div class="swatch light" style="background:#fff8f0"><div class="swatch-label">heat-1</div></div>
+      <div class="swatch light" style="background:#fde8c3"><div class="swatch-label">heat-2</div></div>
+      <div class="swatch light" style="background:#fbd097"><div class="swatch-label">heat-3</div></div>
+      <div class="swatch dark" style="background:#f97316"><div class="swatch-label">heat-4 🔥</div></div>
+      <div class="swatch dark" style="background:#7c2d12"><div class="swatch-label">heat-8</div></div>
+      <div class="swatch light" style="background:#eff6ff" style="margin-left:12px"><div class="swatch-label">cool-1</div></div>
+      <div class="swatch light" style="background:#bfdbfe"><div class="swatch-label">cool-2</div></div>
+      <div class="swatch dark" style="background:#3b82f6"><div class="swatch-label">cool-4 ❄</div></div>
+      <div class="swatch dark" style="background:#1e3a5f"><div class="swatch-label">cool-8</div></div>
+      <div class="swatch light" style="background:#fdf8f0"><div class="swatch-label">earth-1</div></div>
+      <div class="swatch dark" style="background:#b45309"><div class="swatch-label">earth ⛏</div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px">
+    <div class="palette-label">How accents encode geothermal data</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span class="tag tag-heat">🔥 Heating dominant · zone 6A</span>
+      <span class="tag tag-cool">❄ Cooling dominant · zone 2A</span>
+      <span class="tag tag-green">✓ Balanced · zone 4C</span>
+      <span class="tag" style="background:#fdf8f0;color:#92400e;border:1.5px solid #fde8c3">⛏ Low soil k — longer loops needed</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ TYPOGRAPHY -->
+<section>
+  <div class="sec-title">02 Typography — Sora</div>
+  <h2>Hierarchy system</h2>
+  <p class="sub">Sora already installed. Add weight + tracking rules to make hierarchy obvious without extra color.</p>
+
+  <div class="type-row">
+    <div class="type-specimen" style="font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1.1">GeoLoop Report — 85 / 100</div>
+    <div class="type-meta">36px · weight 800 · tracking -0.04em · Page title / hero</div>
+  </div>
+  <div class="type-row">
+    <div class="type-specimen" style="font-size:22px;font-weight:700;letter-spacing:-.03em">System Design · Borefield Layout</div>
+    <div class="type-meta">22px · weight 700 · tracking -0.03em · Section heading</div>
+  </div>
+  <div class="type-row">
+    <div class="type-specimen" style="font-size:14px;font-weight:600;letter-spacing:-.01em">Number of boreholes · NB = 10</div>
+    <div class="type-meta">14px · weight 600 · tracking -0.01em · Card label / result row</div>
+  </div>
+  <div class="type-row">
+    <div class="type-specimen" style="font-size:12px;font-weight:400;color:#7a7570;line-height:1.6">Soil thermal conductivity is estimated from USGS geological survey data using machine learning. A Thermal Response Test can confirm these values.</div>
+    <div class="type-meta">12px · weight 400 · muted · Body / explanation text</div>
+  </div>
+  <div class="type-row">
+    <div class="type-specimen" style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a09c97">BOREFIELD LAYOUT PLAN · SYSTEM DESIGN</div>
+    <div class="type-meta">10px · weight 700 · tracking +0.12em · UPPERCASE · Section label</div>
+  </div>
+  <div class="type-row">
+    <div class="type-specimen" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#1a5c38">NB = 10 · H = 242 ft · L = 7953 ft · Spacing = 64.6 ft</div>
+    <div class="type-meta">JetBrains Mono 13px · Technical values / canvas labels / code</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ ANIMATIONS -->
+<section>
+  <div class="sec-title">03 Animations — live demos</div>
+  <h2>Micro-interactions (all running below)</h2>
+  <p class="sub">Hover / interact with inputs. All animations respect <code>prefers-reduced-motion</code>.</p>
+
+  <div class="anim-grid">
+
+    <div class="anim-card">
+      <div class="anim-label">Counter roll — score reveal</div>
+      <div class="anim-demo" style="flex-direction:column;gap:4px">
+        <div class="counter-num" id="counter">0</div>
+        <div class="counter-label">GSHP Feasibility Score</div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Shimmer skeleton — loading</div>
+      <div class="anim-demo" style="flex-direction:column;width:100%;gap:0">
+        <div class="shimmer-line w80"></div>
+        <div class="shimmer-line w60"></div>
+        <div class="shimmer-line w40"></div>
+        <div class="shimmer-line w80" style="height:32px;border-radius:8px"></div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Card entrance — slide up</div>
+      <div class="anim-demo">
+        <div class="entering-card" style="width:90%">
+          <div style="font-size:11px;font-weight:700;color:var(--g8);margin-bottom:4px">Site & Soil</div>
+          <div style="font-size:10px;color:var(--gray6)">k = 2.4 W/m·K · Zone 5A</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Progress bar fill</div>
+      <div class="anim-demo" style="flex-direction:column;gap:10px;width:100%">
+        <div style="font-size:11px;color:var(--gray6)">Heating · 32 / 40 pts</div>
+        <div class="bar-track"><div class="bar-fill-anim"></div></div>
+        <div style="font-size:11px;color:var(--gray6)">Soil conductivity · 28 / 30 pts</div>
+        <div class="bar-track"><div class="bar-fill-anim" style="animation-delay:.3s"></div></div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Score donut — SVG arc</div>
+      <div class="anim-demo">
+        <div class="donut-wrap">
+          <svg width="80" height="80" viewBox="0 0 100 100" class="gauge-svg">
+            <circle cx="50" cy="50" r="32" fill="none" stroke="#e0ddd9" stroke-width="12"/>
+            <circle cx="50" cy="50" r="32" fill="none" stroke="#1e7a48" stroke-width="12"
+              stroke-linecap="round" class="donut-arc"/>
+          </svg>
+          <div class="donut-center">
+            <div class="donut-num">85</div>
+            <div class="donut-grade">GOOD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Input focus glow</div>
+      <div class="anim-demo" style="width:100%">
+        <div style="width:100%">
+          <input class="input-demo" placeholder="Enter ZIP code (click me)">
+          <div style="font-size:10px;color:var(--gray5);margin-top:6px">Click the input to see focus ring</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Live status pulse</div>
+      <div class="anim-demo" style="gap:10px">
+        <div class="live-dot"></div>
+        <span style="font-size:12px;font-weight:600;color:var(--gray6)">Analysis running…</span>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-label">Page slide transition</div>
+      <div class="anim-demo" style="flex-direction:column;gap:8px;width:100%">
+        <div style="font-size:10px;color:var(--gray5)">Previous → Next page</div>
+        <div class="slide-demo">
+          <div class="slide-page slide-p1">Stage 1a</div>
+          <div class="slide-page slide-p2">Stage 1b</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ COMPONENTS -->
+<section>
+  <div class="sec-title">04 Interactive components</div>
+  <h2>Upgraded UI elements</h2>
+  <p class="sub">Click / hover to interact. These replace the current plain inputs and static labels.</p>
+
+  <div class="comp-grid">
+
+    <!-- Soil gauge -->
+    <div class="comp-card">
+      <div class="comp-label">Soil conductivity gauge</div>
+      <div class="gauge-wrap" style="margin:0 auto">
+        <svg class="gauge-svg" width="120" height="70" viewBox="0 0 100 60">
+          <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="#e0ddd9" stroke-width="10" stroke-linecap="round"/>
+          <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="url(#gGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="126" stroke-dashoffset="40"/>
+          <defs><linearGradient id="gGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f97316"/><stop offset="50%" stop-color="#50af78"/><stop offset="100%" stop-color="#1a5c38"/></linearGradient></defs>
+          <line x1="50" y1="50" x2="75" y2="18" stroke="#1a5c38" stroke-width="3" stroke-linecap="round" class="gauge-needle"/>
+          <circle cx="50" cy="50" r="5" fill="#1a5c38"/>
+        </svg>
+        <div class="gauge-val">2.4 W/m·K</div>
+        <div class="gauge-sub">Moderate conductivity</div>
+      </div>
+    </div>
+
+    <!-- Score card upgrade -->
+    <div class="comp-card">
+      <div class="comp-label">Score card — dark gradient</div>
+      <div class="score-demo">
+        <div class="score-top">
+          <div class="score-big">85</div>
+          <div>
+            <div><span class="score-badge">GOOD</span></div>
+            <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">+15 vs benchmark</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">GSHP FEASIBILITY</div>
+        <div class="score-bar-bg"><div class="score-bar-fg" style="width:85%"></div></div>
+      </div>
+    </div>
+
+    <!-- Building type picker -->
+    <div class="comp-card">
+      <div class="comp-label">Building type card grid</div>
+      <div class="btype-grid" id="btypeGrid">
+        <div class="btype-card sel" onclick="toggleBtype(this)"><div class="btype-icon">🏢</div><div class="btype-name">Med Office</div></div>
+        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏫</div><div class="btype-name">School</div></div>
+        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏪</div><div class="btype-name">Retail</div></div>
+        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏨</div><div class="btype-name">Hotel</div></div>
+        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏥</div><div class="btype-name">Hospital</div></div>
+        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏭</div><div class="btype-name">Warehouse</div></div>
+      </div>
+    </div>
+
+    <!-- Cost comparison -->
+    <div class="comp-card">
+      <div class="comp-label">Cost comparison bar</div>
+      <div class="cost-compare">
+        <div class="cost-row">
+          <div class="cost-name">GSHP</div>
+          <div class="cost-bar-bg"><div class="cost-bar-gshp">$248k</div></div>
+        </div>
+        <div class="cost-row">
+          <div class="cost-name">Conv.</div>
+          <div class="cost-bar-bg"><div class="cost-bar-conv">$312k</div></div>
+        </div>
+        <div style="font-size:10px;color:var(--g7);font-weight:600;margin-top:4px">→ GSHP saves $64k upfront</div>
+      </div>
+    </div>
+
+    <!-- Stepper progress -->
+    <div class="comp-card">
+      <div class="comp-label">Wizard stepper — step 2/5</div>
+      <div style="padding:8px 0">
+        <div class="stepper">
+          <div class="step-dot done">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot active">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot todo">3</div>
+          <div class="step-line"></div>
+          <div class="step-dot todo">4</div>
+          <div class="step-line"></div>
+          <div class="step-dot todo">5</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:9px;color:var(--gray5)">
+          <span>ZIP</span><span style="color:var(--g7);font-weight:700">Building</span><span>Envelope</span><span>Borefield</span><span>Report</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="comp-card">
+      <div class="comp-label">Custom tooltip</div>
+      <div class="anim-demo">
+        <div>
+          <div class="tooltip-demo">
+            <div class="tooltip-bubble">Effective soil thermal conductivity</div>
+            <div class="tooltip-target">k = 2.4 W/m·K ⓘ</div>
+          </div>
+          <div style="font-size:10px;color:var(--gray5);margin-top:12px;text-align:center">Green arrow tooltip, 200ms fade</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sparkline -->
+    <div class="comp-card">
+      <div class="comp-label">Load profile sparkline</div>
+      <div style="padding:8px 0">
+        <div style="font-size:10px;color:var(--gray5);margin-bottom:8px">Annual load profile (24 months)</div>
+        <div class="spark-wrap" id="sparkline"></div>
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:10px">
+          <span style="color:#f97316">■ Heating</span>
+          <span style="color:#3b82f6">■ Cooling</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="comp-card">
+      <div class="comp-label">Button system</div>
+      <div class="btn-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+        <button class="btn btn-primary">Save analysis →</button>
+        <button class="btn btn-outline">Generate PDF report</button>
+        <button class="btn btn-ghost">← Start over</button>
+        <button class="btn btn-danger">Delete project</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ ILLUSTRATION INTEGRATION -->
+<section>
+  <div class="sec-title">05 Illustration integration</div>
+  <h2>Where watercolor sketches live</h2>
+  <p class="sub">Low-contrast watercolor illustrations work best as background texture or empty states — never inside functional form steps where they add noise.</p>
+
+  <div class="illus-grid">
+
+    <div class="illus-card">
+      <div class="illus-demo" style="background:var(--gray1)">
+        <div class="wc-blob" style="width:180px;height:180px;background:#a8d9bc;left:-20px;top:-20px"></div>
+        <div class="wc-blob" style="width:120px;height:120px;background:#d4eddf;right:10px;bottom:-10px"></div>
+        <div style="position:relative;text-align:center;z-index:1">
+          <div style="font-size:28px;font-weight:800;letter-spacing:-.04em;color:var(--gray9)">Hello There</div>
+          <div style="font-size:13px;color:var(--gray6);margin-top:4px">Geothermal advisor</div>
+        </div>
+      </div>
+      <div class="illus-label-wrap">
+        <div class="illus-title">Hero bleed (Welcome page)</div>
+        <div class="illus-desc">Watercolor blobs as blurred background layer. Illustration sits behind text on a white card overlay.</div>
+      </div>
+    </div>
+
+    <div class="illus-card">
+      <div class="illus-demo" style="background:var(--gray2);flex-direction:column;gap:0;align-items:stretch">
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px">
+          <div style="font-size:32px">🏗</div>
+          <div>
+            <div style="font-size:13px;font-weight:700">Analyzing your site…</div>
+            <div style="font-size:11px;color:var(--gray6);margin-top:2px">Fetching soil & climate data</div>
+          </div>
+        </div>
+        <div style="height:4px;background:linear-gradient(90deg,var(--g7),var(--g5));animation:barFill 1.5s ease-in-out infinite alternate"></div>
+      </div>
+      <div class="illus-label-wrap">
+        <div class="illus-title">Loading state with illustration</div>
+        <div class="illus-desc">Replace the spinner with a watercolor building sketch during the /analyze API call. Most impactful moment.</div>
+      </div>
+    </div>
+
+    <div class="illus-card">
+      <div class="illus-demo" style="background:var(--g1);flex-direction:column;justify-content:center;align-items:center;gap:8px">
+        <div style="font-size:36px;opacity:.5">🕳</div>
+        <div style="font-size:13px;font-weight:700;color:var(--g8)">No analyses yet</div>
+        <div style="font-size:11px;color:var(--gray5);text-align:center;max-width:160px">Run your first analysis to see results here</div>
+      </div>
+      <div class="illus-label-wrap">
+        <div class="illus-title">Empty state</div>
+        <div class="illus-desc">Watercolor borehole cross-section as empty state art. Far better than "No saved projects yet." plain text.</div>
+      </div>
+    </div>
+
+    <div class="illus-card">
+      <div class="illus-demo" style="background:var(--gray9);padding:20px;gap:12px;flex-direction:column;align-items:flex-start">
+        <div class="wc-blob" style="width:120px;height:80px;background:#1e7a48;right:0;top:0"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gray5);position:relative">GEOLOOP REPORT</div>
+        <div style="font-size:20px;font-weight:800;color:white;position:relative;letter-spacing:-.03em">Geothermal Analysis<br>Chicago, IL · Zone 5A</div>
+      </div>
+      <div class="illus-label-wrap">
+        <div class="illus-title">PDF report header</div>
+        <div class="illus-desc">Illustration as full-bleed header on the generated PDF — strongest brand moment in the entire user journey.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>GeoLoop Design System Preview · Open docs/design-preview.html in browser</footer>
+
+<script>
+// Counter roll animation
+(function(){
+  let v=0,target=85,raf;
+  function tick(){
+    v+=Math.ceil((target-v)*0.12);
+    document.getElementById('counter').textContent=Math.min(v,target);
+    if(v<target) raf=requestAnimationFrame(tick);
+    else setTimeout(()=>{v=0;tick()},1800);
+  }
+  tick();
+})();
+
+// Building type toggle
+function toggleBtype(el){
+  document.querySelectorAll('.btype-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// Sparkline
+(function(){
+  const el=document.getElementById('sparkline');
+  const vals=[18,22,35,40,28,12,-5,-20,-35,-40,-30,-18,-12,-5,5,15,32,42,30,22,10,-3,-15,-25];
+  const maxV=Math.max(...vals.map(Math.abs));
+  el.innerHTML=vals.map(v=>{
+    const h=Math.round((Math.abs(v)/maxV)*46)+4;
+    const col=v>0?'#f97316':'#3b82f6';
+    return `<div class="spark-bar" style="height:${h}px;background:${col};opacity:.7"></div>`;
+  }).join('');
+})();
+</script>
+</body>
+</html>

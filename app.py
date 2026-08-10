@@ -1,4 +1,5 @@
 import csv as csv_mod
+import datetime
 import re
 import sys
 import os
@@ -34,7 +35,6 @@ app = Flask(__name__)
 _is_production = os.environ.get("FLASK_ENV", "").lower() == "production"
 
 # ── In-memory analytics log (resets on restart; good enough for demo) ──
-import datetime
 _analytics_log = []   # list of dicts, newest first
 _DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "geoloop-admin")
 _secret_key = os.environ.get("FLASK_SECRET_KEY")
