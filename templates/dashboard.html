@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoLoop — Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #f5f3f0;
+      --card:    #ffffff;
+      --border:  #e0ddd9;
+      --text:    #1a1814;
+      --muted:   #7a7570;
+      --faint:   #a09c97;
+      --green:   #1e6944;
+      --green-lt:#d4eddf;
+      --font:    'Sora', -apple-system, sans-serif;
+      --mono:    'JetBrains Mono', monospace;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    header {
+      background: var(--text); color: #f5f3f0;
+      padding: 18px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+    header .meta { font-size: 12px; color: #9ca3af; }
+
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ── Stat cards ── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--card); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .stat-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+    .stat-val   { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--text); }
+    .stat-sub   { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--card); border: 1.5px solid var(--border); border-radius: 16px;
+      overflow: hidden; margin-bottom: 24px;
+    }
+    .table-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-title { font-size: 13px; font-weight: 700; }
+    .refresh-btn {
+      font-family: var(--font); font-size: 12px; font-weight: 600;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 6px 14px; cursor: pointer; color: var(--muted);
+    }
+    .refresh-btn:hover { background: var(--green-lt); color: var(--green); border-color: var(--green); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      background: var(--bg); padding: 10px 14px; text-align: left;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--faint); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #faf9f7; }
+    td { padding: 10px 14px; vertical-align: top; color: var(--text); }
+    td.mono { font-family: var(--mono); font-size: 11px; }
+    td.dim  { color: var(--muted); }
+    .tag {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: 100px;
+      background: var(--green-lt); color: var(--green);
+      white-space: nowrap;
+    }
+    .tag.gray { background: var(--bg); color: var(--muted); }
+    .tag.imperial { background: #fff3e0; color: #b45309; }
+
+    .empty { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 13px; }
+
+    /* ── Auto-refresh indicator ── */
+    .live-dot {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; background: #22c55e;
+      animation: pulse 1.8s ease-in-out infinite; margin-right: 6px;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity: 0.3; } }
+
+    .section-label { font-size: 10px; font-weight: 700; color: var(--faint); letter-spacing: 0.1em; text-transform: uppercase; margin: 24px 0 10px; }
+
+    /* ── Mini bar chart for building types ── */
+    .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .bar-label { width: 140px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .bar-fill  { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.4s; }
+    .bar-count { width: 28px; text-align: right; font-weight: 600; color: var(--text); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>GeoLoop Analytics Dashboard</h1>
+  <span class="meta"><span class="live-dot"></span>Live · auto-refreshes every 30s</span>
+</header>
+
+<div class="wrap">
+
+  <!-- Stat row -->
+  <div class="stats" id="stats">
+    <div class="stat-card"><div class="stat-label">Total analyses</div><div class="stat-val" id="s-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">Unique users</div><div class="stat-val" id="s-users">—</div></div>
+    <div class="stat-card"><div class="stat-label">Avg boreholes (NB)</div><div class="stat-val" id="s-nb">—</div></div>
+    <div class="stat-card"><div class="stat-label">Avg total length</div><div class="stat-val" id="s-L">—</div><div class="stat-sub">metres</div></div>
+    <div class="stat-card"><div class="stat-label">Hybrid systems</div><div class="stat-val" id="s-hybrid">—</div><div class="stat-sub">of analyses</div></div>
+  </div>
+
+  <!-- Building type chart -->
+  <div class="section-label">Top building types</div>
+  <div class="table-wrap" style="padding:18px 20px; margin-bottom:24px;">
+    <div class="bar-chart" id="btype-chart"><div class="empty">No data yet</div></div>
+  </div>
+
+  <!-- Events table -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">All analysis events</span>
+      <button class="refresh-btn" onclick="load()">Refresh</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Time (UTC)</th>
+            <th>Name / Email</th>
+            <th>Role</th>
+            <th>Region</th>
+            <th>Units</th>
+            <th>ZIP</th>
+            <th>Building type</th>
+            <th>NB</th>
+            <th>H (m)</th>
+            <th>L total (m)</th>
+            <th>Hybrid</th>
+            <th>Est. cost</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PW = new URLSearchParams(location.search).get('pw') || '';
+
+function esc(s) {
+  return String(s ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmt(v, dec=0) {
+  const n = Number(v);
+  return isNaN(n) ? '—' : n.toFixed(dec);
+}
+
+function usd(v) {
+  const n = Number(v);
+  return isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString();
+}
+
+async function load() {
+  const res = await fetch('/api/dashboard-data?pw=' + encodeURIComponent(PW));
+  if (!res.ok) { document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif">Unauthorized</div>'; return; }
+  const { events } = await res.json();
+
+  // ── Stats ──
+  document.getElementById('s-total').textContent = events.length;
+  const emails = new Set(events.map(e => e.email).filter(Boolean));
+  document.getElementById('s-users').textContent = emails.size || events.length;
+  const nbs = events.map(e => Number(e.NB)).filter(n => n > 0);
+  document.getElementById('s-nb').textContent = nbs.length ? (nbs.reduce((a,b)=>a+b,0)/nbs.length).toFixed(1) : '—';
+  const ls = events.map(e => Number(e.L_m)).filter(n => n > 0);
+  document.getElementById('s-L').textContent = ls.length ? Math.round(ls.reduce((a,b)=>a+b,0)/ls.length) : '—';
+  const hybrids = events.filter(e => e.hybrid).length;
+  document.getElementById('s-hybrid').textContent = events.length ? hybrids + ' / ' + events.length : '—';
+
+  // ── Building type chart ──
+  const btCount = {};
+  events.forEach(e => { if (e.building_type) btCount[e.building_type] = (btCount[e.building_type]||0)+1; });
+  const sorted = Object.entries(btCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxCount = sorted[0]?.[1] || 1;
+  const chart = document.getElementById('btype-chart');
+  if (sorted.length) {
+    chart.innerHTML = sorted.map(([bt, n]) => `
+      <div class="bar-row">
+        <div class="bar-label">${esc(bt.replace(/_/g,' '))}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(n/maxCount*100).toFixed(1)}%"></div></div>
+        <div class="bar-count">${n}</div>
+      </div>`).join('');
+  }
+
+  // ── Table ──
+  const tbody = document.getElementById('tbody');
+  if (!events.length) {
+    tbody.innerHTML = '<tr><td colspan="12" class="empty">No analyses logged yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = events.map(e => `
+    <tr>
+      <td class="mono dim">${esc((e._ts||'').replace('T',' ').replace('Z',''))}</td>
+      <td>
+        <div style="font-weight:600;font-size:12px">${esc(e.name||'—')}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(e.email||'')}</div>
+      </td>
+      <td>${(e.roles||[]).map(r=>`<span class="tag gray">${esc(r)}</span>`).join(' ') || '<span class="tag gray">—</span>'}</td>
+      <td class="dim">${esc(e.region||'—')}</td>
+      <td><span class="tag ${e.units==='imperial'?'imperial':''}">${esc(e.units||'metric')}</span></td>
+      <td class="mono">${esc(e.zip||'—')}</td>
+      <td>${esc((e.building_type||'—').replace(/_/g,' '))}</td>
+      <td class="mono" style="font-weight:700">${fmt(e.NB)}</td>
+      <td class="mono">${fmt(e.H_m)}</td>
+      <td class="mono">${fmt(e.L_m)}</td>
+      <td>${e.hybrid ? '<span class="tag">Yes</span>' : '<span class="tag gray">No</span>'}</td>
+      <td class="mono">${usd(e.cost_gshp_usd)}</td>
+    </tr>`).join('');
+}
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

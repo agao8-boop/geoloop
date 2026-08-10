@@ -14,6 +14,12 @@
 (function () {
   'use strict';
 
+  // Read a CSS custom property value; fall back to defaultVal if not set
+  function getToken(name, defaultVal) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || defaultVal;
+  }
+
   window.drawBoreholePlan = function (canvas, data) {
     if (!canvas || !canvas.getContext) return;
     const ctx = canvas.getContext('2d');
@@ -91,7 +97,7 @@
     }
 
     // ── Ownership area: dashed rectangle = building bbox + ownership buffer ──
-    ctx.strokeStyle = '#81c784';
+    ctx.strokeStyle = getToken('--color-ownership', '#479e7a');
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 4]);
     const [ox0, oy0] = toScreen([Math.min(...xs) - ownership, Math.min(...ys) - ownership]);
@@ -105,9 +111,9 @@
     ctx.moveTo(...screenPts[0]);
     for (let i = 1; i < screenPts.length; i++) ctx.lineTo(...screenPts[i]);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(207, 216, 220, 0.35)';
+    ctx.fillStyle = getToken('--color-building-fill', 'rgba(163, 209, 187, 0.25)');
     ctx.fill();
-    ctx.strokeStyle = '#37474f';
+    ctx.strokeStyle = getToken('--color-building-stroke', '#4a4540');
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -120,12 +126,12 @@
     const dimY = toScreen([0, Math.max(...ys)])[1] + 18;
     const dimX0 = toScreen([Math.min(...xs), 0])[0];
     const dimX1 = toScreen([Math.max(...xs), 0])[0];
-    _drawDimension(ctx, dimX0, dimY, dimX1, dimY, `${bboxW.toFixed(1)} m`);
+    _drawDimension(ctx, dimX0, dimY, dimX1, dimY, _fL(bboxW, 1));
     // Height annotation (vertical, along right edge)
     const dimX = toScreen([Math.max(...xs), 0])[0] + 18;
     const dimY0 = toScreen([0, Math.min(...ys)])[1];
     const dimY1 = toScreen([0, Math.max(...ys)])[1];
-    _drawDimension(ctx, dimX, dimY0, dimX, dimY1, `${bboxH_m.toFixed(1)} m`, true);
+    _drawDimension(ctx, dimX, dimY0, dimX, dimY1, _fL(bboxH_m, 1), true);
 
     // ── Setback dashed line (3 m outside building bbox) ──
     ctx.strokeStyle = '#9e9e9e';
@@ -140,7 +146,8 @@
     if (NB > 0) {
       const sbW = bboxW + 2 * setback, sbH = bboxH_m + 2 * setback;
       const perim = 2 * (sbW + sbH);
-      const step = perim / NB;
+      const actualSpacing = perim / NB;  // actual center-to-center spacing placed
+      const step = actualSpacing;
       const sbMinX = Math.min(...xs) - setback;
       const sbMinY = Math.min(...ys) - setback;
       const positions = [];
@@ -148,10 +155,12 @@
         const d = i * step;
         positions.push(_perimPoint(d, sbMinX, sbMinY, sbW, sbH));
       }
+      const bhMarker = getToken('--color-borehole-marker', '#1e6944');
+      const bhRing   = getToken('--color-borehole-ring',   '#2d8a5e');
       positions.forEach(([mx, my]) => {
         const [sx, sy] = toScreen([mx, my]);
         // X crosshair marker
-        ctx.strokeStyle = '#1b5e20'; ctx.lineWidth = 1.5;
+        ctx.strokeStyle = bhMarker; ctx.lineWidth = 1.5;
         const r = 4;
         ctx.beginPath();
         ctx.moveTo(sx - r, sy - r); ctx.lineTo(sx + r, sy + r);
@@ -159,16 +168,25 @@
         ctx.stroke();
         // Circle
         ctx.beginPath(); ctx.arc(sx, sy, r + 1, 0, 2 * Math.PI);
-        ctx.strokeStyle = '#388e3c'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.strokeStyle = bhRing; ctx.lineWidth = 1; ctx.stroke();
       });
     }
 
+    // ── Unit helpers (use GeoUnits if loaded, fall back to metric) ──
+    const _gu = window.GeoUnits;
+    const _fL = (v, d=0) => _gu
+      ? _gu.format(v, 'length', d) + '\u00a0' + _gu.label('length')
+      : v.toFixed(d) + ' m';
+
     // ── Top-right label block ──
+    const placedSpacingM = NB > 0
+      ? (2 * (bboxW + 2 * setback + bboxH_m + 2 * setback)) / NB
+      : B;
     const lblLines = [
       `NB = ${NB} boreholes`,
-      `H = ${H_bh} m / each`,
-      `L = ${L_total} m total`,
-      `Spacing = ${B} m`,
+      `H = ${_fL(H_bh)} / each`,
+      `L = ${_fL(L_total)} total`,
+      `Spacing = ${_fL(placedSpacingM, 1)}`,
     ];
     ctx.fillStyle = '#1a1a1a'; ctx.textAlign = 'right'; ctx.textBaseline = 'top';
     ctx.font = '10px monospace';
@@ -176,7 +194,12 @@
 
     // ── Scale bar (bottom-left): pick a nice round number ~20% of building width ──
     const rawBarM = (maxX - minX) * 0.2;
-    const barM = [1,2,5,10,20,50,100].reduce((best, v) =>
+    // Nice round values in metres; if imperial pick ft-friendly values converted back to m for pixel math
+    const _imperial = _gu && _gu.current() !== 'metric';
+    const _niceM  = [1,2,5,10,20,50,100];
+    const _niceFt = [5,10,20,50,100,200,500].map(ft => ft / 3.28084);
+    const _nice   = _imperial ? _niceFt : _niceM;
+    const barM = _nice.reduce((best, v) =>
       Math.abs(v - rawBarM) < Math.abs(best - rawBarM) ? v : best);
     const barPx = barM * scale;
     const barX = 10, barY = H - 20;
@@ -186,7 +209,7 @@
     ctx.beginPath(); ctx.moveTo(barX + barPx, barY - 4); ctx.lineTo(barX + barPx, barY + 4); ctx.stroke();
     ctx.fillStyle = '#333'; ctx.font = '9px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(`${barM} m`, barX + barPx / 2, barY + 5);
+    ctx.fillText(_fL(barM, 0), barX + barPx / 2, barY + 5);
 
     // Return metadata for HTML rendering outside canvas
     return {

@@ -321,6 +321,7 @@ function generatePdf() {
   const _cached = JSON.parse(sessionStorage.getItem('gl_report_data') || 'null');
   if (_cached) {
     renderReport(_cached, sizing, site, loads, cost, strategy, convPsf);
+    _logAnalysis(_cached, sizing, site, cost);
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('report-state').style.display = '';
     setTimeout(() => {
@@ -359,6 +360,7 @@ function generatePdf() {
     const data = await res.json();
     try { sessionStorage.setItem('gl_report_data', JSON.stringify(data)); } catch (_) {}
     renderReport(data, sizing, site, loads, cost, strategy, convPsf);
+    _logAnalysis(data, sizing, site, cost);
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('report-state').style.display = '';
 
@@ -586,6 +588,32 @@ function saveProject() {
 function startOver() {
   sessionStorage.clear();
   window.location.href = 'stage1a.html';
+}
+
+function _logAnalysis(reportData, sizing, site, cost) {
+  try {
+    const user = JSON.parse(localStorage.getItem('gl_current_user') || 'null');
+    const d = (reportData && reportData.report && reportData.report.design) || {};
+    const cs = (reportData && reportData.report && reportData.report.cost_savings) || {};
+    const ev = {
+      name:          user ? user.name  : null,
+      email:         user ? user.email : null,
+      roles:         JSON.parse(sessionStorage.getItem('gl_roles') || '[]'),
+      region:        sessionStorage.getItem('gl_region') || 'US',
+      units:         sessionStorage.getItem('gl_units')  || 'imperial',
+      zip:           site.zip || (sizing.site && sizing.site.zip) || null,
+      building_type: d.building_type || sizing.building_type || null,
+      NB:            d.NB  || sizing.NB  || null,
+      H_m:           d.H_m || sizing.H   || null,
+      L_m:           d.L_m || sizing.L   || null,
+      hybrid:        !!(reportData && reportData.report && reportData.report.performance && reportData.report.performance.peaker_kW),
+      cost_gshp_usd: cs.gshp_capex_usd || (cost && cost.gshp_capex_usd) || null,
+    };
+    fetch('/api/log-analysis', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ev),
+    }).catch(() => {});
+  } catch (_) {}
 }
 </script>
 </body>

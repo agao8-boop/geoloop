@@ -32,6 +32,11 @@ from geosite.s7_report import build_report
 
 app = Flask(__name__)
 _is_production = os.environ.get("FLASK_ENV", "").lower() == "production"
+
+# ── In-memory analytics log (resets on restart; good enough for demo) ──
+import datetime
+_analytics_log = []   # list of dicts, newest first
+_DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "geoloop-admin")
 _secret_key = os.environ.get("FLASK_SECRET_KEY")
 if _is_production and not _secret_key:
     raise RuntimeError("FLASK_SECRET_KEY must be set in production")
@@ -44,6 +49,39 @@ _PUBLIC_DATA = pathlib.Path(__file__).parent / "data" / "public"
 @app.get("/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.route("/api/log-analysis", methods=["POST", "OPTIONS"])
+def log_analysis():
+    """Record one analysis event for the dashboard."""
+    if request.method == "OPTIONS":
+        return _cors_headers(jsonify({}))
+    try:
+        ev = request.get_json(force=True, silent=True) or {}
+    except Exception:
+        ev = {}
+    ev["_ts"] = datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    _analytics_log.insert(0, ev)
+    if len(_analytics_log) > 500:          # keep last 500 events
+        _analytics_log.pop()
+    return _cors_headers(jsonify({"ok": True}))
+
+
+@app.route("/dashboard")
+def dashboard():
+    pw = request.args.get("pw", "")
+    if pw != _DASHBOARD_PASSWORD:
+        return Response("Unauthorized — add ?pw=<password> to URL", status=401,
+                        content_type="text/plain")
+    return render_template("dashboard.html")
+
+
+@app.route("/api/dashboard-data")
+def dashboard_data():
+    pw = request.args.get("pw", "")
+    if pw != _DASHBOARD_PASSWORD:
+        return jsonify({"error": "unauthorized"}), 401
+    return jsonify({"events": _analytics_log})
 
 
 @app.after_request
