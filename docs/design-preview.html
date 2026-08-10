@@ -3,621 +3,1259 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeoLoop — Design System Preview</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>GeoLoop — Design System v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─────────── DESIGN TOKENS ─────────── */
 :root{
-  --g1:#f0f9f3;--g2:#d4eddf;--g3:#a8d9bc;--g4:#7cc49a;--g5:#50af78;
-  --g6:#2d9a5a;--g7:#1e7a48;--g8:#1a5c38;--g9:#123d25;--g10:#0a1f12;
-  --gray0:#faf9f7;--gray1:#f5f3f0;--gray2:#eeecea;--gray3:#e0ddd9;
-  --gray4:#c8c4be;--gray5:#a09c97;--gray6:#7a7570;--gray7:#4a4540;
-  --gray8:#2e2a26;--gray9:#1a1814;
-  --heat:#f97316;--cool:#3b82f6;--earth:#b45309;
-  --font:'Sora',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+  /* Matcha Shallow — lighter sage-lime (HSL ~78°, higher key) */
+  --ms1:#f6f9eb; --ms2:#e5f0c0; --ms3:#d1e695; --ms4:#bcdb6a;
+  --ms5:#a7cf3f; --ms6:#8eba2e; --ms7:#729820; --ms8:#577814;
+  --ms9:#3c560b; --ms10:#1f2d05;
+
+  /* Matcha Core — classic powder green (HSL ~82°, mid-sat) */
+  --mc1:#f2f5e6; --mc2:#dce9bc; --mc3:#c4dc91; --mc4:#abcf66;
+  --mc5:#93c23b; --mc6:#7aa526; --mc7:#5f861b; --mc8:#466711;
+  --mc9:#2e4909; --mc10:#162404;
+
+  /* Matcha Dark — ceremonial, earthy (HSL ~86°, lower sat) */
+  --md1:#edf2e0; --md2:#c9dbb0; --md3:#a5c480; --md4:#81ad50;
+  --md5:#5d9620; --md6:#4a7918; --md7:#386010; --md8:#26480a;
+  --md9:#163006; --md10:#0a1803;
+
+  /* Warm grayscale — stone base */
+  --gray0:#faf9f7; --gray1:#f5f3f0; --gray2:#eeecea; --gray3:#e0ddd9;
+  --gray4:#c8c4be; --gray5:#a09c97; --gray6:#7a7570; --gray7:#4a4540;
+  --gray8:#2e2a26; --gray9:#1a1814;
+
+  /* Landing.html accents (replaces orange/blue heat-cool) */
+  --red:    #c1314d; --red-dim: #a82840;
+  --blue:   #2e4efe; --blue-dim:#2440d8;
+  --ink:    #0E0E0C; --paper:   #F5F1EB;
+
+  /* Live palette tokens — switch via JS chips */
+  --g1:var(--mc1); --g2:var(--mc2); --g3:var(--mc3); --g4:var(--mc4);
+  --g5:var(--mc5); --g6:var(--mc6); --g7:var(--mc7); --g8:var(--mc8);
+
+  --font:'Sora',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --serif:'DM Serif Display',Georgia,serif;
 }
-body{font-family:var(--font);background:#f0f0ed;color:var(--gray9);padding:0;min-height:100vh}
 
-/* ── Page header ── */
-.page-hero{background:var(--gray9);color:var(--gray1);padding:48px 40px 40px;position:relative;overflow:hidden}
-.page-hero::after{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:var(--g8);opacity:.18}
-.page-hero h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.04em;position:relative}
-.page-hero p{margin-top:10px;color:var(--gray5);font-size:14px;position:relative}
+body{font-family:var(--font);background:#edebe7;color:var(--gray9);min-height:100vh}
 
-/* ── Section ── */
-section{max-width:1100px;margin:0 auto;padding:40px 32px}
+/* ─────────── STICKY NAV ─────────── */
+.top-nav{
+  position:sticky;top:0;z-index:200;
+  background:var(--gray9);
+  display:flex;align-items:center;overflow-x:auto;
+  scrollbar-width:none;
+}
+.top-nav::-webkit-scrollbar{display:none}
+.nav-brand{color:white;font-size:13px;font-weight:800;padding:14px 20px;flex-shrink:0;letter-spacing:-.02em;border-right:1px solid rgba(255,255,255,.08)}
+.nav-link{
+  color:var(--gray5);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  padding:14px 18px;text-decoration:none;white-space:nowrap;
+  border-bottom:2px solid transparent;transition:.15s;flex-shrink:0;
+}
+.nav-link:hover,.nav-link.active{color:white;border-bottom-color:var(--mc6)}
+
+/* ─────────── PAGE HERO ─────────── */
+.page-hero{
+  background:var(--gray9);color:var(--gray1);
+  padding:52px 44px 44px;position:relative;overflow:hidden
+}
+.page-hero::before{
+  content:'';position:absolute;right:-40px;top:-60px;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,var(--mc6) 0%,transparent 70%);opacity:.15
+}
+.page-hero::after{
+  content:'';position:absolute;left:38%;bottom:-80px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,var(--red) 0%,transparent 70%);opacity:.1
+}
+.page-hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.04em;position:relative;line-height:1.1}
+.page-hero .hero-sub{margin-top:10px;color:var(--gray5);font-size:13px;position:relative;line-height:1.6;max-width:640px}
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;position:relative}
+.hero-pill{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:100px}
+.pill-red{background:var(--red);color:white}
+.pill-blue{background:rgba(46,78,254,.2);color:#8fa8ff;border:1px solid rgba(46,78,254,.3)}
+.pill-mat{background:rgba(122,165,38,.18);color:#a7cf3f;border:1px solid rgba(122,165,38,.3)}
+
+/* ─────────── SECTION SHELL ─────────── */
+section{max-width:1200px;margin:0 auto;padding:44px 36px}
+section.dark-bg{max-width:none;background:var(--gray9);padding:0}
+section.dark-bg>.dark-inner{max-width:1200px;margin:0 auto;padding:44px 36px}
 .sec-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray6);margin-bottom:20px;display:flex;align-items:center;gap:10px}
 .sec-title::after{content:'';flex:1;height:1px;background:var(--gray3)}
+.sec-title.lt::after{background:rgba(255,255,255,.1)}
+.sec-title.lt{color:rgba(255,255,255,.3)}
 h2{font-size:clamp(20px,3vw,26px);font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+h2.lt{color:white}
 .sub{font-size:13px;color:var(--gray6);margin-bottom:28px;line-height:1.6}
+.sub.lt{color:rgba(255,255,255,.45)}
 
-/* ── Color palette ── */
+/* ─────────── 01 COLORS ─────────── */
 .palette-group{margin-bottom:28px}
 .palette-label{font-size:11px;font-weight:600;color:var(--gray6);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
-.swatches{display:flex;gap:4px;border-radius:16px;overflow:hidden}
-.swatch{flex:1;height:80px;display:flex;align-items:flex-end;padding:6px 8px;position:relative;cursor:default;transition:transform .15s;min-width:0}
-.swatch:hover{transform:scaleY(1.06);z-index:1}
-.swatch-label{font-size:9px;font-family:var(--mono);font-weight:500;color:rgba(0,0,0,.45);line-height:1.3;display:none}
-.swatch:hover .swatch-label{display:block}
-.swatch.light .swatch-label{color:rgba(0,0,0,.4)}
-.swatch.dark .swatch-label{color:rgba(255,255,255,.5)}
+.badge{font-size:9px;padding:2px 7px;border-radius:100px;margin-left:6px;font-weight:700;vertical-align:middle}
+.badge-rec{background:var(--mc6);color:white}
+.badge-lt{background:var(--ms6);color:white}
+.badge-dk{background:var(--md6);color:white}
+.swatches{display:flex;gap:4px;border-radius:14px;overflow:hidden}
+.sw{flex:1;height:80px;display:flex;align-items:flex-end;padding:6px 8px;cursor:default;transition:transform .15s;min-width:0}
+.sw:hover{transform:scaleY(1.07);z-index:1}
+.sw-lbl{font-size:9px;font-family:var(--mono);font-weight:500;line-height:1.3;display:none}
+.sw:hover .sw-lbl{display:block}
+.sl .sw-lbl{color:rgba(0,0,0,.45)}
+.sd .sw-lbl{color:rgba(255,255,255,.6)}
+.palette-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
+.pal-chip{border-radius:12px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:.15s}
+.pal-chip:hover{transform:translateY(-2px)}
+.pal-chip.sel{border-color:var(--mc6)}
+.pal-bar{height:34px}
+.pal-meta{padding:10px 12px;background:white}
+.pal-name{font-size:11px;font-weight:700;margin-bottom:2px}
+.pal-desc{font-size:10px;color:var(--gray6)}
+.accent-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.accent-block{flex:1;min-width:200px;border-radius:12px;overflow:hidden}
+.accent-top{height:56px;display:flex;align-items:center;padding:12px 16px;gap:10px;color:white}
+.accent-subs{display:flex;height:28px}
+.accent-sub{flex:1}
 
-/* ── Typography ── */
-.type-row{background:#fff;border:1.5px solid var(--gray3);border-radius:16px;padding:24px 28px;margin-bottom:12px}
-.type-specimen{margin-bottom:4px}
-.type-meta{font-size:10px;font-family:var(--mono);color:var(--gray5)}
+/* ─────────── 02 TYPOGRAPHY ─────────── */
+.type-row{background:white;border:1.5px solid var(--gray3);border-radius:14px;padding:22px 26px;margin-bottom:10px}
+.type-meta{font-size:10px;font-family:var(--mono);color:var(--gray5);margin-top:5px}
 
-/* ── Animations ── */
-.anim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.anim-card{background:#fff;border:1.5px solid var(--gray3);border-radius:16px;padding:22px;overflow:hidden}
-.anim-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray5);margin-bottom:14px}
-.anim-demo{display:flex;align-items:center;justify-content:center;height:90px}
+/* ─────────── 03 ANIMATIONS ─────────── */
+.anim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.anim-card{background:white;border:1.5px solid var(--gray3);border-radius:14px;padding:20px;overflow:hidden}
+.anim-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray5);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.abadge{font-size:8px;padding:2px 7px;border-radius:100px}
+.abadge-m{background:rgba(122,165,38,.15);color:var(--mc7)}
+.abadge-b{background:rgba(46,78,254,.12);color:var(--blue)}
+.anim-demo{display:flex;align-items:center;justify-content:center;height:88px;width:100%}
 
-/* Animation: counter roll */
-.counter-num{font-size:52px;font-weight:800;letter-spacing:-.04em;color:var(--g8);font-variant-numeric:tabular-nums}
-.counter-label{font-size:11px;color:var(--gray5);text-align:center}
+/* CountUp */
+.cnt-num{font-size:52px;font-weight:800;letter-spacing:-.04em;color:var(--mc8);font-variant-numeric:tabular-nums;line-height:1}
+.cnt-sub{font-size:10px;color:var(--gray5);margin-top:2px;text-align:center}
 
-/* Animation: shimmer skeleton */
-.shimmer-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--gray2) 25%,var(--gray1) 50%,var(--gray2) 75%);background-size:400px 100%;animation:shimmer 1.4s linear infinite;margin-bottom:8px}
-.shimmer-line.w60{width:60%}
-.shimmer-line.w80{width:80%}
-.shimmer-line.w40{width:40%}
+/* Roll digit */
+.roll-digit{
+  width:32px;height:42px;overflow:hidden;
+  background:var(--mc1);border-radius:6px;
+  display:flex;flex-direction:column;align-items:center;
+  border:1px solid var(--mc3)
+}
+.roll-col{display:flex;flex-direction:column;align-items:center;animation:rollUp 3.2s cubic-bezier(.2,0,0,1) infinite}
+@keyframes rollUp{
+  0%,10%{transform:translateY(0)}
+  50%,60%{transform:translateY(calc(-8 * 42px))}
+  90%,100%{transform:translateY(calc(-5 * 42px))}
+}
+.roll-n{height:42px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--mc8);font-variant-numeric:tabular-nums}
+
+/* Shimmer */
+.shimmer-line{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--gray2) 25%,var(--gray1) 50%,var(--gray2) 75%);background-size:400px 100%;animation:shimmer 1.4s linear infinite;margin-bottom:7px}
+.w80{width:80%} .w60{width:60%} .w40{width:40%}
 @keyframes shimmer{from{background-position:-400px 0}to{background-position:400px 0}}
 
-/* Animation: card entrance */
-.entering-card{background:var(--g1);border:1.5px solid var(--g3);border-radius:12px;padding:14px 16px;animation:slideUp .6s cubic-bezier(.2,0,0,1) infinite alternate}
-@keyframes slideUp{from{opacity:.3;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* Card entrance */
+.entering-card{background:var(--mc1);border:1.5px solid var(--mc3);border-radius:10px;padding:12px 14px;animation:slideUp .7s cubic-bezier(.2,0,0,1) infinite alternate}
+@keyframes slideUp{from{opacity:.2;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
-/* Animation: progress bar */
+/* Progress bar */
 .bar-track{width:100%;height:8px;background:var(--gray2);border-radius:4px;overflow:hidden}
-.bar-fill-anim{height:100%;background:linear-gradient(90deg,var(--g7),var(--g5));border-radius:4px;animation:barFill 2s cubic-bezier(.2,0,0,1) infinite alternate}
-@keyframes barFill{from{width:10%}to{width:88%}}
+.bar-fill{height:100%;border-radius:4px;animation:barFill 2.2s cubic-bezier(.2,0,0,1) infinite alternate}
+.bf-green{background:linear-gradient(90deg,var(--mc7),var(--mc5))}
+.bf-red{background:linear-gradient(90deg,var(--red-dim),var(--red));animation-delay:-.6s}
+.bf-blue{background:linear-gradient(90deg,var(--blue-dim),var(--blue));animation-delay:-1.2s}
+@keyframes barFill{from{width:8%}to{width:90%}}
 
-/* Animation: focus glow */
-.input-demo{width:100%;border:1.5px solid var(--gray3);border-radius:10px;padding:10px 14px;font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;color:var(--gray9)}
-.input-demo:focus{border-color:var(--g6);box-shadow:0 0 0 3px var(--g2)}
+/* Input focus */
+.input-demo{width:100%;border:1.5px solid var(--gray3);border-radius:9px;padding:9px 13px;font-family:var(--font);font-size:13px;outline:none;transition:.15s;color:var(--gray9);background:white}
+.input-demo:focus{border-color:var(--mc6);box-shadow:0 0 0 3px var(--mc2)}
 
-/* Animation: pulse dot */
-.live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--g5);animation:pulse 1.6s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+/* Pulse */
+.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.75)}}
 
-/* Animation: score donut */
-.donut-wrap{position:relative;width:80px;height:80px}
+/* Donut */
+.donut-wrap{position:relative;width:76px;height:76px}
 .donut-wrap svg{transform:rotate(-90deg)}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.donut-num{font-size:20px;font-weight:800;color:var(--g8);letter-spacing:-.03em;line-height:1}
-.donut-grade{font-size:9px;font-weight:700;color:var(--g6);letter-spacing:.08em}
-.donut-arc{stroke-dasharray:201;stroke-dashoffset:201;animation:donutFill 2s cubic-bezier(.2,0,0,1) infinite alternate}
-@keyframes donutFill{from{stroke-dashoffset:201}to{stroke-dashoffset:52}}
+.donut-num{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.donut-grade{font-size:9px;font-weight:700;letter-spacing:.08em}
+.donut-arc{stroke-dasharray:201;stroke-dashoffset:201;animation:donutFill 2.2s cubic-bezier(.2,0,0,1) infinite alternate}
+@keyframes donutFill{from{stroke-dashoffset:201}to{stroke-dashoffset:48}}
 
-/* Animation: page slide */
-.slide-demo{display:flex;gap:10px;overflow:hidden;width:100%}
-.slide-page{min-width:60px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:white;flex-shrink:0}
-.slide-p1{background:var(--g8)}
-.slide-p2{background:var(--g6);animation:slideIn 2s cubic-bezier(.2,0,0,1) infinite}
-@keyframes slideIn{0%,30%{transform:translateX(70px);opacity:0}60%,100%{transform:translateX(0);opacity:1}}
+/* Page slide */
+.slide-page{min-width:52px;height:58px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:white;flex-shrink:0}
+.slide-p2{animation:slideIn 2.2s cubic-bezier(.2,0,0,1) infinite}
+@keyframes slideIn{0%,25%{transform:translateX(60px);opacity:0}60%,100%{transform:translateX(0);opacity:1}}
 
-/* ── Interactive components ── */
-.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.comp-card{background:#fff;border:1.5px solid var(--gray3);border-radius:16px;padding:22px}
-.comp-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray5);margin-bottom:16px}
+/* Stagger list */
+.stagger-item{background:var(--mc1);border-left:3px solid var(--mc5);border-radius:6px;padding:7px 10px;font-size:11px;font-weight:600;color:var(--mc8);margin-bottom:5px;opacity:0;transform:translateX(-12px)}
+.stagger-item.in{animation:staggerIn .4s cubic-bezier(.2,0,0,1) forwards}
+@keyframes staggerIn{to{opacity:1;transform:translateX(0)}}
 
-/* Soil gauge */
-.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
-.gauge-svg{overflow:visible}
-.gauge-needle{transform-origin:50px 50px;animation:needleSweep 3s ease-in-out infinite alternate}
-@keyframes needleSweep{from{transform:rotate(-80deg)}to{transform:rotate(30deg)}}
-.gauge-val{font-size:18px;font-weight:800;color:var(--g8)}
-.gauge-sub{font-size:10px;color:var(--gray5)}
+/* ShinyText */
+.shiny-text{
+  font-size:22px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(90deg,var(--mc8) 0%,var(--mc8) 30%,white 50%,var(--mc8) 70%,var(--mc8) 100%);
+  background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shineMove 2.8s linear infinite
+}
+@keyframes shineMove{from{background-position:150% 0}to{background-position:-150% 0}}
 
-/* Score card upgrade */
-.score-demo{background:linear-gradient(135deg,var(--g9) 0%,var(--g7) 100%);border-radius:14px;padding:18px;color:white}
-.score-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:10px}
-.score-big{font-size:48px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff}
-.score-badge{display:inline-block;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,.2);font-size:10px;font-weight:700;letter-spacing:.08em}
-.score-bar-bg{height:5px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;margin-top:6px}
-.score-bar-fg{height:100%;background:rgba(255,255,255,.7);border-radius:3px;animation:barFill 2.5s ease-in-out infinite alternate}
+/* StarBorder */
+.sb-wrap{display:inline-block;position:relative;border-radius:100px;overflow:hidden;padding:1.5px 0}
+.sb-top,.sb-bot{position:absolute;width:300%;height:50%;opacity:.7;border-radius:50%;pointer-events:none}
+.sb-top{top:-12px;left:-250%;animation:sbTop 5s linear infinite alternate}
+.sb-bot{bottom:-12px;right:-250%;animation:sbBot 5s linear infinite alternate}
+@keyframes sbTop{0%{transform:translateX(0);opacity:1}100%{transform:translateX(100%);opacity:0}}
+@keyframes sbBot{0%{transform:translateX(0);opacity:1}100%{transform:translateX(-100%);opacity:0}}
+.sb-inner{
+  position:relative;border:1px solid rgba(255,255,255,.15);background:var(--gray9);
+  color:white;font-family:var(--font);font-size:14px;font-weight:700;
+  padding:12px 26px;border-radius:100px;cursor:pointer;z-index:1;letter-spacing:-.01em;transition:.15s
+}
+.sb-inner:hover{background:var(--gray8)}
 
-/* Building type cards */
-.btype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.btype-card{border:1.5px solid var(--gray3);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:.15s}
-.btype-card:hover{border-color:var(--g4);background:var(--g1)}
-.btype-card.sel{border-color:var(--g6);background:var(--g1)}
-.btype-icon{font-size:20px;margin-bottom:4px}
-.btype-name{font-size:9px;font-weight:600;color:var(--gray6)}
+/* ─────────── 04 REACT BITS ─────────── */
 
-/* Cost comparison */
-.cost-compare{display:flex;flex-direction:column;gap:10px}
-.cost-row{display:flex;align-items:center;gap:10px;font-size:11px}
-.cost-name{width:80px;color:var(--gray6);flex-shrink:0}
-.cost-bar-bg{flex:1;height:24px;background:var(--gray2);border-radius:6px;overflow:hidden}
-.cost-bar-gshp{height:100%;background:linear-gradient(90deg,var(--g7),var(--g5));border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:10px;font-weight:700;color:white;animation:costBar 2.5s ease-in-out infinite alternate}
-.cost-bar-conv{height:100%;background:linear-gradient(90deg,var(--gray6),var(--gray4));border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:10px;font-weight:700;color:white;width:85%;animation:costBarConv 2.5s ease-in-out infinite alternate}
-@keyframes costBar{from{width:50%}to{width:70%}}
-@keyframes costBarConv{from{width:75%}to{width:88%}}
+/* SpotlightCard */
+.spotlight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+.spotlight-card{
+  position:relative;border-radius:16px;overflow:hidden;padding:22px;cursor:default;
+  --mouse-x:50%; --mouse-y:50%; --spot-color:rgba(255,255,255,0.1)
+}
+.spotlight-card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at var(--mouse-x) var(--mouse-y),var(--spot-color),transparent 70%);
+  opacity:0;transition:opacity .4s
+}
+.spotlight-card:hover::before{opacity:1}
+.sc-dark{background:#0f1117;border:1px solid rgba(255,255,255,.08)}
+.sc-matcha{background:#0d1a0a;border:1px solid rgba(122,165,38,.2)}
+.sc-red{background:#160510;border:1px solid rgba(193,49,77,.2)}
+.sc-paper{background:white;border:1.5px solid var(--gray3)}
+.sc-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.sc-dark .sc-lbl,.sc-matcha .sc-lbl,.sc-red .sc-lbl{color:rgba(255,255,255,.28)}
+.sc-paper .sc-lbl{color:var(--gray5)}
+.sc-title{font-size:16px;font-weight:800;letter-spacing:-.03em;line-height:1.2;margin-bottom:6px}
+.sc-dark .sc-title{color:white}
+.sc-matcha .sc-title{color:#b4d855}
+.sc-red .sc-title{color:#f0a0b0}
+.sc-paper .sc-title{color:var(--gray9)}
+.sc-body{font-size:12px;line-height:1.5}
+.sc-dark .sc-body,.sc-matcha .sc-body,.sc-red .sc-body{color:rgba(255,255,255,.35)}
+.sc-paper .sc-body{color:var(--gray5)}
+.sc-num{font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:8px}
+.sc-dark .sc-num{color:white}
+.sc-matcha .sc-num{color:#c8e860}
+.sc-red .sc-num{color:var(--red)}
+.sc-paper .sc-num{color:var(--mc8)}
 
-/* Stepper */
-.stepper{display:flex;align-items:center;gap:0}
-.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;z-index:1}
-.step-dot.done{background:var(--g8);color:white}
-.step-dot.active{background:var(--g6);color:white;box-shadow:0 0 0 4px var(--g2)}
-.step-dot.todo{background:var(--gray2);color:var(--gray5)}
-.step-line{flex:1;height:2px;background:var(--gray3)}
-.step-line.done{background:var(--g7)}
+/* GlareHover */
+.glare-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+.glare-card{
+  position:relative;overflow:hidden;border-radius:14px;padding:20px;cursor:pointer;
+  --glare-angle:128deg
+}
+.glare-card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(var(--glare-angle),transparent 38%,rgba(255,255,255,.18) 58%,transparent 78%);
+  background-size:250% 250%;background-position:-100% -100%;
+  transition:background-position .65s ease
+}
+.glare-card:hover::before{background-position:100% 100%}
+.gc-green{background:linear-gradient(135deg,var(--mc10),var(--mc7));border:1px solid rgba(255,255,255,.07)}
+.gc-red{background:linear-gradient(135deg,#130408,var(--red-dim));border:1px solid rgba(193,49,77,.2)}
+.gc-blue{background:linear-gradient(135deg,#040822,var(--blue-dim));border:1px solid rgba(46,78,254,.25)}
+.gc-neutral{background:linear-gradient(135deg,var(--gray8),var(--gray7));border:1px solid rgba(255,255,255,.06)}
+.glare-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.32);margin-bottom:8px}
+.glare-val{font-size:26px;font-weight:800;color:white;letter-spacing:-.04em;line-height:1}
+.glare-sub{font-size:10px;color:rgba(255,255,255,.45);margin-top:4px}
 
-/* Tooltip */
-.tooltip-demo{position:relative;display:inline-block}
-.tooltip-target{background:var(--g1);border:1.5px solid var(--g3);border-radius:8px;padding:8px 14px;font-size:12px;cursor:default;font-weight:600;color:var(--g8)}
-.tooltip-bubble{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gray9);color:white;font-size:11px;padding:6px 12px;border-radius:8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.tooltip-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gray9)}
+/* MagicBento */
+.mb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+@media(max-width:720px){.mb-grid{grid-template-columns:1fr 1fr}}
+.mb-card{
+  position:relative;border-radius:16px;overflow:hidden;
+  padding:20px;min-height:130px;cursor:pointer;
+  background:#120F17;border:1px solid rgba(255,255,255,.06);
+  --glow-x:50%; --glow-y:50%; --glow-opacity:0;
+  transition:border-color .25s
+}
+.mb-card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at var(--glow-x) var(--glow-y),rgba(193,49,77,.25),transparent 60%);
+  opacity:var(--glow-opacity);transition:opacity .2s
+}
+.mb-card:hover{border-color:rgba(193,49,77,.25)}
+.mb-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);background:rgba(193,49,77,.12);padding:3px 8px;border-radius:100px;display:inline-block;margin-bottom:10px}
+.mb-title{font-size:15px;font-weight:700;color:white;letter-spacing:-.02em;margin-bottom:4px}
+.mb-body{font-size:11px;color:rgba(255,255,255,.32);line-height:1.5}
+.mb-wide{grid-column:span 2}
+.mb-stat{font-size:32px;font-weight:800;color:white;letter-spacing:-.04em;line-height:1;margin-top:10px}
 
-/* Sparkline */
-.spark-wrap{display:flex;align-items:flex-end;gap:2px;height:48px}
-.spark-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px}
+/* PixelCard */
+.pixel-card-wrap{
+  position:relative;width:100%;padding-top:52%;
+  border-radius:14px;overflow:hidden;
+  background:#09090b;border:1px solid #27272a;cursor:pointer
+}
+.pixel-canvas-el{position:absolute;inset:0;width:100%;height:100%}
+.pixel-card-content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.pixel-card-title{font-size:17px;font-weight:800;color:white;letter-spacing:-.03em;text-align:center}
+.pixel-card-sub{font-size:11px;color:rgba(255,255,255,.38);text-align:center;margin-top:4px}
 
-/* ── Illustration integration examples ── */
-.illus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+/* BorderGlow */
+.bglow-card{
+  position:relative;border-radius:20px;overflow:hidden;padding:22px;
+  background:#120F17;border:1px solid transparent;
+  --gr:193; --gg:49; --gb:77;
+  transition:.25s
+}
+.bglow-card::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
+  background:linear-gradient(var(--border-angle,135deg),
+    rgba(var(--gr),var(--gg),var(--gb),.55),transparent 40%,transparent 60%,rgba(46,78,254,.4));
+  opacity:0;transition:opacity .3s
+}
+.bglow-card:hover::before{opacity:1}
+.bglow-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:8px}
+.bglow-title{font-size:15px;font-weight:700;color:white;margin-bottom:6px}
+.bglow-row{font-size:12px;color:rgba(255,255,255,.4);display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+
+/* ─────────── 05 BACKGROUNDS ─────────── */
+.bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.bg-card{border-radius:16px;overflow:hidden;border:1.5px solid var(--gray3);min-height:200px;position:relative;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.bg-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.12)}
+.bg-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,rgba(0,0,0,.72))}
+.bg-name{font-size:12px;font-weight:700;color:white}
+.bg-desc{font-size:10px;color:rgba(255,255,255,.55);margin-top:2px}
+
+/* Topo CSS */
+.bg-topo{
+  background:linear-gradient(135deg,#0d1a0a,#1a3410);
+  position:relative;overflow:hidden
+}
+.bg-topo::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    repeating-radial-gradient(ellipse at 28% 52%,transparent,transparent 17px,rgba(122,165,38,.11) 17px,rgba(122,165,38,.11) 18.5px),
+    repeating-radial-gradient(ellipse at 68% 32%,transparent,transparent 23px,rgba(122,165,38,.08) 23px,rgba(122,165,38,.08) 24.5px),
+    repeating-radial-gradient(ellipse at 50% 72%,transparent,transparent 29px,rgba(122,165,38,.06) 29px,rgba(122,165,38,.06) 30.5px)
+}
+
+/* Aurora */
+.bg-aurora{background:linear-gradient(135deg,#060b0a,#0d1f14);position:relative;overflow:hidden}
+.bg-aurora::before{
+  content:'';position:absolute;inset:-50%;
+  background:
+    radial-gradient(ellipse at 30% 42%,rgba(122,165,38,.28) 0%,transparent 45%),
+    radial-gradient(ellipse at 72% 58%,rgba(46,78,254,.2) 0%,transparent 40%),
+    radial-gradient(ellipse at 50% 20%,rgba(193,49,77,.14) 0%,transparent 38%);
+  animation:auroraShift 7s ease-in-out infinite alternate
+}
+@keyframes auroraShift{from{transform:translate(0,0) scale(1)}to{transform:translate(-4%,3%) scale(1.06)}}
+
+/* Dot grid */
+.bg-dots{
+  background:var(--gray9);
+  background-image:radial-gradient(rgba(122,165,38,.5) 1.5px,transparent 1.5px);
+  background-size:24px 24px;background-position:-12px -12px
+}
+
+/* Gradient dark */
+.bg-grad-matcha{background:linear-gradient(135deg,var(--mc10) 0%,var(--mc8) 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+
+/* ─────────── 06 ILLUSTRATION ─────────── */
+.illus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 .illus-card{border:1.5px solid var(--gray3);border-radius:16px;overflow:hidden}
 .illus-demo{height:140px;position:relative;display:flex;align-items:center;justify-content:center}
-.illus-label-wrap{padding:14px 18px;background:#fff}
-.illus-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.illus-info{padding:14px 18px;background:white}
+.illus-name{font-size:13px;font-weight:700;margin-bottom:3px}
 .illus-desc{font-size:11px;color:var(--gray6);line-height:1.5}
+.wc-blob{position:absolute;border-radius:50%;filter:blur(20px);opacity:.38}
 
-/* watercolor-style blobs */
-.wc-blob{position:absolute;border-radius:50%;filter:blur(20px);opacity:.35}
+/* ─────────── 07 COMBINED ─────────── */
+.combo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
 
-/* ── Buttons ── */
-.btn-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.btn{font-family:var(--font);font-size:14px;font-weight:700;padding:12px 28px;border-radius:100px;cursor:pointer;border:none;transition:.15s;letter-spacing:-.01em}
-.btn-primary{background:var(--g8);color:white}
-.btn-primary:hover{background:var(--g7)}
-.btn-outline{background:transparent;color:var(--gray9);border:1.5px solid var(--gray3)}
-.btn-outline:hover{border-color:var(--g6);color:var(--g7)}
-.btn-ghost{background:transparent;color:var(--gray6);border:none}
-.btn-ghost:hover{color:var(--gray9)}
-.btn-danger{background:#fdf0ee;color:#c0392b;border:1.5px solid #f5c6c2}
+/* Score card variants */
+.score-v{border-radius:16px;padding:20px}
+.sv-1{background:linear-gradient(135deg,var(--mc10),var(--mc8))}
+.sv-2{background:linear-gradient(135deg,#0E0E0C,#2a2a28)}
+.sv-3{background:white;border:1.5px solid var(--gray3)}
+.sv-4{background:linear-gradient(135deg,var(--mc2),var(--mc1));border:1.5px solid var(--mc3)}
+.sv-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.sv-big{font-size:50px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.sv-pill{font-size:10px;font-weight:700;letter-spacing:.08em;padding:4px 12px;border-radius:100px}
+.sv-1 .sv-big,.sv-2 .sv-big{color:white}
+.sv-3 .sv-big{color:var(--gray9)}
+.sv-4 .sv-big{color:var(--mc9)}
+.sv-1 .sv-pill,.sv-2 .sv-pill{background:rgba(255,255,255,.15);color:rgba(255,255,255,.75)}
+.sv-3 .sv-pill{background:var(--mc1);color:var(--mc7);border:1.5px solid var(--mc3)}
+.sv-4 .sv-pill{background:var(--mc6);color:white}
+.sv-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.sv-1 .sv-lbl,.sv-2 .sv-lbl{color:rgba(255,255,255,.3)}
+.sv-3 .sv-lbl,.sv-4 .sv-lbl{color:var(--gray5)}
+.sv-bar-bg{height:4px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden;margin-bottom:7px}
+.sv-3 .sv-bar-bg,.sv-4 .sv-bar-bg{background:var(--gray2)}
+.sv-bar-fill{height:100%;border-radius:2px}
+.sv-1 .sv-bar-fill,.sv-2 .sv-bar-fill{background:rgba(255,255,255,.55)}
+.sv-3 .sv-bar-fill{background:var(--mc6)}
+.sv-4 .sv-bar-fill{background:var(--mc7)}
 
-/* ── Tag / pill ── */
-.tags{display:flex;flex-wrap:wrap;gap:8px}
+/* Tags */
+.tag-row{display:flex;flex-wrap:wrap;gap:8px}
 .tag{padding:5px 14px;border-radius:100px;font-size:12px;font-weight:600}
-.tag-green{background:var(--g1);color:var(--g8);border:1.5px solid var(--g3)}
-.tag-heat{background:#fff3e0;color:#b45309;border:1.5px solid #fde8c3}
-.tag-cool{background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe}
+.tag-mc{background:var(--mc1);color:var(--mc8);border:1.5px solid var(--mc3)}
+.tag-ms{background:var(--ms1);color:var(--ms8);border:1.5px solid var(--ms3)}
+.tag-md{background:var(--md1);color:var(--md8);border:1.5px solid var(--md3)}
+.tag-red{background:rgba(193,49,77,.1);color:var(--red);border:1.5px solid rgba(193,49,77,.25)}
+.tag-blue{background:rgba(46,78,254,.1);color:var(--blue);border:1.5px solid rgba(46,78,254,.25)}
 .tag-gray{background:var(--gray2);color:var(--gray6);border:1.5px solid var(--gray3)}
 
-footer{background:var(--gray9);color:var(--gray6);text-align:center;font-size:11px;padding:24px;margin-top:48px}
+/* Buttons */
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font-family:var(--font);font-size:13px;font-weight:700;padding:10px 22px;border-radius:100px;cursor:pointer;border:none;transition:.15s;letter-spacing:-.01em}
+.btn-mc{background:var(--mc7);color:white}.btn-mc:hover{background:var(--mc6)}
+.btn-red{background:var(--red);color:white}.btn-red:hover{background:var(--red-dim)}
+.btn-blue{background:var(--blue);color:white}.btn-blue:hover{background:var(--blue-dim)}
+.btn-out{background:transparent;color:var(--gray9);border:1.5px solid var(--gray3)}.btn-out:hover{border-color:var(--mc6);color:var(--mc7)}
+.btn-ghost{background:transparent;color:var(--gray6);border:none}.btn-ghost:hover{color:var(--gray9)}
+
+footer{background:var(--gray9);color:var(--gray6);text-align:center;font-size:11px;padding:28px;margin-top:48px}
 </style>
 </head>
 <body>
 
-<div class="page-hero">
-  <h1>GeoLoop Design System</h1>
-  <p>Color palette · Typography · Animations · Components · Illustration integration</p>
+<!-- NAV -->
+<div class="top-nav">
+  <span class="nav-brand">GeoLoop DS v2</span>
+  <a class="nav-link" href="#colors">01 Colors</a>
+  <a class="nav-link" href="#type">02 Type</a>
+  <a class="nav-link" href="#anim">03 Animations</a>
+  <a class="nav-link" href="#reactbits">04 React Bits</a>
+  <a class="nav-link" href="#backgrounds">05 Backgrounds</a>
+  <a class="nav-link" href="#illus">06 Illustration</a>
+  <a class="nav-link" href="#combined">07 Combined</a>
 </div>
 
-<!-- ════════════════════════════════════════ COLOR PALETTE -->
-<section>
+<!-- HERO -->
+<div class="page-hero">
+  <h1>GeoLoop Design System v2</h1>
+  <p class="hero-sub">Matcha palette (3 variants) · Red + blue accents from landing.html · React Bits components ported to vanilla JS/CSS — SpotlightCard, StarBorder, GlareHover, MagicBento, PixelCard</p>
+  <div class="hero-pills">
+    <span class="hero-pill pill-red">New: Matcha Palettes</span>
+    <span class="hero-pill pill-red">Red &amp; Blue Replace Orange/Blue</span>
+    <span class="hero-pill pill-blue">React Bits Components</span>
+    <span class="hero-pill pill-mat">SpotlightCard · StarBorder · GlareHover · MagicBento · PixelCard</span>
+  </div>
+</div>
+
+<!-- ═══ 01 COLORS ═══ -->
+<section id="colors">
   <div class="sec-title">01 Color palette</div>
-  <h2>Forest green + warm grayscale</h2>
-  <p class="sub">Single-hue green primary (earthy, geothermal) · Warm stone neutrals · Heat / cool / earth accents for data encoding</p>
+  <h2>Three matcha variants — click to switch the active palette</h2>
+  <p class="sub">Matcha replaces forest green. Shallow = lime-sage, Core = classic powder, Dark = ceremonial. Red + Blue from <code>landing.html</code> replace orange/blue for heating/cooling.</p>
 
-  <div class="palette-group">
-    <div class="palette-label">Primary greens — 10 steps (anchor: #1a5c38)</div>
-    <div class="swatches">
-      <div class="swatch light" style="background:#f0f9f3"><div class="swatch-label">--g1<br>#f0f9f3</div></div>
-      <div class="swatch light" style="background:#d4eddf"><div class="swatch-label">--g2<br>#d4eddf</div></div>
-      <div class="swatch light" style="background:#a8d9bc"><div class="swatch-label">--g3<br>#a8d9bc</div></div>
-      <div class="swatch light" style="background:#7cc49a"><div class="swatch-label">--g4<br>#7cc49a</div></div>
-      <div class="swatch light" style="background:#50af78"><div class="swatch-label">--g5<br>#50af78</div></div>
-      <div class="swatch dark" style="background:#2d9a5a"><div class="swatch-label">--g6<br>#2d9a5a</div></div>
-      <div class="swatch dark" style="background:#1e7a48"><div class="swatch-label">--g7<br>#1e7a48</div></div>
-      <div class="swatch dark" style="background:#1a5c38"><div class="swatch-label">--g8<br>#1a5c38</div></div>
-      <div class="swatch dark" style="background:#123d25"><div class="swatch-label">--g9<br>#123d25</div></div>
-      <div class="swatch dark" style="background:#0a1f12"><div class="swatch-label">--g10<br>#0a1f12</div></div>
+  <!-- Palette selector chips -->
+  <div class="palette-compare">
+    <div class="pal-chip sel" onclick="setPalette('core',this)">
+      <div class="pal-bar" style="background:linear-gradient(90deg,#f2f5e6,#c4dc91,#7aa526,#466711,#162404)"></div>
+      <div class="pal-meta">
+        <div class="pal-name">Matcha Core <span class="badge badge-rec">Recommended</span></div>
+        <div class="pal-desc">Classic powder · HSL 82° · mid-saturation</div>
+      </div>
+    </div>
+    <div class="pal-chip" onclick="setPalette('shallow',this)">
+      <div class="pal-bar" style="background:linear-gradient(90deg,#f6f9eb,#d1e695,#8eba2e,#577814,#1f2d05)"></div>
+      <div class="pal-meta">
+        <div class="pal-name">Matcha Shallow <span class="badge badge-lt">Lighter</span></div>
+        <div class="pal-desc">Sage-lime · HSL 78° · higher key</div>
+      </div>
+    </div>
+    <div class="pal-chip" onclick="setPalette('dark',this)">
+      <div class="pal-bar" style="background:linear-gradient(90deg,#edf2e0,#a5c480,#4a7918,#26480a,#0a1803)"></div>
+      <div class="pal-meta">
+        <div class="pal-name">Matcha Dark <span class="badge badge-dk">Deeper</span></div>
+        <div class="pal-desc">Ceremonial · HSL 86° · lower sat, earthy</div>
+      </div>
     </div>
   </div>
 
+  <!-- Core -->
   <div class="palette-group">
-    <div class="palette-label">Warm grayscale — neutrals (stone, not cool)</div>
+    <div class="palette-label">Matcha Core — anchor #7aa526 <span class="badge badge-rec">Recommended</span></div>
     <div class="swatches">
-      <div class="swatch light" style="background:#faf9f7"><div class="swatch-label">--gray0</div></div>
-      <div class="swatch light" style="background:#f5f3f0"><div class="swatch-label">--gray1</div></div>
-      <div class="swatch light" style="background:#eeecea"><div class="swatch-label">--gray2</div></div>
-      <div class="swatch light" style="background:#e0ddd9"><div class="swatch-label">--gray3</div></div>
-      <div class="swatch light" style="background:#c8c4be"><div class="swatch-label">--gray4</div></div>
-      <div class="swatch dark" style="background:#a09c97"><div class="swatch-label">--gray5</div></div>
-      <div class="swatch dark" style="background:#7a7570"><div class="swatch-label">--gray6</div></div>
-      <div class="swatch dark" style="background:#4a4540"><div class="swatch-label">--gray7</div></div>
-      <div class="swatch dark" style="background:#2e2a26"><div class="swatch-label">--gray8</div></div>
-      <div class="swatch dark" style="background:#1a1814"><div class="swatch-label">--gray9</div></div>
+      <div class="sw sl" style="background:#f2f5e6"><div class="sw-lbl sl">mc1 #f2f5e6</div></div>
+      <div class="sw sl" style="background:#dce9bc"><div class="sw-lbl sl">mc2 #dce9bc</div></div>
+      <div class="sw sl" style="background:#c4dc91"><div class="sw-lbl sl">mc3 #c4dc91</div></div>
+      <div class="sw sl" style="background:#abcf66"><div class="sw-lbl sl">mc4 #abcf66</div></div>
+      <div class="sw sd" style="background:#93c23b"><div class="sw-lbl sd">mc5 #93c23b</div></div>
+      <div class="sw sd" style="background:#7aa526"><div class="sw-lbl sd">mc6 #7aa526</div></div>
+      <div class="sw sd" style="background:#5f861b"><div class="sw-lbl sd">mc7 #5f861b</div></div>
+      <div class="sw sd" style="background:#466711"><div class="sw-lbl sd">mc8 #466711</div></div>
+      <div class="sw sd" style="background:#2e4909"><div class="sw-lbl sd">mc9 #2e4909</div></div>
+      <div class="sw sd" style="background:#162404"><div class="sw-lbl sd">mc10 #162404</div></div>
     </div>
   </div>
 
+  <!-- Shallow -->
   <div class="palette-group">
-    <div class="palette-label">Data accents — heat (heating load) · cool (cooling load) · earth (soil / geology)</div>
+    <div class="palette-label">Matcha Shallow — anchor #8eba2e <span class="badge badge-lt">Lighter variant</span></div>
     <div class="swatches">
-      <div class="swatch light" style="background:#fff8f0"><div class="swatch-label">heat-1</div></div>
-      <div class="swatch light" style="background:#fde8c3"><div class="swatch-label">heat-2</div></div>
-      <div class="swatch light" style="background:#fbd097"><div class="swatch-label">heat-3</div></div>
-      <div class="swatch dark" style="background:#f97316"><div class="swatch-label">heat-4 🔥</div></div>
-      <div class="swatch dark" style="background:#7c2d12"><div class="swatch-label">heat-8</div></div>
-      <div class="swatch light" style="background:#eff6ff" style="margin-left:12px"><div class="swatch-label">cool-1</div></div>
-      <div class="swatch light" style="background:#bfdbfe"><div class="swatch-label">cool-2</div></div>
-      <div class="swatch dark" style="background:#3b82f6"><div class="swatch-label">cool-4 ❄</div></div>
-      <div class="swatch dark" style="background:#1e3a5f"><div class="swatch-label">cool-8</div></div>
-      <div class="swatch light" style="background:#fdf8f0"><div class="swatch-label">earth-1</div></div>
-      <div class="swatch dark" style="background:#b45309"><div class="swatch-label">earth ⛏</div></div>
+      <div class="sw sl" style="background:#f6f9eb"><div class="sw-lbl sl">ms1 #f6f9eb</div></div>
+      <div class="sw sl" style="background:#e5f0c0"><div class="sw-lbl sl">ms2 #e5f0c0</div></div>
+      <div class="sw sl" style="background:#d1e695"><div class="sw-lbl sl">ms3 #d1e695</div></div>
+      <div class="sw sl" style="background:#bcdb6a"><div class="sw-lbl sl">ms4 #bcdb6a</div></div>
+      <div class="sw sd" style="background:#a7cf3f"><div class="sw-lbl sd">ms5 #a7cf3f</div></div>
+      <div class="sw sd" style="background:#8eba2e"><div class="sw-lbl sd">ms6 #8eba2e</div></div>
+      <div class="sw sd" style="background:#729820"><div class="sw-lbl sd">ms7 #729820</div></div>
+      <div class="sw sd" style="background:#577814"><div class="sw-lbl sd">ms8 #577814</div></div>
+      <div class="sw sd" style="background:#3c560b"><div class="sw-lbl sd">ms9 #3c560b</div></div>
+      <div class="sw sd" style="background:#1f2d05"><div class="sw-lbl sd">ms10 #1f2d05</div></div>
     </div>
   </div>
 
-  <div style="margin-top:24px">
-    <div class="palette-label">How accents encode geothermal data</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <span class="tag tag-heat">🔥 Heating dominant · zone 6A</span>
-      <span class="tag tag-cool">❄ Cooling dominant · zone 2A</span>
-      <span class="tag tag-green">✓ Balanced · zone 4C</span>
-      <span class="tag" style="background:#fdf8f0;color:#92400e;border:1.5px solid #fde8c3">⛏ Low soil k — longer loops needed</span>
+  <!-- Dark -->
+  <div class="palette-group">
+    <div class="palette-label">Matcha Dark — anchor #4a7918 <span class="badge badge-dk">Deeper variant</span></div>
+    <div class="swatches">
+      <div class="sw sl" style="background:#edf2e0"><div class="sw-lbl sl">md1 #edf2e0</div></div>
+      <div class="sw sl" style="background:#c9dbb0"><div class="sw-lbl sl">md2 #c9dbb0</div></div>
+      <div class="sw sl" style="background:#a5c480"><div class="sw-lbl sl">md3 #a5c480</div></div>
+      <div class="sw sl" style="background:#81ad50"><div class="sw-lbl sl">md4 #81ad50</div></div>
+      <div class="sw sd" style="background:#5d9620"><div class="sw-lbl sd">md5 #5d9620</div></div>
+      <div class="sw sd" style="background:#4a7918"><div class="sw-lbl sd">md6 #4a7918</div></div>
+      <div class="sw sd" style="background:#386010"><div class="sw-lbl sd">md7 #386010</div></div>
+      <div class="sw sd" style="background:#26480a"><div class="sw-lbl sd">md8 #26480a</div></div>
+      <div class="sw sd" style="background:#163006"><div class="sw-lbl sd">md9 #163006</div></div>
+      <div class="sw sd" style="background:#0a1803"><div class="sw-lbl sd">md10 #0a1803</div></div>
     </div>
+  </div>
+
+  <!-- Warm gray -->
+  <div class="palette-group">
+    <div class="palette-label">Warm grayscale — stone base (keep from v1)</div>
+    <div class="swatches">
+      <div class="sw sl" style="background:#faf9f7"><div class="sw-lbl sl">gray0</div></div>
+      <div class="sw sl" style="background:#f5f3f0"><div class="sw-lbl sl">gray1</div></div>
+      <div class="sw sl" style="background:#eeecea"><div class="sw-lbl sl">gray2</div></div>
+      <div class="sw sl" style="background:#e0ddd9"><div class="sw-lbl sl">gray3</div></div>
+      <div class="sw sl" style="background:#c8c4be"><div class="sw-lbl sl">gray4</div></div>
+      <div class="sw sd" style="background:#a09c97"><div class="sw-lbl sd">gray5</div></div>
+      <div class="sw sd" style="background:#7a7570"><div class="sw-lbl sd">gray6</div></div>
+      <div class="sw sd" style="background:#4a4540"><div class="sw-lbl sd">gray7</div></div>
+      <div class="sw sd" style="background:#2e2a26"><div class="sw-lbl sd">gray8</div></div>
+      <div class="sw sd" style="background:#1a1814"><div class="sw-lbl sd">gray9</div></div>
+    </div>
+  </div>
+
+  <!-- Red + Blue accents -->
+  <div class="palette-group">
+    <div class="palette-label">Accents — from landing.html (replace orange/blue heat-cool)</div>
+    <div class="accent-row">
+      <div class="accent-block">
+        <div class="accent-top" style="background:#c1314d">
+          <div style="font-size:16px">●</div>
+          <div>
+            <div style="font-size:12px;font-weight:800">#c1314d — Red</div>
+            <div style="font-size:10px;opacity:.6">Heating load · CTA · alerts · danger</div>
+          </div>
+        </div>
+        <div class="accent-subs">
+          <div class="accent-sub" style="background:#fdf0f2"></div>
+          <div class="accent-sub" style="background:#f9c6ce"></div>
+          <div class="accent-sub" style="background:#f48090"></div>
+          <div class="accent-sub" style="background:#e04060"></div>
+          <div class="accent-sub" style="background:#c1314d"></div>
+          <div class="accent-sub" style="background:#a82840"></div>
+          <div class="accent-sub" style="background:#7c1c2e"></div>
+          <div class="accent-sub" style="background:#4a0f1b"></div>
+        </div>
+      </div>
+      <div class="accent-block">
+        <div class="accent-top" style="background:#2e4efe">
+          <div style="font-size:16px">●</div>
+          <div>
+            <div style="font-size:12px;font-weight:800">#2e4efe — Blue</div>
+            <div style="font-size:10px;opacity:.6">Cooling load · info · links · secondary</div>
+          </div>
+        </div>
+        <div class="accent-subs">
+          <div class="accent-sub" style="background:#eef1ff"></div>
+          <div class="accent-sub" style="background:#c4ccff"></div>
+          <div class="accent-sub" style="background:#90a4ff"></div>
+          <div class="accent-sub" style="background:#5f7cff"></div>
+          <div class="accent-sub" style="background:#2e4efe"></div>
+          <div class="accent-sub" style="background:#2440d8"></div>
+          <div class="accent-sub" style="background:#1830a4"></div>
+          <div class="accent-sub" style="background:#0c1860"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Usage tags -->
+  <div class="tag-row">
+    <span class="tag tag-red">Heating dominant · Zone 6A</span>
+    <span class="tag tag-blue">Cooling dominant · Zone 2A</span>
+    <span class="tag tag-mc">Balanced · Zone 4C</span>
+    <span class="tag tag-md">Low soil k · longer loops</span>
+    <span class="tag tag-ms">High soil k · shorter loops</span>
+    <span class="tag tag-gray">Neutral / N/A</span>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════ TYPOGRAPHY -->
-<section>
-  <div class="sec-title">02 Typography — Sora</div>
-  <h2>Hierarchy system</h2>
-  <p class="sub">Sora already installed. Add weight + tracking rules to make hierarchy obvious without extra color.</p>
+<!-- ═══ 02 TYPOGRAPHY ═══ -->
+<section id="type">
+  <div class="sec-title">02 Typography</div>
+  <h2>Hierarchy — Sora (existing) + DM Serif Display (from landing)</h2>
+  <p class="sub">DM Serif Display matches the landing.html hero style. Consider it for the welcome page heading.</p>
 
   <div class="type-row">
-    <div class="type-specimen" style="font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1.1">GeoLoop Report — 85 / 100</div>
-    <div class="type-meta">36px · weight 800 · tracking -0.04em · Page title / hero</div>
+    <div style="font-family:var(--serif);font-size:38px;font-weight:400;letter-spacing:-.02em;line-height:1.1">GeoLoop — Geothermal Feasibility</div>
+    <div class="type-meta">DM Serif Display 38px · matches landing.html hero · welcome page only</div>
   </div>
   <div class="type-row">
-    <div class="type-specimen" style="font-size:22px;font-weight:700;letter-spacing:-.03em">System Design · Borefield Layout</div>
-    <div class="type-meta">22px · weight 700 · tracking -0.03em · Section heading</div>
+    <div style="font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.1">GeoLoop Report — 85 / 100</div>
+    <div class="type-meta">Sora 34px · weight 800 · tracking -0.04em · report hero title</div>
   </div>
   <div class="type-row">
-    <div class="type-specimen" style="font-size:14px;font-weight:600;letter-spacing:-.01em">Number of boreholes · NB = 10</div>
-    <div class="type-meta">14px · weight 600 · tracking -0.01em · Card label / result row</div>
+    <div style="font-size:22px;font-weight:700;letter-spacing:-.03em">Borefield Layout · System Design</div>
+    <div class="type-meta">Sora 22px · weight 700 · section heading</div>
   </div>
   <div class="type-row">
-    <div class="type-specimen" style="font-size:12px;font-weight:400;color:#7a7570;line-height:1.6">Soil thermal conductivity is estimated from USGS geological survey data using machine learning. A Thermal Response Test can confirm these values.</div>
-    <div class="type-meta">12px · weight 400 · muted · Body / explanation text</div>
+    <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">Number of boreholes · NB = 10</div>
+    <div class="type-meta">Sora 14px · weight 600 · card label / result row</div>
   </div>
   <div class="type-row">
-    <div class="type-specimen" style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a09c97">BOREFIELD LAYOUT PLAN · SYSTEM DESIGN</div>
-    <div class="type-meta">10px · weight 700 · tracking +0.12em · UPPERCASE · Section label</div>
+    <div style="font-size:12px;color:#7a7570;line-height:1.65">Soil thermal conductivity is estimated from USGS geological survey data using machine learning. A Thermal Response Test can confirm these values on site before drilling begins.</div>
+    <div class="type-meta">Sora 12px · weight 400 · muted · body text</div>
   </div>
   <div class="type-row">
-    <div class="type-specimen" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#1a5c38">NB = 10 · H = 242 ft · L = 7953 ft · Spacing = 64.6 ft</div>
-    <div class="type-meta">JetBrains Mono 13px · Technical values / canvas labels / code</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a09c97">BOREFIELD LAYOUT PLAN · SYSTEM DESIGN</div>
+    <div class="type-meta">Sora 10px · 700 · tracking +0.12em · UPPERCASE · section eyebrow</div>
+  </div>
+  <div class="type-row">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--mc7)">NB = 10 · H = 242 ft · L = 7,953 ft · Spacing = 64.6 ft</div>
+    <div class="type-meta">JetBrains Mono 13px · canvas labels · technical readouts</div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════ ANIMATIONS -->
-<section>
-  <div class="sec-title">03 Animations — live demos</div>
-  <h2>Micro-interactions (all running below)</h2>
-  <p class="sub">Hover / interact with inputs. All animations respect <code>prefers-reduced-motion</code>.</p>
+<!-- ═══ 03 ANIMATIONS ═══ -->
+<section id="anim">
+  <div class="sec-title">03 Animations — all live</div>
+  <h2>12 motion patterns (running now · hover input for glow)</h2>
+  <p class="sub">All respect <code>prefers-reduced-motion</code>. Red/blue progress bars show new accent usage.</p>
 
   <div class="anim-grid">
-
     <div class="anim-card">
-      <div class="anim-label">Counter roll — score reveal</div>
-      <div class="anim-demo" style="flex-direction:column;gap:4px">
-        <div class="counter-num" id="counter">0</div>
-        <div class="counter-label">GSHP Feasibility Score</div>
+      <div class="anim-lbl">CountUp <span class="abadge abadge-m">React Bits</span></div>
+      <div class="anim-demo" style="flex-direction:column">
+        <div class="cnt-num" id="cnt-num">0</div>
+        <div class="cnt-sub">site score / 100</div>
       </div>
     </div>
 
     <div class="anim-card">
-      <div class="anim-label">Shimmer skeleton — loading</div>
-      <div class="anim-demo" style="flex-direction:column;width:100%;gap:0">
+      <div class="anim-lbl">Digit Roll <span class="abadge abadge-m">React Bits Counter</span></div>
+      <div class="anim-demo">
+        <div style="display:flex;gap:3px;align-items:flex-end">
+          <div class="roll-digit"><div class="roll-col"><span class="roll-n">8</span><span class="roll-n">7</span><span class="roll-n">6</span><span class="roll-n">5</span><span class="roll-n">4</span><span class="roll-n">3</span><span class="roll-n">2</span><span class="roll-n">1</span><span class="roll-n">0</span><span class="roll-n">8</span></div></div>
+          <div class="roll-digit"><div class="roll-col" style="animation-delay:-.4s"><span class="roll-n">5</span><span class="roll-n">4</span><span class="roll-n">3</span><span class="roll-n">2</span><span class="roll-n">1</span><span class="roll-n">0</span><span class="roll-n">9</span><span class="roll-n">8</span><span class="roll-n">7</span><span class="roll-n">5</span></div></div>
+          <div style="font-size:18px;font-weight:800;color:var(--mc8);padding:0 3px">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-lbl">Loading Skeleton</div>
+      <div class="anim-demo" style="flex-direction:column;align-items:stretch;justify-content:center">
         <div class="shimmer-line w80"></div>
         <div class="shimmer-line w60"></div>
         <div class="shimmer-line w40"></div>
-        <div class="shimmer-line w80" style="height:32px;border-radius:8px"></div>
       </div>
     </div>
 
     <div class="anim-card">
-      <div class="anim-label">Card entrance — slide up</div>
+      <div class="anim-lbl">Card Entrance</div>
       <div class="anim-demo">
-        <div class="entering-card" style="width:90%">
-          <div style="font-size:11px;font-weight:700;color:var(--g8);margin-bottom:4px">Site & Soil</div>
-          <div style="font-size:10px;color:var(--gray6)">k = 2.4 W/m·K · Zone 5A</div>
+        <div class="entering-card" style="width:100%">
+          <div style="font-size:11px;font-weight:700;color:var(--mc7)">NB = 10 boreholes</div>
+          <div style="font-size:10px;color:var(--mc6);margin-top:3px">Optimal for this site</div>
         </div>
       </div>
     </div>
 
     <div class="anim-card">
-      <div class="anim-label">Progress bar fill</div>
-      <div class="anim-demo" style="flex-direction:column;gap:10px;width:100%">
-        <div style="font-size:11px;color:var(--gray6)">Heating · 32 / 40 pts</div>
-        <div class="bar-track"><div class="bar-fill-anim"></div></div>
-        <div style="font-size:11px;color:var(--gray6)">Soil conductivity · 28 / 30 pts</div>
-        <div class="bar-track"><div class="bar-fill-anim" style="animation-delay:.3s"></div></div>
-      </div>
-    </div>
-
-    <div class="anim-card">
-      <div class="anim-label">Score donut — SVG arc</div>
-      <div class="anim-demo">
-        <div class="donut-wrap">
-          <svg width="80" height="80" viewBox="0 0 100 100" class="gauge-svg">
-            <circle cx="50" cy="50" r="32" fill="none" stroke="#e0ddd9" stroke-width="12"/>
-            <circle cx="50" cy="50" r="32" fill="none" stroke="#1e7a48" stroke-width="12"
-              stroke-linecap="round" class="donut-arc"/>
-          </svg>
-          <div class="donut-center">
-            <div class="donut-num">85</div>
-            <div class="donut-grade">GOOD</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="anim-card">
-      <div class="anim-label">Input focus glow</div>
-      <div class="anim-demo" style="width:100%">
-        <div style="width:100%">
-          <input class="input-demo" placeholder="Enter ZIP code (click me)">
-          <div style="font-size:10px;color:var(--gray5);margin-top:6px">Click the input to see focus ring</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="anim-card">
-      <div class="anim-label">Live status pulse</div>
-      <div class="anim-demo" style="gap:10px">
-        <div class="live-dot"></div>
-        <span style="font-size:12px;font-weight:600;color:var(--gray6)">Analysis running…</span>
-      </div>
-    </div>
-
-    <div class="anim-card">
-      <div class="anim-label">Page slide transition</div>
+      <div class="anim-lbl">Factor Bars (3 accents)</div>
       <div class="anim-demo" style="flex-direction:column;gap:8px;width:100%">
-        <div style="font-size:10px;color:var(--gray5)">Previous → Next page</div>
-        <div class="slide-demo">
-          <div class="slide-page slide-p1">Stage 1a</div>
-          <div class="slide-page slide-p2">Stage 1b</div>
+        <div class="bar-track"><div class="bar-fill bf-green"></div></div>
+        <div class="bar-track"><div class="bar-fill bf-red"></div></div>
+        <div class="bar-track"><div class="bar-fill bf-blue"></div></div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-lbl">Input Focus Glow</div>
+      <div class="anim-demo" style="width:100%">
+        <input class="input-demo" placeholder="Click — ZIP code" />
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-lbl">Live Indicators</div>
+      <div class="anim-demo" style="flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600"><span class="live-dot" style="background:var(--mc5)"></span>Running analysis</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600"><span class="live-dot" style="background:var(--red)"></span>Heating dominant</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600"><span class="live-dot" style="background:var(--blue)"></span>Cooling dominant</div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-lbl">Score Donuts</div>
+      <div class="anim-demo" style="gap:12px">
+        <div class="donut-wrap">
+          <svg width="76" height="76" viewBox="0 0 76 76">
+            <circle cx="38" cy="38" r="32" fill="none" stroke="#dce9bc" stroke-width="7"/>
+            <circle class="donut-arc" cx="38" cy="38" r="32" fill="none" stroke="#7aa526" stroke-width="7" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-center"><div class="donut-num" style="color:var(--mc8)">85</div><div class="donut-grade" style="color:var(--mc6)">GOOD</div></div>
+        </div>
+        <div class="donut-wrap">
+          <svg width="76" height="76" viewBox="0 0 76 76">
+            <circle cx="38" cy="38" r="32" fill="none" stroke="#f9c6ce" stroke-width="7"/>
+            <circle class="donut-arc" cx="38" cy="38" r="32" fill="none" stroke="#c1314d" stroke-width="7" stroke-linecap="round" style="animation-delay:-.5s"/>
+          </svg>
+          <div class="donut-center"><div class="donut-num" style="color:var(--red)">72</div><div class="donut-grade" style="color:var(--red)">FAIR</div></div>
         </div>
       </div>
     </div>
 
+    <div class="anim-card">
+      <div class="anim-lbl">Page Transition</div>
+      <div class="anim-demo" style="gap:6px;overflow:hidden;width:100%">
+        <div class="slide-page" style="flex:1;background:var(--mc8)">Site<br>Data</div>
+        <div class="slide-page slide-p2" style="flex:1;background:var(--mc6)">Size</div>
+        <div class="slide-page" style="flex:1;background:var(--gray3);color:var(--gray5);font-size:10px;font-weight:600;opacity:.7">Report</div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-lbl">Stagger Entrance</div>
+      <div class="anim-demo" style="flex-direction:column;width:100%;justify-content:center">
+        <div class="stagger-item" id="si1">ZIP code matched</div>
+        <div class="stagger-item" id="si2">Climate data loaded</div>
+        <div class="stagger-item" id="si3">Sizing complete</div>
+      </div>
+    </div>
+
+    <div class="anim-card">
+      <div class="anim-lbl">ShinyText <span class="abadge abadge-m">React Bits</span></div>
+      <div class="anim-demo" style="flex-direction:column;gap:10px">
+        <div class="shiny-text">GeoLoop</div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,var(--red) 0%,var(--red) 30%,#ffb0bc 50%,var(--red) 70%,var(--red) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shineMove 2.8s linear infinite">Heating</div>
+      </div>
+    </div>
+
+    <div class="anim-card" style="background:var(--gray9)">
+      <div class="anim-lbl" style="color:rgba(255,255,255,.28)">StarBorder <span class="abadge abadge-b">React Bits</span></div>
+      <div class="anim-demo" style="flex-direction:column;gap:10px">
+        <div class="sb-wrap">
+          <div class="sb-top" style="background:radial-gradient(circle,#c1314d,transparent 10%)"></div>
+          <div class="sb-bot" style="background:radial-gradient(circle,#c1314d,transparent 10%)"></div>
+          <button class="sb-inner">Analyze Site</button>
+        </div>
+        <div class="sb-wrap">
+          <div class="sb-top" style="background:radial-gradient(circle,#7aa526,transparent 10%);animation-duration:4s"></div>
+          <div class="sb-bot" style="background:radial-gradient(circle,#7aa526,transparent 10%);animation-duration:4s"></div>
+          <button class="sb-inner" style="font-size:13px">Generate PDF</button>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════ COMPONENTS -->
-<section>
-  <div class="sec-title">04 Interactive components</div>
-  <h2>Upgraded UI elements</h2>
-  <p class="sub">Click / hover to interact. These replace the current plain inputs and static labels.</p>
+<!-- ═══ 04 REACT BITS ═══ -->
+<section class="dark-bg" id="reactbits">
+<div class="dark-inner">
+  <div class="sec-title lt">04 React Bits — ported to vanilla JS/CSS</div>
+  <h2 class="lt">SpotlightCard · GlareHover · MagicBento · PixelCard · BorderGlow</h2>
+  <p class="sub lt">All components are pure HTML/CSS/JS — no React needed. Hover each to interact.</p>
 
-  <div class="comp-grid">
-
-    <!-- Soil gauge -->
-    <div class="comp-card">
-      <div class="comp-label">Soil conductivity gauge</div>
-      <div class="gauge-wrap" style="margin:0 auto">
-        <svg class="gauge-svg" width="120" height="70" viewBox="0 0 100 60">
-          <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="#e0ddd9" stroke-width="10" stroke-linecap="round"/>
-          <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="url(#gGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="126" stroke-dashoffset="40"/>
-          <defs><linearGradient id="gGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f97316"/><stop offset="50%" stop-color="#50af78"/><stop offset="100%" stop-color="#1a5c38"/></linearGradient></defs>
-          <line x1="50" y1="50" x2="75" y2="18" stroke="#1a5c38" stroke-width="3" stroke-linecap="round" class="gauge-needle"/>
-          <circle cx="50" cy="50" r="5" fill="#1a5c38"/>
-        </svg>
-        <div class="gauge-val">2.4 W/m·K</div>
-        <div class="gauge-sub">Moderate conductivity</div>
-      </div>
+  <!-- SpotlightCard -->
+  <div class="palette-label" style="color:rgba(255,255,255,.28);margin-bottom:12px">SpotlightCard — 4 color variants (hover for spotlight)</div>
+  <div class="spotlight-grid">
+    <div class="spotlight-card sc-dark" onmousemove="spotMove(this,event)" style="--spot-color:rgba(255,255,255,.12)">
+      <div class="sc-lbl">Site Score</div>
+      <div class="sc-title">Suitability</div>
+      <div class="sc-num" id="sc-num">0</div>
+      <div class="sc-body" style="margin-top:6px">Excellent geothermal potential for this site</div>
     </div>
-
-    <!-- Score card upgrade -->
-    <div class="comp-card">
-      <div class="comp-label">Score card — dark gradient</div>
-      <div class="score-demo">
-        <div class="score-top">
-          <div class="score-big">85</div>
-          <div>
-            <div><span class="score-badge">GOOD</span></div>
-            <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">+15 vs benchmark</div>
-          </div>
-        </div>
-        <div style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">GSHP FEASIBILITY</div>
-        <div class="score-bar-bg"><div class="score-bar-fg" style="width:85%"></div></div>
-      </div>
+    <div class="spotlight-card sc-matcha" onmousemove="spotMove(this,event)" style="--spot-color:rgba(180,230,80,.14)">
+      <div class="sc-lbl">Borefield</div>
+      <div class="sc-title">Total Length</div>
+      <div class="sc-num">7,953 ft</div>
+      <div class="sc-body" style="margin-top:6px">10 boreholes × 242 ft</div>
     </div>
-
-    <!-- Building type picker -->
-    <div class="comp-card">
-      <div class="comp-label">Building type card grid</div>
-      <div class="btype-grid" id="btypeGrid">
-        <div class="btype-card sel" onclick="toggleBtype(this)"><div class="btype-icon">🏢</div><div class="btype-name">Med Office</div></div>
-        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏫</div><div class="btype-name">School</div></div>
-        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏪</div><div class="btype-name">Retail</div></div>
-        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏨</div><div class="btype-name">Hotel</div></div>
-        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏥</div><div class="btype-name">Hospital</div></div>
-        <div class="btype-card" onclick="toggleBtype(this)"><div class="btype-icon">🏭</div><div class="btype-name">Warehouse</div></div>
-      </div>
+    <div class="spotlight-card sc-red" onmousemove="spotMove(this,event)" style="--spot-color:rgba(193,49,77,.22)">
+      <div class="sc-lbl">Heating Load</div>
+      <div class="sc-title">Peak Demand</div>
+      <div class="sc-num" style="color:var(--red)">148 kW</div>
+      <div class="sc-body" style="margin-top:6px">Zone 6A heating-dominant</div>
     </div>
-
-    <!-- Cost comparison -->
-    <div class="comp-card">
-      <div class="comp-label">Cost comparison bar</div>
-      <div class="cost-compare">
-        <div class="cost-row">
-          <div class="cost-name">GSHP</div>
-          <div class="cost-bar-bg"><div class="cost-bar-gshp">$248k</div></div>
-        </div>
-        <div class="cost-row">
-          <div class="cost-name">Conv.</div>
-          <div class="cost-bar-bg"><div class="cost-bar-conv">$312k</div></div>
-        </div>
-        <div style="font-size:10px;color:var(--g7);font-weight:600;margin-top:4px">→ GSHP saves $64k upfront</div>
-      </div>
+    <div class="spotlight-card sc-paper" onmousemove="spotMove(this,event)" style="--spot-color:rgba(122,165,38,.1)">
+      <div class="sc-lbl">Capital Cost</div>
+      <div class="sc-title">GSHP System</div>
+      <div class="sc-num">$280k</div>
+      <div class="sc-body" style="margin-top:6px">vs $190k conventional</div>
     </div>
+  </div>
 
-    <!-- Stepper progress -->
-    <div class="comp-card">
-      <div class="comp-label">Wizard stepper — step 2/5</div>
-      <div style="padding:8px 0">
-        <div class="stepper">
-          <div class="step-dot done">✓</div>
-          <div class="step-line done"></div>
-          <div class="step-dot active">2</div>
-          <div class="step-line"></div>
-          <div class="step-dot todo">3</div>
-          <div class="step-line"></div>
-          <div class="step-dot todo">4</div>
-          <div class="step-line"></div>
-          <div class="step-dot todo">5</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:9px;color:var(--gray5)">
-          <span>ZIP</span><span style="color:var(--g7);font-weight:700">Building</span><span>Envelope</span><span>Borefield</span><span>Report</span>
-        </div>
-      </div>
+  <!-- GlareHover -->
+  <div class="palette-label" style="color:rgba(255,255,255,.28);margin-bottom:12px">GlareHover stat cards — hover for glare sweep</div>
+  <div class="glare-grid">
+    <div class="glare-card gc-green"><div class="glare-lbl">Soil k</div><div class="glare-val">1.8</div><div class="glare-sub">W/m·K · Good conductivity</div></div>
+    <div class="glare-card gc-red"><div class="glare-lbl">Heating</div><div class="glare-val">148 kW</div><div class="glare-sub">Peak design load</div></div>
+    <div class="glare-card gc-blue"><div class="glare-lbl">Cooling</div><div class="glare-val">112 kW</div><div class="glare-sub">Peak design load</div></div>
+    <div class="glare-card gc-neutral"><div class="glare-lbl">Payback</div><div class="glare-val">9.2 yr</div><div class="glare-sub">Simple payback period</div></div>
+  </div>
+
+  <!-- MagicBento -->
+  <div class="palette-label" style="color:rgba(255,255,255,.28);margin-bottom:12px">MagicBento grid — hover cards for particle glow</div>
+  <div class="mb-grid">
+    <div class="mb-card mb-wide" onmousemove="mbMove(this,event)" onmouseleave="mbLeave(this)">
+      <div class="mb-lbl">Site Analysis</div>
+      <div class="mb-title">ZIP 94301 — Palo Alto, CA</div>
+      <div class="mb-body">Zone 3C · Mixed humid · 1.8 W/m·K soil · Excellent potential</div>
+      <div class="mb-stat">85 / 100</div>
     </div>
-
-    <!-- Tooltip -->
-    <div class="comp-card">
-      <div class="comp-label">Custom tooltip</div>
-      <div class="anim-demo">
-        <div>
-          <div class="tooltip-demo">
-            <div class="tooltip-bubble">Effective soil thermal conductivity</div>
-            <div class="tooltip-target">k = 2.4 W/m·K ⓘ</div>
-          </div>
-          <div style="font-size:10px;color:var(--gray5);margin-top:12px;text-align:center">Green arrow tooltip, 200ms fade</div>
-        </div>
-      </div>
+    <div class="mb-card" onmousemove="mbMove(this,event)" onmouseleave="mbLeave(this)" style="background:#0a0f1a;border-color:rgba(46,78,254,.1)">
+      <div class="mb-lbl" style="background:rgba(46,78,254,.15);color:#8fa8ff">Cooling</div>
+      <div class="mb-title">Cooling Load</div>
+      <div class="mb-body" style="color:rgba(130,160,255,.4)">Peak from ASHRAE bins</div>
+      <div class="mb-stat" style="color:#8fa8ff">112 kW</div>
     </div>
-
-    <!-- Sparkline -->
-    <div class="comp-card">
-      <div class="comp-label">Load profile sparkline</div>
-      <div style="padding:8px 0">
-        <div style="font-size:10px;color:var(--gray5);margin-bottom:8px">Annual load profile (24 months)</div>
-        <div class="spark-wrap" id="sparkline"></div>
-        <div style="display:flex;gap:12px;margin-top:8px;font-size:10px">
-          <span style="color:#f97316">■ Heating</span>
-          <span style="color:#3b82f6">■ Cooling</span>
-        </div>
-      </div>
+    <div class="mb-card" onmousemove="mbMove(this,event)" onmouseleave="mbLeave(this)" style="background:#160510;border-color:rgba(193,49,77,.1)">
+      <div class="mb-lbl">Heating</div>
+      <div class="mb-title">Heating Load</div>
+      <div class="mb-body">Design-dominant loop sizing</div>
+      <div class="mb-stat" style="color:var(--red)">148 kW</div>
     </div>
-
-    <!-- Buttons -->
-    <div class="comp-card">
-      <div class="comp-label">Button system</div>
-      <div class="btn-row" style="flex-direction:column;align-items:flex-start;gap:10px">
-        <button class="btn btn-primary">Save analysis →</button>
-        <button class="btn btn-outline">Generate PDF report</button>
-        <button class="btn btn-ghost">← Start over</button>
-        <button class="btn btn-danger">Delete project</button>
-      </div>
+    <div class="mb-card" onmousemove="mbMove(this,event)" onmouseleave="mbLeave(this)">
+      <div class="mb-lbl" style="background:rgba(46,78,254,.15);color:#8fa8ff">System</div>
+      <div class="mb-title">Borefield</div>
+      <div class="mb-body" style="color:rgba(130,160,255,.4)">10 × 242 ft boreholes</div>
+      <div class="mb-stat" style="color:#8fa8ff">7,953 ft</div>
     </div>
+    <div class="mb-card" onmousemove="mbMove(this,event)" onmouseleave="mbLeave(this)" style="background:#0a100a;border-color:rgba(122,165,38,.1)">
+      <div class="mb-lbl" style="background:rgba(122,165,38,.15);color:#b4d855">Cost</div>
+      <div class="mb-title">Capital Cost</div>
+      <div class="mb-body" style="color:rgba(160,210,80,.4)">GSHP vs conventional</div>
+      <div class="mb-stat" style="color:#b4d855">$280k</div>
+    </div>
+  </div>
 
+  <!-- PixelCard -->
+  <div class="palette-label" style="color:rgba(255,255,255,.28);margin-bottom:12px">PixelCard — hover for pixel dissolve reveal</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px">
+    <div class="pixel-card-wrap" id="pc1" onmouseenter="pixelHover('pc1','#7aa526')" onmouseleave="pixelLeave('pc1')">
+      <canvas class="pixel-canvas-el" id="pc1-c"></canvas>
+      <div class="pixel-card-content"><div class="pixel-card-title">Matcha Core</div><div class="pixel-card-sub">Site Score — 85 / 100</div></div>
+    </div>
+    <div class="pixel-card-wrap" id="pc2" onmouseenter="pixelHover('pc2','#c1314d')" onmouseleave="pixelLeave('pc2')">
+      <canvas class="pixel-canvas-el" id="pc2-c"></canvas>
+      <div class="pixel-card-content"><div class="pixel-card-title">Red Accent</div><div class="pixel-card-sub">Heating Load — 148 kW</div></div>
+    </div>
+    <div class="pixel-card-wrap" id="pc3" onmouseenter="pixelHover('pc3','#2e4efe')" onmouseleave="pixelLeave('pc3')">
+      <canvas class="pixel-canvas-el" id="pc3-c"></canvas>
+      <div class="pixel-card-content"><div class="pixel-card-title">Blue Accent</div><div class="pixel-card-sub">Cooling Load — 112 kW</div></div>
+    </div>
+  </div>
+
+  <!-- BorderGlow -->
+  <div class="palette-label" style="color:rgba(255,255,255,.28);margin-bottom:12px">BorderGlow result cards — hover for gradient border</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">
+    <div class="bglow-card" style="--gr:193;--gg:49;--gb:77">
+      <div class="bglow-lbl">Heating Analysis</div>
+      <div class="bglow-title">Zone 6A — Heating Dominant</div>
+      <div class="bglow-row"><span>Design Load</span><span style="color:var(--red);font-weight:700">148 kW</span></div>
+      <div class="bglow-row"><span>Loop Length</span><span style="color:white">7,953 ft</span></div>
+      <div class="bglow-row" style="border:none"><span>Boreholes</span><span style="color:white">10</span></div>
+    </div>
+    <div class="bglow-card" style="--gr:46;--gg:78;--gb:254">
+      <div class="bglow-lbl">Cooling Analysis</div>
+      <div class="bglow-title">Cooling Load Profile</div>
+      <div class="bglow-row"><span>Peak Cooling</span><span style="color:#8fa8ff;font-weight:700">112 kW</span></div>
+      <div class="bglow-row"><span>Annual COP</span><span style="color:white">4.2</span></div>
+      <div class="bglow-row" style="border:none"><span>Savings</span><span style="color:white">$4,200 / yr</span></div>
+    </div>
+    <div class="bglow-card" style="--gr:122;--gg:165;--gb:38">
+      <div class="bglow-lbl">Cost Summary</div>
+      <div class="bglow-title">GSHP vs Conventional</div>
+      <div class="bglow-row"><span>GSHP</span><span style="color:#b4d855;font-weight:700">$280,000</span></div>
+      <div class="bglow-row"><span>Conventional</span><span style="color:white">$190,000</span></div>
+      <div class="bglow-row" style="border:none"><span>Payback</span><span style="color:white">9.2 yr</span></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══ 05 BACKGROUNDS ═══ -->
+<section id="backgrounds">
+  <div class="sec-title">05 Backgrounds — 5 options</div>
+  <h2>Background concepts for different sections</h2>
+  <p class="sub">Hover to preview. Topography is CSS-only. Silk and Particles use canvas.</p>
+
+  <div class="bg-grid">
+    <div class="bg-card bg-topo" style="height:200px">
+      <div class="bg-bar"><div class="bg-name">Topography Lines</div><div class="bg-desc">CSS radial repeating gradients · geo-themed · subtle</div></div>
+    </div>
+    <div class="bg-card bg-aurora" style="height:200px">
+      <div class="bg-bar"><div class="bg-name">Aurora Glow</div><div class="bg-desc">Animated radial blobs · matcha + red + blue</div></div>
+    </div>
+    <div class="bg-card bg-dots" style="height:200px">
+      <div class="bg-bar"><div class="bg-name">Dot Grid</div><div class="bg-desc">CSS background-image · clean · technical</div></div>
+    </div>
+    <div class="bg-card" style="height:200px;background:#0d1a0a;position:relative;overflow:hidden">
+      <canvas id="silk-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+      <div class="bg-bar" style="position:relative;z-index:2"><div class="bg-name">Silk Flow</div><div class="bg-desc">Canvas sine waves · matcha green · fluid</div></div>
+    </div>
+    <div class="bg-card" style="height:200px;background:#070a07;position:relative;overflow:hidden">
+      <canvas id="particle-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+      <div class="bg-bar" style="position:relative;z-index:2"><div class="bg-name">Particle Field</div><div class="bg-desc">Canvas network · floating nodes · subtle</div></div>
+    </div>
+    <div class="bg-card bg-grad-matcha" style="height:200px">
+      <div style="font-size:32px;font-weight:800;color:white;letter-spacing:-.04em;font-family:var(--serif);position:relative;z-index:2">GeoLoop</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;position:relative;z-index:2">Deep Matcha Gradient</div>
+      <div class="bg-bar"><div class="bg-name">Matcha Gradient</div><div class="bg-desc">mc10 → mc8 · hero background</div></div>
+    </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════ ILLUSTRATION INTEGRATION -->
-<section>
-  <div class="sec-title">05 Illustration integration</div>
-  <h2>Where watercolor sketches live</h2>
-  <p class="sub">Low-contrast watercolor illustrations work best as background texture or empty states — never inside functional form steps where they add noise.</p>
+<!-- ═══ 06 ILLUSTRATION ═══ -->
+<section id="illus">
+  <div class="sec-title">06 Illustration integration</div>
+  <h2>Watercolor placement patterns</h2>
+  <p class="sub">Replace blobs with real watercolor sketches. Best placements: loading states and PDF headers.</p>
 
   <div class="illus-grid">
-
     <div class="illus-card">
-      <div class="illus-demo" style="background:var(--gray1)">
-        <div class="wc-blob" style="width:180px;height:180px;background:#a8d9bc;left:-20px;top:-20px"></div>
-        <div class="wc-blob" style="width:120px;height:120px;background:#d4eddf;right:10px;bottom:-10px"></div>
-        <div style="position:relative;text-align:center;z-index:1">
-          <div style="font-size:28px;font-weight:800;letter-spacing:-.04em;color:var(--gray9)">Hello There</div>
-          <div style="font-size:13px;color:var(--gray6);margin-top:4px">Geothermal advisor</div>
+      <div class="illus-demo" style="background:linear-gradient(135deg,var(--mc9),var(--mc7))">
+        <div class="wc-blob" style="width:120px;height:90px;background:#b4d855;top:20px;left:30px"></div>
+        <div class="wc-blob" style="width:80px;height:80px;background:#c1314d;bottom:10px;right:20px"></div>
+        <div style="position:relative;z-index:2;text-align:center;color:white"><div style="font-size:24px;font-weight:800;letter-spacing:-.03em">GeoLoop</div><div style="font-size:11px;opacity:.55;margin-top:4px">Geothermal Feasibility</div></div>
+      </div>
+      <div class="illus-info"><div class="illus-name">Hero bleed</div><div class="illus-desc">Full-bleed behind hero text. Welcome/landing page only.</div></div>
+    </div>
+    <div class="illus-card">
+      <div class="illus-demo" style="background:var(--gray1);flex-direction:column;gap:8px">
+        <div class="wc-blob" style="width:100px;height:70px;background:var(--mc4);top:15px;left:50%;transform:translateX(-50%)"></div>
+        <div style="position:relative;z-index:2;text-align:center;margin-top:70px"><div style="font-size:12px;font-weight:700;color:var(--gray7)">Analyzing your site...</div><div style="font-size:10px;color:var(--gray5);margin-top:3px">Fetching climate and soil data</div></div>
+      </div>
+      <div class="illus-info"><div class="illus-name">Loading state</div><div class="illus-desc">Replaces spinner during /api/report call. Most impactful placement.</div></div>
+    </div>
+    <div class="illus-card">
+      <div class="illus-demo" style="background:var(--gray1);flex-direction:column;align-items:center;justify-content:center;gap:8px">
+        <div style="position:relative;width:70px;height:60px"><div class="wc-blob" style="width:70px;height:50px;background:var(--mc3);top:8px;left:0"></div></div>
+        <div style="text-align:center;position:relative;z-index:2"><div style="font-size:12px;font-weight:700;color:var(--gray7)">Enter a ZIP to start</div><div style="font-size:10px;color:var(--gray5);margin-top:2px">No analysis yet</div></div>
+      </div>
+      <div class="illus-info"><div class="illus-name">Empty state</div><div class="illus-desc">Before first analysis. Better than blank or "No data".</div></div>
+    </div>
+    <div class="illus-card">
+      <div class="illus-demo" style="background:white;padding:16px">
+        <div style="width:100%;background:linear-gradient(90deg,var(--mc9),var(--mc7));border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px">
+          <div class="wc-blob" style="position:relative;width:40px;height:40px;background:#b4d855;border-radius:50%;flex-shrink:0;filter:blur(12px);opacity:.7"></div>
+          <div style="flex:1"><div style="font-size:11px;font-weight:800;color:white;letter-spacing:-.01em">GEOTHERMAL FEASIBILITY REPORT</div><div style="font-size:9px;color:rgba(255,255,255,.45);margin-top:2px">ZIP 94301 · Generated by GeoLoop</div></div>
         </div>
       </div>
-      <div class="illus-label-wrap">
-        <div class="illus-title">Hero bleed (Welcome page)</div>
-        <div class="illus-desc">Watercolor blobs as blurred background layer. Illustration sits behind text on a white card overlay.</div>
-      </div>
+      <div class="illus-info"><div class="illus-name">PDF report header</div><div class="illus-desc">Elevates the export. Strong branding moment. Watercolor + dark bar.</div></div>
     </div>
-
-    <div class="illus-card">
-      <div class="illus-demo" style="background:var(--gray2);flex-direction:column;gap:0;align-items:stretch">
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px">
-          <div style="font-size:32px">🏗</div>
-          <div>
-            <div style="font-size:13px;font-weight:700">Analyzing your site…</div>
-            <div style="font-size:11px;color:var(--gray6);margin-top:2px">Fetching soil & climate data</div>
-          </div>
-        </div>
-        <div style="height:4px;background:linear-gradient(90deg,var(--g7),var(--g5));animation:barFill 1.5s ease-in-out infinite alternate"></div>
-      </div>
-      <div class="illus-label-wrap">
-        <div class="illus-title">Loading state with illustration</div>
-        <div class="illus-desc">Replace the spinner with a watercolor building sketch during the /analyze API call. Most impactful moment.</div>
-      </div>
-    </div>
-
-    <div class="illus-card">
-      <div class="illus-demo" style="background:var(--g1);flex-direction:column;justify-content:center;align-items:center;gap:8px">
-        <div style="font-size:36px;opacity:.5">🕳</div>
-        <div style="font-size:13px;font-weight:700;color:var(--g8)">No analyses yet</div>
-        <div style="font-size:11px;color:var(--gray5);text-align:center;max-width:160px">Run your first analysis to see results here</div>
-      </div>
-      <div class="illus-label-wrap">
-        <div class="illus-title">Empty state</div>
-        <div class="illus-desc">Watercolor borehole cross-section as empty state art. Far better than "No saved projects yet." plain text.</div>
-      </div>
-    </div>
-
-    <div class="illus-card">
-      <div class="illus-demo" style="background:var(--gray9);padding:20px;gap:12px;flex-direction:column;align-items:flex-start">
-        <div class="wc-blob" style="width:120px;height:80px;background:#1e7a48;right:0;top:0"></div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gray5);position:relative">GEOLOOP REPORT</div>
-        <div style="font-size:20px;font-weight:800;color:white;position:relative;letter-spacing:-.03em">Geothermal Analysis<br>Chicago, IL · Zone 5A</div>
-      </div>
-      <div class="illus-label-wrap">
-        <div class="illus-title">PDF report header</div>
-        <div class="illus-desc">Illustration as full-bleed header on the generated PDF — strongest brand moment in the entire user journey.</div>
-      </div>
-    </div>
-
   </div>
 </section>
 
-<footer>GeoLoop Design System Preview · Open docs/design-preview.html in browser</footer>
+<!-- ═══ 07 COMBINED ═══ -->
+<section id="combined">
+  <div class="sec-title">07 Combined examples</div>
+  <h2>Score cards in 4 style variants — pick one</h2>
+  <p class="sub">Green-dark (variant 1) is recommended for the main score card in result_report.html.</p>
+
+  <div class="combo-grid" style="margin-bottom:32px">
+    <div class="score-v sv-1">
+      <div class="sv-head"><div><div class="sv-lbl">Site Score</div><div class="sv-big">85</div></div><span class="sv-pill">GOOD</span></div>
+      <div class="sv-lbl">Climate suitability</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:90%"></div></div>
+      <div class="sv-lbl">Soil conductivity</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:75%"></div></div>
+      <div class="sv-lbl">Load balance</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:82%"></div></div>
+      <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,.3)">Matcha Dark gradient · Recommended</div>
+    </div>
+    <div class="score-v sv-2">
+      <div class="sv-head"><div><div class="sv-lbl">Site Score</div><div class="sv-big">85</div></div><span class="sv-pill">GOOD</span></div>
+      <div class="sv-lbl">Climate suitability</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:90%"></div></div>
+      <div class="sv-lbl">Soil conductivity</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:75%"></div></div>
+      <div class="sv-lbl">Load balance</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:82%"></div></div>
+      <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,.25)">Landing.html ink tone</div>
+    </div>
+    <div class="score-v sv-3">
+      <div class="sv-head"><div><div class="sv-lbl">Site Score</div><div class="sv-big">85</div></div><span class="sv-pill">GOOD</span></div>
+      <div class="sv-lbl">Climate suitability</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:90%"></div></div>
+      <div class="sv-lbl">Soil conductivity</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:75%"></div></div>
+      <div class="sv-lbl">Load balance</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:82%"></div></div>
+      <div style="margin-top:10px;font-size:10px;color:var(--gray5)">White paper · wizard step use</div>
+    </div>
+    <div class="score-v sv-4">
+      <div class="sv-head"><div><div class="sv-lbl">Site Score</div><div class="sv-big">85</div></div><span class="sv-pill">GOOD</span></div>
+      <div class="sv-lbl">Climate suitability</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:90%"></div></div>
+      <div class="sv-lbl">Soil conductivity</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:75%"></div></div>
+      <div class="sv-lbl">Load balance</div><div class="sv-bar-bg"><div class="sv-bar-fill" style="width:82%"></div></div>
+      <div style="margin-top:10px;font-size:10px;color:var(--mc7)">Matcha tinted surface</div>
+    </div>
+  </div>
+
+  <!-- Button system -->
+  <h2 style="margin-bottom:14px">Button system</h2>
+  <div class="btns" style="background:white;padding:18px;border-radius:14px;border:1.5px solid var(--gray3);margin-bottom:12px">
+    <button class="btn btn-mc">Matcha CTA</button>
+    <button class="btn btn-red">Analyze Site</button>
+    <button class="btn btn-blue">Download PDF</button>
+    <button class="btn btn-out">Secondary</button>
+    <button class="btn btn-ghost">Ghost</button>
+  </div>
+  <div style="background:var(--gray9);padding:18px;border-radius:14px;margin-bottom:24px">
+    <div class="btns" style="margin-bottom:10px">
+      <div class="sb-wrap"><div class="sb-top" style="background:radial-gradient(circle,#c1314d,transparent 10%)"></div><div class="sb-bot" style="background:radial-gradient(circle,#c1314d,transparent 10%)"></div><button class="sb-inner">Analyze Site</button></div>
+      <div class="sb-wrap"><div class="sb-top" style="background:radial-gradient(circle,#7aa526,transparent 10%);animation-duration:7s"></div><div class="sb-bot" style="background:radial-gradient(circle,#7aa526,transparent 10%);animation-duration:7s"></div><button class="sb-inner" style="color:#b4d855">Generate Report</button></div>
+      <div class="sb-wrap"><div class="sb-top" style="background:radial-gradient(circle,#2e4efe,transparent 10%);animation-duration:8s"></div><div class="sb-bot" style="background:radial-gradient(circle,#2e4efe,transparent 10%);animation-duration:8s"></div><button class="sb-inner" style="color:#8fa8ff">Download PDF</button></div>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,.2)">StarBorder (React Bits) — keep from welcome.html SpecularButton family</div>
+  </div>
+
+  <!-- Tags -->
+  <h2 style="margin-bottom:14px">Tag / pill system</h2>
+  <div class="tag-row" style="background:white;padding:16px;border-radius:12px;border:1.5px solid var(--gray3)">
+    <span class="tag tag-mc">Balanced load</span>
+    <span class="tag tag-ms">High soil k</span>
+    <span class="tag tag-md">Low soil k</span>
+    <span class="tag tag-red">Heating dominant</span>
+    <span class="tag tag-blue">Cooling dominant</span>
+    <span class="tag tag-gray">Zone 4C</span>
+  </div>
+</section>
+
+<footer>GeoLoop Design System v2 · Matcha (Shallow / Core / Dark) · Red #c1314d + Blue #2e4efe from landing.html · React Bits: SpotlightCard, StarBorder, GlareHover, MagicBento, PixelCard, BorderGlow</footer>
 
 <script>
-// Counter roll animation
-(function(){
-  let v=0,target=85,raf;
-  function tick(){
-    v+=Math.ceil((target-v)*0.12);
-    document.getElementById('counter').textContent=Math.min(v,target);
-    if(v<target) raf=requestAnimationFrame(tick);
-    else setTimeout(()=>{v=0;tick()},1800);
-  }
-  tick();
-})();
-
-// Building type toggle
-function toggleBtype(el){
-  document.querySelectorAll('.btype-card').forEach(c=>c.classList.remove('sel'));
-  el.classList.add('sel');
+/* SpotlightCard */
+function spotMove(el, e) {
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+  el.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
 }
 
-// Sparkline
-(function(){
-  const el=document.getElementById('sparkline');
-  const vals=[18,22,35,40,28,12,-5,-20,-35,-40,-30,-18,-12,-5,5,15,32,42,30,22,10,-3,-15,-25];
-  const maxV=Math.max(...vals.map(Math.abs));
-  el.innerHTML=vals.map(v=>{
-    const h=Math.round((Math.abs(v)/maxV)*46)+4;
-    const col=v>0?'#f97316':'#3b82f6';
-    return `<div class="spark-bar" style="height:${h}px;background:${col};opacity:.7"></div>`;
-  }).join('');
+/* MagicBento */
+function mbMove(el, e) {
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--glow-x', ((e.clientX - r.left) / r.width * 100) + '%');
+  el.style.setProperty('--glow-y', ((e.clientY - r.top) / r.height * 100) + '%');
+  el.style.setProperty('--glow-opacity', '1');
+}
+function mbLeave(el) { el.style.setProperty('--glow-opacity', '0'); }
+
+/* CountUp */
+(function countUp() {
+  const el = document.getElementById('cnt-num');
+  const sc = document.getElementById('sc-num');
+  const target = 85, dur = 2200;
+  let start;
+  function tick(now) {
+    if (!start) start = now;
+    const t = Math.min((now - start) / dur, 1);
+    const v = Math.round((1 - Math.pow(1 - t, 4)) * target);
+    el.textContent = v;
+    if (sc) sc.textContent = v;
+    if (t < 1) requestAnimationFrame(tick);
+    else setTimeout(countUp, 1500);
+  }
+  requestAnimationFrame(tick);
 })();
+
+/* Stagger list */
+(function stagger() {
+  ['si1','si2','si3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('in');
+    void el.offsetWidth;
+    setTimeout(() => el.classList.add('in'), 400 + i * 220);
+  });
+  setTimeout(stagger, 3200);
+})();
+
+/* PixelCard */
+const PS = {};
+function initPC(id) {
+  const wrap = document.getElementById(id);
+  const canvas = document.getElementById(id + '-c');
+  if (!wrap || !canvas) return;
+  const r = wrap.getBoundingClientRect();
+  canvas.width = r.width; canvas.height = r.height;
+  PS[id] = { ctx: canvas.getContext('2d'), w: r.width, h: r.height, pixels: [], active: false, color: '#7aa526' };
+}
+function pixelHover(id, color) {
+  if (!PS[id]) initPC(id);
+  const s = PS[id]; s.color = color; s.active = true; s.pixels = [];
+  const sz = 6, cols = Math.ceil(s.w / sz), rows = Math.ceil(s.h / sz);
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      s.pixels.push({ x: c*sz, y: r*sz, sz, op: 0, delay: Math.random()*500 });
+  s.t0 = performance.now();
+  animPC(id);
+}
+function pixelLeave(id) {
+  const s = PS[id]; if (!s) return;
+  s.active = false;
+  let a = 1;
+  (function fade() {
+    a -= 0.06; if (a <= 0) { s.ctx.clearRect(0,0,s.w,s.h); return; }
+    s.ctx.clearRect(0,0,s.w,s.h);
+    s.pixels.forEach(p => { if (p.op > 0) { s.ctx.globalAlpha = p.op * a; s.ctx.fillStyle = s.color; s.ctx.fillRect(p.x,p.y,p.sz,p.sz); } });
+    s.ctx.globalAlpha = 1;
+    requestAnimationFrame(fade);
+  })();
+}
+function animPC(id) {
+  const s = PS[id]; if (!s || !s.active) return;
+  const now = performance.now(); const ctx = s.ctx;
+  ctx.clearRect(0,0,s.w,s.h);
+  let done = true;
+  s.pixels.forEach(p => {
+    const el = now - s.t0 - p.delay;
+    if (el < 0) { done = false; return; }
+    const t = Math.min(el / 380, 1);
+    p.op = t * 0.42; if (t < 1) done = false;
+    ctx.globalAlpha = p.op; ctx.fillStyle = s.color; ctx.fillRect(p.x,p.y,p.sz,p.sz);
+  });
+  ctx.globalAlpha = 1;
+  if (!done) requestAnimationFrame(() => animPC(id));
+}
+
+/* Silk canvas */
+(function() {
+  const c = document.getElementById('silk-canvas'); if (!c) return;
+  const ctx = c.getContext('2d'); let t = 0;
+  function resize() { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+  resize();
+  function draw() {
+    const w = c.width, h = c.height;
+    ctx.clearRect(0,0,w,h);
+    for (let i = 0; i < 9; i++) {
+      const y = (h / 9) * i;
+      const amp = 12 + i * 2.5;
+      ctx.beginPath(); ctx.moveTo(0, y);
+      for (let x = 0; x <= w; x += 3) {
+        const wave = Math.sin(x * 0.012 + t * 0.5 + i * 0.65) * amp + Math.sin(x * 0.024 - t * 0.28 + i) * amp * 0.35;
+        ctx.lineTo(x, y + wave);
+      }
+      ctx.strokeStyle = `rgba(${118 + i*7},${160 + i*5},${36 + i*4},${0.07 + i * 0.02})`;
+      ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    t += 0.018;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* Particle canvas */
+(function() {
+  const c = document.getElementById('particle-canvas'); if (!c) return;
+  const ctx = c.getContext('2d');
+  function resize() { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+  resize();
+  const pts = Array.from({length:42}, () => ({
+    x: Math.random() * c.width, y: Math.random() * c.height,
+    vx: (Math.random()-.5)*.35, vy: (Math.random()-.5)*.35,
+    r: Math.random()*1.8+0.8
+  }));
+  function draw() {
+    const w = c.width, h = c.height;
+    ctx.clearRect(0,0,w,h);
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+      if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(122,165,38,.55)'; ctx.fill();
+    });
+    for (let i = 0; i < pts.length; i++)
+      for (let j = i+1; j < pts.length; j++) {
+        const dx = pts[i].x-pts[j].x, dy = pts[i].y-pts[j].y, d = Math.hypot(dx,dy);
+        if (d < 58) {
+          ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle = `rgba(122,165,38,${0.14*(1-d/58)})`; ctx.lineWidth=1; ctx.stroke();
+        }
+      }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* Palette switcher */
+function setPalette(type, chip) {
+  document.querySelectorAll('.pal-chip').forEach(c => c.classList.remove('sel'));
+  chip.classList.add('sel');
+  const r = document.documentElement;
+  const map = type === 'shallow' ? ['ms1','ms2','ms3','ms4','ms5','ms6','ms7','ms8']
+            : type === 'dark'    ? ['md1','md2','md3','md4','md5','md6','md7','md8']
+                                 : ['mc1','mc2','mc3','mc4','mc5','mc6','mc7','mc8'];
+  [1,2,3,4,5,6,7,8].forEach((n,i) => r.style.setProperty(`--g${n}`, `var(--${map[i]})`));
+}
+
+/* Nav active scroll */
+const navLinks = document.querySelectorAll('.nav-link');
+new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, {threshold:0.35}).observe.call(
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+        if (a) a.classList.add('active');
+      }
+    });
+  }, {threshold:0.35}),
+  ...document.querySelectorAll('section[id]')
+);
+// simpler active nav
+const allSecs = document.querySelectorAll('section[id]');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, {threshold:0.3});
+allSecs.forEach(s => io.observe(s));
+
+/* Init pixel canvases */
+window.addEventListener('load', () => ['pc1','pc2','pc3'].forEach(initPC));
 </script>
 </body>
 </html>
