@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GeoLoop — Report</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/design-tokens.css">
+  <link rel="stylesheet" href="/static/pilnav.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -20,10 +22,6 @@
     }
     body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
 
-    .nav { height:52px; display:flex; align-items:center; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; justify-content:space-between; }
-    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
-    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
-    .nav-back  { font-size:13px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:var(--font); padding:4px 8px; }
 
     .main { padding:28px 24px 40px; }
 
@@ -40,8 +38,8 @@
     .score-card { border-radius:16px; padding:18px; margin-bottom:24px; color:white; }
     .score-header { display:flex; align-items:flex-start; gap:14px; margin-bottom:10px; }
     .score-number { font-size:48px; font-weight:800; letter-spacing:-0.04em; line-height:1; }
-    .score-number.score-excellent { color:#a8f0d8; }
-    .score-number.score-good      { color:#bde4ff; }
+    .score-number.score-excellent { color:#a8c8ff; }
+    .score-number.score-good      { color:#b8eea8; }
     .score-number.score-fair      { color:#ffd88a; }
     .score-number.score-poor      { color:#ffb3a4; }
     .score-grade { display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:white; margin-bottom:4px; }
@@ -58,12 +56,13 @@
     .factor-bar { height:6px; background:rgba(255,255,255,0.75); border-radius:3px; transition:width 0.6s ease; }
     .factor-note { font-size:10px; color:rgba(255,255,255,0.6); line-height:1.5; padding-top:4px; }
 
-    /* PDF button */
-    .pdf-btn { font-family:var(--font); font-size:14px; font-weight:600; color:var(--text); background:white; border:1.5px solid var(--border); border-radius:100px; padding:12px 32px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:opacity 0.15s; }
-    .pdf-btn:active { opacity:0.7; }
+    /* Arrow buttons — text + sliding arrow */
+    .arrow-btn { background:none; border:none; font-family:var(--font); font-size:14px; font-weight:600; color:var(--text); cursor:pointer; padding:6px 0; display:flex; align-items:center; gap:7px; -webkit-tap-highlight-color:transparent; }
+    .arrow-btn .arr { display:inline-block; transition:transform .18s ease; }
+    .arrow-btn:hover .arr { transform:translateX(5px); }
+    .arrow-btn.muted { color:var(--muted); font-size:13px; font-weight:400; }
 
     @media print {
-      .nav, .nav-back, .actions { display:none !important; }
       body { background:white; padding-bottom:0; }
       .main { padding-bottom:0; }
       .score-card { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -82,19 +81,38 @@
 
     .result-card { background:white; border:1.5px solid var(--border); border-radius:16px; padding:18px; margin-bottom:12px; }
     .card-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:14px; }
-    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .stat-grid.three { grid-template-columns:1fr 1fr 1fr; }
-    .stat { display:flex; flex-direction:column; gap:4px; }
-    .stat-val { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1; }
-    .stat-unit { font-size:12px; font-weight:400; color:var(--faint); margin-left:3px; }
-    .stat-lbl { font-size:11px; color:var(--muted); line-height:1.4; }
     .divider { height:1px; background:var(--border); margin:14px 0; }
 
-    .detail-row { display:flex; justify-content:space-between; align-items:flex-start; font-size:12px; padding:7px 0; border-bottom:1px solid var(--border); gap:12px; }
-    .detail-row:last-child { border-bottom:none; }
-    .detail-row .dv { font-weight:600; text-align:right; flex-shrink:0; max-width:55%; }
+    /* Hero stats — type-forward editorial numbers */
+    .hero-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:24px; background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; }
+    .hero-stat { padding:20px 18px; border-right:1px solid var(--border); }
+    .hero-stat:last-child { border-right:none; }
+    .hero-num { font-size:clamp(30px,7vw,44px); font-weight:800; letter-spacing:-0.04em; line-height:1; color:var(--text); }
+    .hero-unit { font-size:12px; font-weight:400; color:var(--muted); margin-left:3px; vertical-align:middle; }
+    .hero-lbl { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint); margin-top:6px; }
+
+    /* Spec sheet with dotted leaders */
+    .spec-row { display:flex; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border); gap:8px; }
+    .spec-row:last-child { border-bottom:none; }
+    .spec-key { font-size:12px; color:var(--muted); white-space:nowrap; flex-shrink:0; }
+    .spec-leaders { flex:1; border-bottom:1.5px dotted rgba(160,156,151,.35); margin-bottom:4px; min-width:12px; }
+    .spec-val { font-size:12px; font-weight:600; color:var(--text); text-align:right; flex-shrink:0; max-width:55%; }
     .muted-note { font-size:11px; color:var(--muted); line-height:1.6; margin-top:8px; }
     .warn-row { font-size:11px; color:#b45309; background:#fef3c7; border-radius:8px; padding:8px 12px; margin-top:6px; line-height:1.5; }
+
+    /* Borehole count slider */
+    .borehole-slider-wrap { padding:16px 0 4px; border-top:1px solid var(--border); margin-top:2px; }
+    .bs-header { display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
+    .bs-nb { font-size:40px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:var(--text); }
+    .bs-unit-lbl { font-size:11px; color:var(--muted); }
+    .bs-depth { margin-left:auto; font-size:13px; color:var(--faint); font-weight:500; }
+    .borehole-slider { -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px; outline:none; cursor:pointer; display:block; }
+    .borehole-slider::-webkit-slider-thumb { -webkit-appearance:none; width:24px; height:24px; border-radius:50%; background:white; border:2.5px solid #557434; box-shadow:0 2px 8px rgba(85,116,52,.3); cursor:pointer; transition:box-shadow .15s; }
+    .borehole-slider:active::-webkit-slider-thumb { box-shadow:0 3px 14px rgba(85,116,52,.45); }
+    .borehole-slider::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:white; border:2.5px solid #557434; box-shadow:0 2px 8px rgba(85,116,52,.3); cursor:pointer; }
+    .bs-footer { display:flex; justify-content:space-between; align-items:center; margin-top:7px; }
+    .bs-range-lbl { font-size:10px; color:var(--faint); }
+    .bs-badge { font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#557434; background:rgba(85,116,52,.1); border-radius:100px; padding:2px 9px; transition:opacity .2s; }
 
     .canvas-wrap { background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
     .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 4px; }
@@ -118,31 +136,41 @@
     .faq-a { display:none; font-size:12px; color:var(--muted); line-height:1.7; padding:0 0 14px 46px; }
     .faq-a.open { display:block; }
 
-    .actions { display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:32px; }
-    .new-analysis-btn { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--muted); cursor:pointer; padding:4px; text-decoration:underline; text-underline-offset:3px; }
+    .actions { display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:36px; }
 
-    @media (min-width:640px) { .nav { padding:0 32px; } .main { padding:36px 40px 60px; } }
   </style>
 </head>
 <body>
 
-<nav class="nav">
-  <a class="nav-brand" href="welcome.html">
-    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
-      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
-      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
-      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
-      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
-      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
-      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
-      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
-      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
-      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
-    </svg>
-    <span class="nav-name">GeoLoop</span>
-  </a>
-  <button class="nav-back" onclick="history.back()">Back</button>
-</nav>
+<header class="gl-nav-header">
+  <ul class="gl-pill-list" id="gl-pill-nav">
+    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+      <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
+      </svg>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
+    </li>
+  </ul>
+</header>
 
 <main class="main">
 
@@ -163,6 +191,22 @@
     <!-- Score Card -->
     <div id="score-card" class="score-card" style="display:none"></div>
 
+    <!-- Hero stats -->
+    <div id="hero-stats" class="hero-stats" style="display:none">
+      <div class="hero-stat">
+        <div class="hero-num" id="hs-heat">—</div>
+        <div class="hero-lbl">Heating Design</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-num" id="hs-cool">—</div>
+        <div class="hero-lbl">Cooling Design</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-num" id="hs-nb">—</div>
+        <div class="hero-lbl">Boreholes</div>
+      </div>
+    </div>
+
     <!-- Borefield Layout -->
     <div class="section-label">Borefield Layout Plan</div>
     <div class="canvas-wrap">
@@ -174,6 +218,20 @@
     <!-- System Design -->
     <div class="section-label">System Design</div>
     <div class="result-card" id="design-card">
+      <!-- Borehole count slider -->
+      <div id="nb-slider-wrap" class="borehole-slider-wrap" style="display:none">
+        <div class="bs-header">
+          <span class="bs-nb" id="bs-nb-val">—</span>
+          <span class="bs-unit-lbl">boreholes</span>
+          <span class="bs-depth" id="bs-depth-val"></span>
+        </div>
+        <input type="range" class="borehole-slider" id="nb-slider" min="1" max="100" value="10">
+        <div class="bs-footer">
+          <span class="bs-range-lbl" id="bs-min-lbl"></span>
+          <span class="bs-badge" id="bs-badge">Recommended</span>
+          <span class="bs-range-lbl" id="bs-max-lbl"></span>
+        </div>
+      </div>
       <div id="design-rows"></div>
     </div>
 
@@ -251,15 +309,15 @@
     </div>
 
     <div class="actions">
-      <button class="pdf-btn" onclick="generatePdf()">Generate PDF</button>
-      <button class="new-analysis-btn" onclick="saveProject()" style="font-weight:600;color:var(--text)">Save this project →</button>
-      <button class="new-analysis-btn" onclick="startOver()">New Analysis</button>
+      <button class="arrow-btn" onclick="generatePdf()">Generate PDF <span class="arr">→</span></button>
+      <button class="arrow-btn" onclick="saveProject()">Save this project <span class="arr">→</span></button>
+      <button class="arrow-btn muted" onclick="startOver()">New Analysis <span class="arr">→</span></button>
     </div>
 
   </div><!-- /report-state -->
 </main>
 
-<script src="static/borehole_plan.js"></script>
+<script src="/static/borehole_plan.js"></script>
 <script src="/static/unit_convert.js"></script>
 <script>
 const FLASK = '';
@@ -407,12 +465,14 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
       Fair:      { bg: [140, 100, 20],  numCls: 'score-fair' },
       Poor:      { bg: [160, 50, 40],   numCls: 'score-poor' },
     };
-    const t = Math.max(0, Math.min(1, rec.score / 100));
-    const rBg = Math.round(180 - t * 130);
-    const gBg = Math.round(55 + t * 35);
-    const bBg = Math.round(55 + t * 150);
+    const SCORE_GRADIENTS = {
+      Excellent: 'linear-gradient(135deg,#060810 0%,#0e1630 40%,#1c2a60 100%)',
+      Good:      'linear-gradient(135deg,#0d1208 0%,#1c2914 40%,#5a7341 100%)',
+      Fair:      'linear-gradient(135deg,#0e0c06 0%,#2a2010 40%,#4a3818 100%)',
+      Poor:      'linear-gradient(135deg,#0d0808 0%,#220e0e 40%,#3d1a1a 100%)',
+    };
     const sc = document.getElementById('score-card');
-    sc.style.background = `rgb(${rBg},${gBg},${bBg})`;
+    sc.style.background = SCORE_GRADIENTS[rec.grade] || SCORE_GRADIENTS.Fair;
     const delta = rec.score - (rec.benchmark || 70);
     const deltaStr = (delta >= 0 ? '+' : '') + delta;
     const col = SCORE_COLORS[rec.grade] || SCORE_COLORS.Fair;
@@ -473,9 +533,49 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
   else if (d.capacity_warning) designRows.push(['Footprint note', 'Peak load density exceeds what the available footprint can supply at minimum depth']);
   if (d.solar_thermal_recommended) designRows.push(['Thermal balance note', 'Net annual heat extraction from the ground — solar thermal supplement is recommended to prevent long-term ground cooling']);
 
-  document.getElementById('design-rows').innerHTML = designRows.map(([k, v]) =>
-    `<div class="detail-row"><span>${k}</span><span class="dv">${v}</span></div>`
-  ).join('');
+  // Hero stats
+  if (d.NB != null) {
+    const heatL = d.L_heat_m != null ? GeoUnits.format(+d.L_heat_m,'length',0) : null;
+    const heatU = d.L_heat_m != null ? GeoUnits.label('length') : null;
+    const coolL = d.L_cool_m != null ? GeoUnits.format(+d.L_cool_m,'length',0) : null;
+    const coolU = d.L_cool_m != null ? GeoUnits.label('length') : null;
+    if (heatL) document.getElementById('hs-heat').innerHTML = heatL + (heatU ? `<span class="hero-unit">${heatU}</span>` : '');
+    if (coolL) document.getElementById('hs-cool').innerHTML = coolL + (coolU ? `<span class="hero-unit">${coolU}</span>` : '');
+    document.getElementById('hs-nb').textContent = fi(d.NB);
+    document.getElementById('hero-stats').style.display = '';
+  }
+
+  // Borehole slider
+  if (d.nb_min != null && d.nb_max != null && d.NB != null) {
+    const slider = document.getElementById('nb-slider');
+    const nbEl = document.getElementById('bs-nb-val');
+    const depthEl = document.getElementById('bs-depth-val');
+    const badgeEl = document.getElementById('bs-badge');
+    const nbMin = d.nb_min, nbMax = d.nb_max, nbOpt = +d.NB;
+    slider.min = nbMin; slider.max = nbMax; slider.value = nbOpt;
+    document.getElementById('bs-min-lbl').textContent = nbMin;
+    document.getElementById('bs-max-lbl').textContent = nbMax;
+    nbEl.textContent = nbOpt;
+    depthEl.textContent = fL(d.H_m) + ' / borehole';
+    // Gradient peaks at the optimal (recommended) position
+    const pct = ((nbOpt - nbMin) / (nbMax - nbMin) * 100).toFixed(1);
+    slider.style.background = `linear-gradient(to right, #b5cc8a, #7a9e52 ${pct}%, #b5cc8a)`;
+    slider.addEventListener('input', function() {
+      const n = parseInt(this.value);
+      nbEl.textContent = n;
+      const newH = d.L_m != null ? Math.round(+d.L_m / n) : null;
+      depthEl.textContent = newH != null ? fL(newH) + ' / borehole' : '';
+      badgeEl.style.opacity = (n === nbOpt) ? '1' : '0';
+    });
+    document.getElementById('nb-slider-wrap').style.display = '';
+  }
+
+  // Design rows — spec sheet with dotted leaders (skip borehole count, it's in the slider)
+  document.getElementById('design-rows').innerHTML = designRows
+    .filter(([k]) => k !== 'Number of boreholes')
+    .map(([k, v]) =>
+      `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-leaders"></span><span class="spec-val">${v}</span></div>`
+    ).join('');
 
   // Performance
   if (perf.available) {
@@ -490,7 +590,7 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
       ['Borefield reduction (hybrid)', m2.savings_pct != null ? `${m2.savings_pct.toFixed(1)}%` : '—'],
     ].filter(([, v]) => v !== '—');
     document.getElementById('perf-rows').innerHTML = perfRows.map(([k, v]) =>
-      `<div class="detail-row"><span>${k}</span><span class="dv">${v}</span></div>`
+      `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-leaders"></span><span class="spec-val">${v}</span></div>`
     ).join('');
     document.getElementById('perf-label').style.display = '';
     document.getElementById('perf-card').style.display = '';
@@ -516,7 +616,7 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
       ['Simple payback', cs.gshp_lower_upfront ? 'GSHP lower upfront cost' : cs.simple_payback_yr != null ? `${cs.simple_payback_yr.toFixed(1)} yrs` : '—'],
     ];
     document.getElementById('cost-rows').innerHTML = costRows.map(([k, v]) =>
-      `<div class="detail-row"><span>${k}</span><span class="dv">${v}</span></div>`
+      `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-leaders"></span><span class="spec-val">${v}</span></div>`
     ).join('') + `<div class="muted-note">${cs.note || ''}</div>`;
 
     document.getElementById('cost-label').style.display = '';
@@ -616,5 +716,6 @@ function _logAnalysis(reportData, sizing, site, cost) {
   } catch (_) {}
 }
 </script>
+<script src="/static/pilnav.js"></script>
 </body>
 </html>

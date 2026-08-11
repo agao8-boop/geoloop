@@ -1,0 +1,114 @@
+/* ═══ GeoLoop PillNav — shared nav component ═══
+   Colors: white container · fm7 (#557434) pill + border
+   GSAP handles hover circle + label slide + load animation
+*/
+
+.gl-nav-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(245,243,240,0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(85,116,52,.14);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+/* The pill-list container */
+.gl-pill-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 4px;
+  background: #ffffff;
+  border: 2.5px solid #557434;
+  border-radius: 100px;
+  gap: 0;
+  width: fit-content;
+  /* starts invisible — GSAP load animation reveals */
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+/* All pill items */
+.gl-pill {
+  position: relative;
+  overflow: hidden;
+  border-radius: 100px;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── Logo pill (first circle, always fm7 filled) ── */
+.gl-pill-logo {
+  width: 40px;
+  height: 40px;
+  background: #557434;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: default;
+  margin-right: 1px;
+}
+
+/* ── Text nav pills ── */
+.gl-pill-text {
+  cursor: pointer;
+  padding: 8px 22px;
+}
+
+/* Hover-circle (GSAP animates scale 0→1, grows from bottom) */
+.gl-hover-circle {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  background: #557434;
+  pointer-events: none;
+  will-change: transform;
+  transform: scale(0);
+  z-index: 0;
+}
+
+/* Label stack: overflow hidden, two labels stacked */
+.gl-label-stack {
+  position: relative;
+  overflow: hidden;
+  height: 1.15em;
+  line-height: 1.15;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gl-pill-label {
+  display: block;
+  color: #557434;
+  white-space: nowrap;
+  will-change: transform;
+  position: relative;
+  z-index: 1;
+}
+
+.gl-pill-label-hover {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  color: #ffffff;
+  white-space: nowrap;
+  will-change: transform;
+  z-index: 2;
+}
+
+/* Mobile: slightly smaller text */
+@media (max-width: 480px) {
+  .gl-pill-text { padding: 7px 16px; }
+  .gl-label-stack { font-size: 12px; }
+  .gl-pill-logo { width: 36px; height: 36px; }
+}

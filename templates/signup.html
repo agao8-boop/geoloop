@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GeoLoop — Save your analysis</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
+  <link rel="stylesheet" href="/static/design-tokens.css">
+  <link rel="stylesheet" href="/static/pilnav.css">
+  <style><style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg:     #f5f3f0;
@@ -20,9 +23,6 @@
     html, body { height: 100%; }
     body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-bottom:env(safe-area-inset-bottom); }
 
-    .nav { height:52px; display:flex; align-items:center; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
-    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
-    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
 
     .main { flex:1; padding:32px 24px 40px; max-width:480px; margin:0 auto; width:100%; }
 
@@ -48,26 +48,39 @@
     #name-panel { display:none; }
     #name-panel .panel-title { font-size:18px; font-weight:700; letter-spacing:-0.02em; margin-bottom:6px; }
     #name-panel .panel-sub   { font-size:13px; color:var(--muted); margin-bottom:20px; }
-  </style>
+  </style></style>
 </head>
 <body>
 
-<nav class="nav">
-  <a class="nav-brand" href="welcome.html">
-    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
-      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
-      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
-      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
-      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
-      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
-      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
-      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
-      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
-      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
-    </svg>
-    <span class="nav-name">GeoLoop</span>
-  </a>
-</nav>
+<header class="gl-nav-header">
+  <ul class="gl-pill-list" id="gl-pill-nav">
+    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+      <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
+      </svg>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
+    </li>
+  </ul>
+</header>
 
 <main class="main">
 
@@ -175,7 +188,7 @@ function doLogin() {
 function showNamePanel() {
   document.getElementById('signup-panel').style.display = 'none';
   document.getElementById('login-panel').style.display  = 'none';
-  document.getElementById('name-panel').style.display   = '';
+  document.getElementById('name-panel').style.display   = 'block';
   // Prefill with date-based default
   const d = new Date();
   document.getElementById('inp-proj').value =
@@ -185,6 +198,15 @@ function showNamePanel() {
 function saveAndGo(skipName) {
   const nameEl = document.getElementById('inp-proj');
   const projName = skipName ? 'Untitled Analysis' : (nameEl.value.trim() || 'Untitled Analysis');
+  const source = new URLSearchParams(location.search).get('source') || 'report';
+
+  // Authentication entered from the welcome screen is setup for a new run,
+  // not a request to open an existing account dashboard.
+  if (source === 'welcome') {
+    sessionStorage.setItem('gl_pending_project_name', projName);
+    window.location.assign('/onboarding_1.html');
+    return;
+  }
 
   // Collect current analysis data from sessionStorage
   const sizing   = JSON.parse(sessionStorage.getItem('gl_result_final')    || '{}');
@@ -203,6 +225,7 @@ function saveAndGo(skipName) {
     // key results only (not full hourly profiles)
     NB:    sizing.NB, H_m: sizing.H, L_m: sizing.L,
     score: null, grade: null, // populated below
+    snapshot: Object.fromEntries(Object.keys(sessionStorage).map(key => [key, sessionStorage.getItem(key)])),
   };
 
   // Grab score if available
@@ -211,10 +234,13 @@ function saveAndGo(skipName) {
   projects.unshift(project);
   localStorage.setItem('gl_projects_' + user.email, JSON.stringify(projects));
 
-  window.location.href = 'account.html';
+  // Use a same-origin absolute URL in both iframe and full-screen modes.
+  const accountUrl = '/account.html?fresh=' + Date.now();
+  (window.top || window).location.assign(accountUrl);
 }
 
 function showErr(el, msg) { el.textContent = msg; el.classList.add('show'); }
 </script>
+<script src="/static/pilnav.js"></script>
 </body>
 </html>

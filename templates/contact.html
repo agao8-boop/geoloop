@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GeoLoop — Contact</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="stylesheet" href="/static/pilnav.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:    #f2f0ed;
+      --text:  #1e1c1a;
+      --muted: #6b6560;
+      --font:  'Sora', -apple-system, sans-serif;
+      --mono:  'JetBrains Mono', monospace;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px 64px;
+    }
+    .page-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #557434;
+      margin-bottom: 10px;
+      opacity: 0;
+    }
+    h1 {
+      font-size: clamp(24px, 5vw, 36px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      margin-bottom: 32px;
+      opacity: 0;
+    }
+    .json-card {
+      max-width: 520px;
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(0,0,0,.14);
+      border: 1px solid rgba(0,0,0,.1);
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    /* macOS title bar */
+    .jc-titlebar {
+      background: #2a2a27;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .jc-dots { display: flex; gap: 6px; }
+    .jc-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .jc-title {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: rgba(255,255,255,.45);
+    }
+    .jc-menu { font-size: 14px; color: rgba(255,255,255,.2); }
+    /* Code body */
+    .jc-body {
+      background: #1a1916;
+      padding: 20px 0;
+      display: flex;
+    }
+    .jc-lines {
+      padding: 0 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-right: 1px solid rgba(255,255,255,.06);
+      min-width: 34px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .jc-ln {
+      font-size: 12px;
+      font-family: var(--mono);
+      color: rgba(255,255,255,.2);
+      line-height: 1.8;
+    }
+    .jc-code {
+      padding: 0 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .jk { color: #3454bf; }   /* key */
+    .jv { color: #8aa76b; }   /* string value */
+    .jl { color: #B83850; text-decoration: none; transition: color .15s; } /* link value */
+    .jl:hover { color: #e05070; }
+    .jp { color: rgba(255,255,255,.4); } /* punctuation */
+    .jb { color: rgba(255,255,255,.55); } /* braces */
+    /* Status bar */
+    .jc-status {
+      background: #1e1e1b;
+      padding: 5px 16px;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .jc-status span {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: rgba(255,255,255,.25);
+    }
+    /* Cursor blink at end */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: rgba(255,255,255,.6);
+      border-radius: 1px;
+      vertical-align: text-bottom;
+      animation: blink 1.1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  </style>
+</head>
+<body>
+
+<!-- ── PillNav ── -->
+<header class="gl-nav-header">
+  <ul class="gl-pill-list" id="gl-pill-nav">
+    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+      <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
+      </svg>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack">
+        <span class="gl-pill-label">GeoLoop</span>
+        <span class="gl-pill-label-hover">GeoLoop</span>
+      </div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack">
+        <span class="gl-pill-label">Home</span>
+        <span class="gl-pill-label-hover">Home</span>
+      </div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack">
+        <span class="gl-pill-label">Contact</span>
+        <span class="gl-pill-label-hover">Contact</span>
+      </div>
+    </li>
+  </ul>
+</header>
+
+<main class="main">
+  <div class="page-label" id="page-label">Get in touch</div>
+  <h1 id="page-h1">contact.json</h1>
+
+  <div class="json-card" id="json-card">
+    <!-- macOS title bar -->
+    <div class="jc-titlebar">
+      <div class="jc-dots">
+        <div class="jc-dot" style="background:#ED6A5E"></div>
+        <div class="jc-dot" style="background:#F4BF4F"></div>
+        <div class="jc-dot" style="background:#61C554"></div>
+      </div>
+      <div class="jc-title">contact.json</div>
+      <div class="jc-menu">···</div>
+    </div>
+    <!-- Line numbers + JSON body -->
+    <div class="jc-body">
+      <div class="jc-lines">
+        <span class="jc-ln">1</span>
+        <span class="jc-ln">2</span>
+        <span class="jc-ln">3</span>
+        <span class="jc-ln">4</span>
+        <span class="jc-ln">5</span>
+        <span class="jc-ln">6</span>
+        <span class="jc-ln">7</span>
+        <span class="jc-ln">8</span>
+        <span class="jc-ln">9</span>
+      </div>
+      <div class="jc-code">
+        <div><span class="jb">{</span></div>
+        <div style="padding-left:20px"><span class="jk">"name"</span><span class="jp">: </span><span class="jv">"Almanzo Gao"</span><span class="jp">,</span></div>
+        <div style="padding-left:20px"><span class="jk">"role"</span><span class="jp">: </span><span class="jv">"Energy Engineer · Stanford CEE"</span><span class="jp">,</span></div>
+        <div style="padding-left:20px"><span class="jk">"email"</span><span class="jp">: </span><a class="jl" href="mailto:agao8@stanford.edu">"agao8@stanford.edu"</a><span class="jp">,</span></div>
+        <div style="padding-left:20px"><span class="jk">"project"</span><span class="jp">: </span><span class="jv">"GeoLoop — geothermal borefield advisor"</span><span class="jp">,</span></div>
+        <div style="padding-left:20px"><span class="jk">"github"</span><span class="jp">: </span><a class="jl" href="https://github.com">"github.com/almanzo"</a><span class="jp">,</span></div>
+        <div style="padding-left:20px"><span class="jk">"linkedin"</span><span class="jp">: </span><a class="jl" href="https://linkedin.com/in/almanzo">"linkedin.com/in/almanzo"</a><span class="jp">,</span></div>
+        <div style="padding-left:20px"><span class="jk">"status"</span><span class="jp">: </span><span class="jv">"open to opportunities, Dec 2026"</span></div>
+        <div><span class="jb">}</span><span class="cursor"></span></div>
+      </div>
+    </div>
+    <!-- Status bar -->
+    <div class="jc-status">
+      <span>JSON</span>
+      <span>UTF-8</span>
+    </div>
+  </div>
+</main>
+
+<script src="/static/pilnav.js"></script>
+<script>
+  // Page content entrance animation
+  window.addEventListener('load', function () {
+    if (typeof gsap === 'undefined') return;
+    gsap.fromTo('#page-label', { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out', delay: 0.35 });
+    gsap.fromTo('#page-h1',    { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power3.out', delay: 0.45 });
+    gsap.to('#json-card', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out', delay: 0.55 });
+  });
+</script>
+</body>
+</html>

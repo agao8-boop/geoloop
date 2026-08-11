@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GeoLoop — Hybrid Strategy & Cost</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
+  <link rel="stylesheet" href="/static/design-tokens.css">
+  <link rel="stylesheet" href="/static/pilnav.css">  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style><style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg:     #f5f3f0;
@@ -21,9 +23,6 @@
     html, body { height: 100%; }
     body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
 
-    .nav { height:52px; display:flex; align-items:center; padding:0 22px; border-bottom:1px solid var(--border); background:rgba(245,243,240,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
-    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
-    .nav-name  { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
 
     .main { padding:28px 24px 40px; }
 
@@ -162,27 +161,39 @@
     .cs-opt-val { font-size:15px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1.2; }
     .cs-opt-sub { font-size:10px; color:var(--muted); margin-top:2px; }
 
-    @media (min-width:640px) { .nav { padding:0 32px; } .main { padding:36px 40px 60px; } }
-  </style>
+  </style></style>
 </head>
 <body>
 
-<nav class="nav">
-  <a class="nav-brand" href="welcome.html">
-    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" aria-hidden="true">
-      <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
-      <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#1a1814"/>
-      <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
-      <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#374151"/>
-      <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
-      <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#6b7280"/>
-      <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
-      <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#9ca3af"/>
-      <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#1a1814"/>
-    </svg>
-    <span class="nav-name">GeoLoop</span>
-  </a>
-</nav>
+<header class="gl-nav-header">
+  <ul class="gl-pill-list" id="gl-pill-nav">
+    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+      <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
+        <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.75)"/>
+        <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.5)"/>
+        <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
+        <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
+      </svg>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
+    </li>
+    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
+      <div class="gl-hover-circle"></div>
+      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
+    </li>
+  </ul>
+</header>
 
 <main class="main">
 
@@ -925,5 +936,6 @@ function initSBtn(id) {
   (function fr(now){const dt=Math.min((now-last)/1000,.05);last=now;idle+=SPEED*dt;const df=(((pA!==null?pA:idle)-ang+Math.PI*3)%(Math.PI*2))-Math.PI;ang+=df*(1-Math.exp(-dt*7));br+=(pT-br)*(1-Math.exp(-dt*8));const r=Math.min(RADIUS,Math.min(W,H)/2);gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(U.uA,ang);gl.uniform1f(U.uR,r*DPR);gl.uniform1f(U.uPx,DPR);gl.uniform3fv(U.uLC,lR);gl.uniform3fv(U.uBC,bR);gl.uniform1f(U.uI,INTENSITY*br);gl.uniform1f(U.uSS,(SHINE_SZ*Math.PI)/180);gl.uniform1f(U.uSF,(SHINE_FD*Math.PI)/180);gl.uniform1f(U.uT,THICKNESS*DPR);gl.uniform1f(U.uBW,DPR);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(fr);})(performance.now());
 }
 </script>
+<script src="/static/pilnav.js"></script>
 </body>
 </html>
