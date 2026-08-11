@@ -83,20 +83,29 @@
     .card-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:14px; }
     .divider { height:1px; background:var(--border); margin:14px 0; }
 
-    /* Hero stats — type-forward editorial numbers */
-    .hero-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:24px; background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; }
-    .hero-stat { padding:20px 18px; border-right:1px solid var(--border); }
+    /* Hero stats — accent dot + colored editorial numbers (image 30 target) */
+    .hero-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:24px; background:var(--bg); border-radius:16px; }
+    .hero-stat { padding:16px 14px; border-right:1px solid var(--border); }
     .hero-stat:last-child { border-right:none; }
-    .hero-num { font-size:clamp(30px,7vw,44px); font-weight:800; letter-spacing:-0.04em; line-height:1; color:var(--text); }
-    .hero-unit { font-size:12px; font-weight:400; color:var(--muted); margin-left:3px; vertical-align:middle; }
-    .hero-lbl { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint); margin-top:6px; }
+    .hero-dot-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+    .hero-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .hero-dot.heat { background:#c94030; }
+    .hero-dot.cool { background:#2e64c8; }
+    .hero-dot.bh   { background:#557434; }
+    .hero-cat { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+    .hero-num { font-size:clamp(26px,6vw,38px); font-weight:800; letter-spacing:-0.04em; line-height:1; }
+    .hero-num.heat { color:#c94030; }
+    .hero-num.cool { color:#2e64c8; }
+    .hero-num.bh   { color:#557434; }
+    .hero-unit { font-size:11px; font-weight:400; margin-left:2px; vertical-align:middle; color:var(--muted); }
+    .hero-sub { font-size:10px; color:var(--faint); margin-top:5px; line-height:1.3; }
 
     /* Spec sheet with dotted leaders */
     .spec-row { display:flex; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border); gap:8px; }
     .spec-row:last-child { border-bottom:none; }
     .spec-key { font-size:12px; color:var(--muted); white-space:nowrap; flex-shrink:0; }
     .spec-leaders { flex:1; border-bottom:1.5px dotted rgba(160,156,151,.35); margin-bottom:4px; min-width:12px; }
-    .spec-val { font-size:12px; font-weight:600; color:var(--text); text-align:right; flex-shrink:0; max-width:55%; }
+    .spec-val { font-size:12px; font-weight:600; color:var(--text); text-align:right; flex-shrink:1; min-width:0; }
     .muted-note { font-size:11px; color:var(--muted); line-height:1.6; margin-top:8px; }
     .warn-row { font-size:11px; color:#b45309; background:#fef3c7; border-radius:8px; padding:8px 12px; margin-top:6px; line-height:1.5; }
 
@@ -112,7 +121,7 @@
     .borehole-slider::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:white; border:2.5px solid #557434; box-shadow:0 2px 8px rgba(85,116,52,.3); cursor:pointer; }
     .bs-footer { display:flex; justify-content:space-between; align-items:center; margin-top:7px; }
     .bs-range-lbl { font-size:10px; color:var(--faint); }
-    .bs-badge { font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#557434; background:rgba(85,116,52,.1); border-radius:100px; padding:2px 9px; transition:opacity .2s; }
+
 
     .canvas-wrap { background:white; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
     .canvas-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; padding:12px 18px 4px; }
@@ -136,7 +145,7 @@
     .faq-a { display:none; font-size:12px; color:var(--muted); line-height:1.7; padding:0 0 14px 46px; }
     .faq-a.open { display:block; }
 
-    .actions { display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:36px; }
+    .actions { display:flex; flex-direction:column; align-items:center; gap:20px; margin-top:40px; }
 
   </style>
 </head>
@@ -194,16 +203,19 @@
     <!-- Hero stats -->
     <div id="hero-stats" class="hero-stats" style="display:none">
       <div class="hero-stat">
-        <div class="hero-num" id="hs-heat">—</div>
-        <div class="hero-lbl">Heating Design</div>
+        <div class="hero-dot-row"><span class="hero-dot heat"></span><span class="hero-cat">Heating</span></div>
+        <div><span class="hero-num heat" id="hs-heat">—</span><span class="hero-unit" id="hs-heat-unit">kW</span></div>
+        <div class="hero-sub" id="hs-heat-sub">Peak design load</div>
       </div>
       <div class="hero-stat">
-        <div class="hero-num" id="hs-cool">—</div>
-        <div class="hero-lbl">Cooling Design</div>
+        <div class="hero-dot-row"><span class="hero-dot cool"></span><span class="hero-cat">Cooling</span></div>
+        <div><span class="hero-num cool" id="hs-cool">—</span><span class="hero-unit" id="hs-cool-unit">kW</span></div>
+        <div class="hero-sub" id="hs-cool-sub">Peak design load</div>
       </div>
       <div class="hero-stat">
-        <div class="hero-num" id="hs-nb">—</div>
-        <div class="hero-lbl">Boreholes</div>
+        <div class="hero-dot-row"><span class="hero-dot bh"></span><span class="hero-cat">Boreholes</span></div>
+        <div><span class="hero-num bh" id="hs-nb">—</span><span class="hero-unit">NB</span></div>
+        <div class="hero-sub" id="hs-depth-sub"></div>
       </div>
     </div>
 
@@ -228,7 +240,6 @@
         <input type="range" class="borehole-slider" id="nb-slider" min="1" max="100" value="10">
         <div class="bs-footer">
           <span class="bs-range-lbl" id="bs-min-lbl"></span>
-          <span class="bs-badge" id="bs-badge">Recommended</span>
           <span class="bs-range-lbl" id="bs-max-lbl"></span>
         </div>
       </div>
@@ -466,10 +477,10 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
       Poor:      { bg: [160, 50, 40],   numCls: 'score-poor' },
     };
     const SCORE_GRADIENTS = {
-      Excellent: 'linear-gradient(135deg,#060810 0%,#0e1630 40%,#1c2a60 100%)',
-      Good:      'linear-gradient(135deg,#0d1208 0%,#1c2914 40%,#5a7341 100%)',
-      Fair:      'linear-gradient(135deg,#0e0c06 0%,#2a2010 40%,#4a3818 100%)',
-      Poor:      'linear-gradient(135deg,#0d0808 0%,#220e0e 40%,#3d1a1a 100%)',
+      Excellent: 'linear-gradient(135deg,#1c1e28 0%,#1e2848 60%,#2a3e72 100%)',
+      Good:      'linear-gradient(135deg,#1a1e17 0%,#223018 60%,#3a5428 100%)',
+      Fair:      'linear-gradient(135deg,#1e1c16 0%,#2e2818 60%,#4e3c20 100%)',
+      Poor:      'linear-gradient(135deg,#1e1818 0%,#2c1818 60%,#401c1c 100%)',
     };
     const sc = document.getElementById('score-card');
     sc.style.background = SCORE_GRADIENTS[rec.grade] || SCORE_GRADIENTS.Fair;
@@ -533,15 +544,26 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
   else if (d.capacity_warning) designRows.push(['Footprint note', 'Peak load density exceeds what the available footprint can supply at minimum depth']);
   if (d.solar_thermal_recommended) designRows.push(['Thermal balance note', 'Net annual heat extraction from the ground — solar thermal supplement is recommended to prevent long-term ground cooling']);
 
-  // Hero stats
+  // Hero stats — peak loads (kW) preferred; fall back to design lengths
   if (d.NB != null) {
-    const heatL = d.L_heat_m != null ? GeoUnits.format(+d.L_heat_m,'length',0) : null;
-    const heatU = d.L_heat_m != null ? GeoUnits.label('length') : null;
-    const coolL = d.L_cool_m != null ? GeoUnits.format(+d.L_cool_m,'length',0) : null;
-    const coolU = d.L_cool_m != null ? GeoUnits.label('length') : null;
-    if (heatL) document.getElementById('hs-heat').innerHTML = heatL + (heatU ? `<span class="hero-unit">${heatU}</span>` : '');
-    if (coolL) document.getElementById('hs-cool').innerHTML = coolL + (coolU ? `<span class="hero-unit">${coolU}</span>` : '');
+    const qHeat = loads && loads.q_h_heat != null ? Math.round(Math.abs(loads.q_h_heat)) : null;
+    const qCool = loads && loads.q_h_cool != null ? Math.round(Math.abs(loads.q_h_cool)) : null;
+    if (qHeat != null) {
+      document.getElementById('hs-heat').textContent = qHeat;
+    } else if (d.L_heat_m != null) {
+      document.getElementById('hs-heat').textContent = GeoUnits.format(+d.L_heat_m,'length',0);
+      document.getElementById('hs-heat-unit').textContent = GeoUnits.label('length');
+      document.getElementById('hs-heat-sub').textContent = 'Heating design length';
+    }
+    if (qCool != null) {
+      document.getElementById('hs-cool').textContent = qCool;
+    } else if (d.L_cool_m != null) {
+      document.getElementById('hs-cool').textContent = GeoUnits.format(+d.L_cool_m,'length',0);
+      document.getElementById('hs-cool-unit').textContent = GeoUnits.label('length');
+      document.getElementById('hs-cool-sub').textContent = 'Cooling design length';
+    }
     document.getElementById('hs-nb').textContent = fi(d.NB);
+    if (d.H_m != null) document.getElementById('hs-depth-sub').textContent = fL(d.H_m) + ' each';
     document.getElementById('hero-stats').style.display = '';
   }
 
@@ -550,8 +572,7 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
     const slider = document.getElementById('nb-slider');
     const nbEl = document.getElementById('bs-nb-val');
     const depthEl = document.getElementById('bs-depth-val');
-    const badgeEl = document.getElementById('bs-badge');
-    const nbMin = d.nb_min, nbMax = d.nb_max, nbOpt = +d.NB;
+const nbMin = d.nb_min, nbMax = d.nb_max, nbOpt = +d.NB;
     slider.min = nbMin; slider.max = nbMax; slider.value = nbOpt;
     document.getElementById('bs-min-lbl').textContent = nbMin;
     document.getElementById('bs-max-lbl').textContent = nbMax;
@@ -565,8 +586,7 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
       nbEl.textContent = n;
       const newH = d.L_m != null ? Math.round(+d.L_m / n) : null;
       depthEl.textContent = newH != null ? fL(newH) + ' / borehole' : '';
-      badgeEl.style.opacity = (n === nbOpt) ? '1' : '0';
-    });
+});
     document.getElementById('nb-slider-wrap').style.display = '';
   }
 

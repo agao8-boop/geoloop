@@ -119,6 +119,12 @@
 
     // Building label is rendered as HTML outside the canvas (see canvas-meta div)
 
+    // ── Unit helpers (use GeoUnits if loaded, fall back to metric) ──
+    const _gu = window.GeoUnits;
+    const _fL = (v, d=0) => _gu
+      ? _gu.format(v, 'length', d) + '\u00a0' + _gu.label('length')
+      : v.toFixed(d) + ' m';
+
     // ── Dimension annotations ──
     // Width annotation (horizontal, along bottom edge)
     const bboxW = (Math.max(...xs) - Math.min(...xs));
@@ -171,12 +177,6 @@
         ctx.strokeStyle = bhRing; ctx.lineWidth = 1; ctx.stroke();
       });
     }
-
-    // ── Unit helpers (use GeoUnits if loaded, fall back to metric) ──
-    const _gu = window.GeoUnits;
-    const _fL = (v, d=0) => _gu
-      ? _gu.format(v, 'length', d) + '\u00a0' + _gu.label('length')
-      : v.toFixed(d) + ' m';
 
     // ── Top-right label block ──
     const placedSpacingM = NB > 0
