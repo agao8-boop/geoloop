@@ -28,9 +28,7 @@
   border-radius: 100px;
   gap: 0;
   width: fit-content;
-  /* starts invisible — GSAP load animation reveals */
-  opacity: 0;
-  transform: translateY(-12px);
+  /* GSAP sets opacity/transform via gsap.set() — CSS stays visible as fallback */
 }
 
 /* All pill items */

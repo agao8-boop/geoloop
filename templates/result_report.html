@@ -109,6 +109,31 @@
     .muted-note { font-size:11px; color:var(--muted); line-height:1.6; margin-top:8px; }
     .warn-row { font-size:11px; color:#b45309; background:#fef3c7; border-radius:8px; padding:8px 12px; margin-top:6px; line-height:1.5; }
 
+    /* ── Module A: Borefield equation block ── */
+    .mod-borefield { background:white; border:1.5px solid var(--border); border-radius:16px; padding:22px 18px 14px; margin-bottom:12px; }
+    .bh-eq { display:flex; align-items:flex-start; gap:0; margin-bottom:0; }
+    .bh-eq-slot { flex:1; text-align:center; }
+    .bh-eq-num { font-size:clamp(26px,7vw,40px); font-weight:800; letter-spacing:-0.04em; line-height:1; color:var(--text); }
+    .bh-eq-num.accent { color:#557434; }
+    .bh-eq-lbl { font-size:9px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-top:5px; }
+    .bh-eq-op { font-size:20px; font-weight:300; color:rgba(160,156,151,.5); padding:0 2px; padding-top:6px; flex-shrink:0; }
+
+    /* ── Module B: Building & Load (moss left accent) ── */
+    .mod-building { background:white; border-radius:14px; border:1.5px solid var(--border); border-left:4px solid #557434; padding:16px 18px; margin-bottom:12px; }
+    .mod-b-head { margin-bottom:12px; }
+    .mod-b-cat { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#557434; margin-bottom:3px; }
+    .mod-b-type { font-size:17px; font-weight:700; letter-spacing:-0.02em; color:var(--text); line-height:1.2; }
+
+    /* ── Module C: Subsurface (dark underground) ── */
+    .mod-subsurface { background:#1e1e1a; border-radius:16px; padding:18px; margin-bottom:12px; color:white; }
+    .ss-title { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:14px; }
+    .ss-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .ss-val { font-size:clamp(16px,4vw,22px); font-weight:700; letter-spacing:-0.02em; color:white; line-height:1; }
+    .ss-lbl { font-size:9px; color:rgba(255,255,255,.4); margin-top:4px; line-height:1.4; }
+
+    /* ── Module D: Config details (dashed outline = secondary) ── */
+    .mod-config { background:white; border-radius:14px; border:1.5px dashed rgba(160,156,151,.5); padding:14px 18px; margin-bottom:12px; }
+
     /* Borehole count slider */
     .borehole-slider-wrap { padding:16px 0 4px; border-top:1px solid var(--border); margin-top:2px; }
     .bs-header { display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
@@ -227,10 +252,28 @@
       <canvas id="rp-canvas"></canvas>
     </div>
 
-    <!-- System Design -->
+    <!-- System Design — modular blocks, each with distinct visual treatment -->
     <div class="section-label">System Design</div>
-    <div class="result-card" id="design-card">
-      <!-- Borehole count slider -->
+
+    <!-- Module A: Borefield equation block -->
+    <div class="mod-borefield" id="mod-borefield" style="display:none">
+      <div class="bh-eq">
+        <div class="bh-eq-slot">
+          <div class="bh-eq-num accent" id="eq-nb">—</div>
+          <div class="bh-eq-lbl">Boreholes</div>
+        </div>
+        <div class="bh-eq-op">×</div>
+        <div class="bh-eq-slot">
+          <div class="bh-eq-num" id="eq-h">—</div>
+          <div class="bh-eq-lbl">Depth each</div>
+        </div>
+        <div class="bh-eq-op">=</div>
+        <div class="bh-eq-slot">
+          <div class="bh-eq-num" id="eq-l">—</div>
+          <div class="bh-eq-lbl">Total drilled</div>
+        </div>
+      </div>
+      <!-- Borehole slider -->
       <div id="nb-slider-wrap" class="borehole-slider-wrap" style="display:none">
         <div class="bs-header">
           <span class="bs-nb" id="bs-nb-val">—</span>
@@ -243,6 +286,29 @@
           <span class="bs-range-lbl" id="bs-max-lbl"></span>
         </div>
       </div>
+    </div>
+
+    <!-- Module B: Building & Load (moss left accent) -->
+    <div class="mod-building" id="mod-building" style="display:none">
+      <div class="mod-b-head">
+        <div class="mod-b-cat">Building &amp; Load</div>
+        <div class="mod-b-type" id="mod-b-type">—</div>
+      </div>
+      <div id="mod-building-rows"></div>
+    </div>
+
+    <!-- Module C: Subsurface conditions (dark underground) -->
+    <div class="mod-subsurface" id="mod-subsurface" style="display:none">
+      <div class="ss-title">Site &amp; Soil Conditions</div>
+      <div class="ss-grid">
+        <div><div class="ss-val" id="ss-k">—</div><div class="ss-lbl">W/m·K thermal conductivity</div></div>
+        <div><div class="ss-val" id="ss-tg">—</div><div class="ss-lbl">°C undisturbed ground</div></div>
+        <div><div class="ss-val" id="ss-alpha">—</div><div class="ss-lbl">m²/day diffusivity</div></div>
+      </div>
+    </div>
+
+    <!-- Module D: System config details (dashed = secondary info) -->
+    <div class="mod-config" id="mod-config" style="display:none">
       <div id="design-rows"></div>
     </div>
 
@@ -518,84 +584,81 @@ function renderReport(data, sizing, site, loads, cost, strategy, convPsf) {
 
   // System Design rows
   const fi = (v, dec=0) => v != null ? (+v).toFixed(dec) : '—';
-  const fL = (v, d=0) => v != null ? GeoUnits.format(+v,'length',d)+'\u00a0'+GeoUnits.label('length') : '—';
-  const fA = (v) => v != null ? Math.round(GeoUnits.value(+v,'area')).toLocaleString('en-US')+'\u00a0'+GeoUnits.label('area') : '—';
-  const designRows = [
-    ['Building type / Climate zone', `${d.building_type ?? '—'} · zone ${d.climate_zone ?? '—'}`],
-    ['Number of boreholes', (() => {
-      let s = `${fi(d.NB)}`;
-      if (d.nb_min != null) s += ` (footprint fits ${d.nb_min}–${d.nb_max})`;
-      return s;
-    })()],
-    ['Depth per borehole', fL(d.H_m)],
-    ['Total drilled length', fL(d.L_m)],
-    ['Borehole spacing / array ratio', `${fL(d.B_m, 1)} spacing · ${d.A ?? '—'} aspect ratio`],
-    ['Governing design condition', d.governing === 'cooling' ? 'Cooling (summer peak)' : d.governing === 'heating' ? 'Heating (winter peak)' : (d.governing ?? '—')],
-    ['Required length — heating / cooling', (() => {
-      let s = `${fL(d.L_heat_m)} / ${fL(d.L_cool_m)}`;
-      if (d.imbalance_m != null) s += ` — thermal imbalance ${fL(d.imbalance_m)}`;
-      return s;
-    })()],
-    ['Building footprint', d.footprint_m2 != null
-      ? `${d.footprint_shape ?? 'Footprint'}, ${fA(d.footprint_m2)}, ${d.n_floors} floor(s)` : '—'],
-    ['Subsurface conditions', `k = ${d.k_effective ?? '—'} W/m·K · alpha = ${d.alpha ?? '—'} m²/day · T_g = ${d.T_g ?? '—'} °C`],
-  ];
-  if (d.nb_source === 'depth_too_deep') designRows.push(['Depth warning', 'Required borehole depth exceeds 250 m — consider a supplemental peaker or a larger footprint']);
-  else if (d.capacity_warning) designRows.push(['Footprint note', 'Peak load density exceeds what the available footprint can supply at minimum depth']);
-  if (d.solar_thermal_recommended) designRows.push(['Thermal balance note', 'Net annual heat extraction from the ground — solar thermal supplement is recommended to prevent long-term ground cooling']);
+  const fL = (v, d=0) => v != null ? GeoUnits.format(+v,'length',d)+' '+GeoUnits.label('length') : '—';
+  const fA = (v) => v != null ? Math.round(GeoUnits.value(+v,'area')).toLocaleString('en-US')+' '+GeoUnits.label('area') : '—';
 
   // Hero stats — peak loads (kW) preferred; fall back to design lengths
   if (d.NB != null) {
     const qHeat = loads && loads.q_h_heat != null ? Math.round(Math.abs(loads.q_h_heat)) : null;
     const qCool = loads && loads.q_h_cool != null ? Math.round(Math.abs(loads.q_h_cool)) : null;
-    if (qHeat != null) {
-      document.getElementById('hs-heat').textContent = qHeat;
-    } else if (d.L_heat_m != null) {
-      document.getElementById('hs-heat').textContent = GeoUnits.format(+d.L_heat_m,'length',0);
-      document.getElementById('hs-heat-unit').textContent = GeoUnits.label('length');
-      document.getElementById('hs-heat-sub').textContent = 'Heating design length';
-    }
-    if (qCool != null) {
-      document.getElementById('hs-cool').textContent = qCool;
-    } else if (d.L_cool_m != null) {
-      document.getElementById('hs-cool').textContent = GeoUnits.format(+d.L_cool_m,'length',0);
-      document.getElementById('hs-cool-unit').textContent = GeoUnits.label('length');
-      document.getElementById('hs-cool-sub').textContent = 'Cooling design length';
-    }
+    if (qHeat != null) { document.getElementById('hs-heat').textContent = qHeat; }
+    else if (d.L_heat_m != null) { document.getElementById('hs-heat').textContent = GeoUnits.format(+d.L_heat_m,'length',0); document.getElementById('hs-heat-unit').textContent = GeoUnits.label('length'); document.getElementById('hs-heat-sub').textContent = 'Heating design length'; }
+    if (qCool != null) { document.getElementById('hs-cool').textContent = qCool; }
+    else if (d.L_cool_m != null) { document.getElementById('hs-cool').textContent = GeoUnits.format(+d.L_cool_m,'length',0); document.getElementById('hs-cool-unit').textContent = GeoUnits.label('length'); document.getElementById('hs-cool-sub').textContent = 'Cooling design length'; }
     document.getElementById('hs-nb').textContent = fi(d.NB);
     if (d.H_m != null) document.getElementById('hs-depth-sub').textContent = fL(d.H_m) + ' each';
     document.getElementById('hero-stats').style.display = '';
   }
 
+  // Module A: Borefield equation
+  if (d.NB != null) {
+    document.getElementById('eq-nb').textContent = fi(d.NB);
+    document.getElementById('eq-h').textContent = fL(d.H_m);
+    document.getElementById('eq-l').textContent = fL(d.L_m);
+    document.getElementById('mod-borefield').style.display = '';
+  }
   // Borehole slider
   if (d.nb_min != null && d.nb_max != null && d.NB != null) {
     const slider = document.getElementById('nb-slider');
-    const nbEl = document.getElementById('bs-nb-val');
-    const depthEl = document.getElementById('bs-depth-val');
-const nbMin = d.nb_min, nbMax = d.nb_max, nbOpt = +d.NB;
+    const nbEl = document.getElementById('bs-nb-val'), depthEl = document.getElementById('bs-depth-val');
+    const nbMin = d.nb_min, nbMax = d.nb_max, nbOpt = +d.NB;
     slider.min = nbMin; slider.max = nbMax; slider.value = nbOpt;
     document.getElementById('bs-min-lbl').textContent = nbMin;
     document.getElementById('bs-max-lbl').textContent = nbMax;
     nbEl.textContent = nbOpt;
     depthEl.textContent = fL(d.H_m) + ' / borehole';
-    // Gradient peaks at the optimal (recommended) position
     const pct = ((nbOpt - nbMin) / (nbMax - nbMin) * 100).toFixed(1);
     slider.style.background = `linear-gradient(to right, #b5cc8a, #7a9e52 ${pct}%, #b5cc8a)`;
     slider.addEventListener('input', function() {
       const n = parseInt(this.value);
       nbEl.textContent = n;
+      document.getElementById('eq-nb').textContent = n;
       const newH = d.L_m != null ? Math.round(+d.L_m / n) : null;
-      depthEl.textContent = newH != null ? fL(newH) + ' / borehole' : '';
-});
+      if (newH != null) { document.getElementById('eq-h').textContent = fL(newH); depthEl.textContent = fL(newH) + ' / borehole'; }
+    });
     document.getElementById('nb-slider-wrap').style.display = '';
   }
 
-  // Design rows — spec sheet with dotted leaders (skip borehole count, it's in the slider)
-  document.getElementById('design-rows').innerHTML = designRows
-    .filter(([k]) => k !== 'Number of boreholes')
-    .map(([k, v]) =>
-      `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-leaders"></span><span class="spec-val">${v}</span></div>`
-    ).join('');
+  // Module B: Building & Load
+  if (d.building_type != null || d.climate_zone != null) {
+    document.getElementById('mod-b-type').textContent = `${d.building_type ?? '—'}  ·  Zone ${d.climate_zone ?? '—'}`;
+    const bRows = [
+      ['Governing condition', d.governing === 'cooling' ? 'Cooling (summer peak)' : 'Heating (winter peak)'],
+      ['Required — heating / cooling', `${fL(d.L_heat_m)} / ${fL(d.L_cool_m)}`],
+    ];
+    if (d.imbalance_m != null) bRows.push(['Thermal imbalance', fL(d.imbalance_m)]);
+    if (d.footprint_m2 != null) bRows.push(['Footprint', `${d.footprint_shape ?? ''} ${fA(d.footprint_m2)}, ${d.n_floors} fl`]);
+    if (d.solar_thermal_recommended) bRows.push(['Balance note', 'Solar thermal recharge recommended']);
+    document.getElementById('mod-building-rows').innerHTML = bRows.map(([k, v]) =>
+      `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-leaders"></span><span class="spec-val">${v}</span></div>`).join('');
+    document.getElementById('mod-building').style.display = '';
+  }
+
+  // Module C: Subsurface (dark card)
+  if (d.k_effective != null) {
+    document.getElementById('ss-k').textContent = d.k_effective;
+    document.getElementById('ss-tg').textContent = d.T_g ?? '—';
+    document.getElementById('ss-alpha').textContent = d.alpha ?? '—';
+    document.getElementById('mod-subsurface').style.display = '';
+  }
+
+  // Module D: Config details (dashed card)
+  const cfgRows = [['Borehole spacing / array', `${fL(d.B_m, 1)} spacing · ${d.A ?? '—'} aspect`]];
+  if (d.nb_source === 'depth_too_deep') cfgRows.push(['Depth warning', 'Required depth > 250 m']);
+  if (d.capacity_warning) cfgRows.push(['Footprint note', 'Peak load density exceeds footprint at minimum depth']);
+  document.getElementById('design-rows').innerHTML = cfgRows.map(([k, v]) =>
+    `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-leaders"></span><span class="spec-val">${v}</span></div>`).join('');
+  document.getElementById('mod-config').style.display = '';
 
   // Performance
   if (perf.available) {

@@ -29,6 +29,9 @@
     const nav = document.getElementById('gl-pill-nav');
     if (!nav) return;
 
+    // GSAP owns the hidden state — set it here so CSS never strands the nav invisible
+    gsap.set(nav, { opacity: 0, y: -12 });
+
     const textPills = Array.from(nav.querySelectorAll('.gl-pill-text'));
     const active = activeLabel();
 
