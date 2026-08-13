@@ -14,15 +14,22 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg:     #f5f3f0;
+      --s1:     #eeecea;
+      --m1:     #f2f5eb;
+      --m2:     #dce3cf;
+      --m3:     #c4cdb3;
+      --m8:     #48583b;
+      --m10:    #1b2214;
       --border: #dddbd7;
       --text:   #1a1814;
       --muted:  #7a7570;
       --faint:  #a09c97;
+      --heat:   #c94030;
+      --cool:   #2e64c8;
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
-
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-top: 56px; padding-bottom: env(safe-area-inset-bottom); }
 
     .main { flex:1; display:flex; flex-direction:column; padding: 28px 24px 40px; }
 
@@ -38,75 +45,142 @@
     .ss-line.gray { background:#dddbd7; }
 
     .section-title { font-size: clamp(20px, 5.5vw, 26px); font-weight:700; letter-spacing:-0.025em; color:var(--text); margin-bottom: 6px; }
-    .section-sub   { font-size: 12px; color: var(--faint); font-weight:400; margin-bottom: 28px; line-height:1.5; }
+    .section-sub   { font-size: 12px; color: var(--faint); font-weight:400; margin-bottom: 16px; line-height:1.5; }
 
     /* ── LOADING ── */
     .loading { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:16px; color:var(--muted); font-size:13px; }
     .spinner { width:32px; height:32px; border:2.5px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin 0.8s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* ── CARD ROW: card + expand button side by side ── */
-    .card-row { display:flex; align-items:center; gap:12px; }
-    .result-card {
-      flex: 1; min-width: 0;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
+    /* ── DASHBOARD GRID ── */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
     }
-    .card-label {
-      font-size: 10px; font-weight:600; color:var(--faint);
-      letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px;
+    @media (min-width: 520px) {
+      .dash-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .dash-grid .tile:nth-child(n+4) { grid-column: auto; }
     }
 
-    /* expand toggle — 32px dark circle, same size as sub-stepper dots */
-    .expand-btn {
-      width:32px; height:32px; border-radius:50%;
-      background:var(--text); color:#f5f3f0;
-      display:flex; align-items:center; justify-content:center;
-      font-size:18px; font-weight:300; line-height:1;
-      flex-shrink:0; border:none; cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
-      transition: background 0.15s;
+    /* ── TILE ── */
+    .tile {
+      border-radius: 14px;
+      padding: 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border: none;
     }
-    .expand-btn:active { background:#3d3936; }
+    .tile-wide { grid-column: 1 / -1; padding: 10px 14px; }
+    .tile.soil    { background: var(--s1); }
+    .tile.matcha  { background: var(--m1); }
+    .tile.load-h  { background: rgba(201,64,48,0.06); }
+    .tile.load-c  { background: rgba(46,100,200,0.06); }
 
-    /* expand panel — full-width text below the card-row */
-    .expand-panel { display:none; padding: 8px 4px 4px 0; }
+    .tile-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+    .tile-icon.soil-i  { background: var(--m2); color: var(--m8); }
+    .tile-icon.temp-i  { background: #e8e0d4; color: #8a6c4a; }
+    .tile-icon.zone-i  { background: #d8dce8; color: #4a5a7a; }
+    .tile-icon.heat-i  { background: rgba(201,64,48,0.12); color: var(--heat); }
+    .tile-icon.cool-i  { background: rgba(46,100,200,0.12); color: var(--cool); }
+    .tile-icon.bore-i  { background: var(--m2); color: var(--m8); }
+
+    .tile-val {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .tile-val .t-unit {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--faint);
+      margin-left: 2px;
+    }
+    .tile-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .tile-sub {
+      font-size: 10px;
+      color: var(--faint);
+      line-height: 1.3;
+    }
+
+    /* Heat/cool accent on value */
+    .tile.load-h .tile-val { color: var(--heat); }
+    .tile.load-c .tile-val { color: var(--cool); }
+
+    /* ── DARK HERO BAR (borehole capacity) ── */
+    .hero-bar {
+      background: var(--m10);
+      color: #f5f3f0;
+      border-radius: 14px;
+      padding: 18px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .hero-bar .hb-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .hero-bar .hb-content { flex: 1; min-width: 0; }
+    .hero-bar .hb-title {
+      font-size: 13px; font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 3px;
+    }
+    .hero-bar .hb-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.4;
+    }
+
+    /* ── EXPAND PANELS ── */
+    .expand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .expand-row .er-label {
+      font-size: 11px; font-weight: 600; color: var(--faint);
+      letter-spacing: 0.04em;
+      flex: 1;
+    }
+    .expand-row .er-arrow {
+      font-size: 14px; color: var(--faint);
+      transition: transform 0.2s;
+    }
+    .expand-row.open .er-arrow { transform: rotate(180deg); }
+    .expand-panel { display:none; padding: 0 0 8px; }
     .expand-panel.open { display:block; }
     .expand-note {
-      font-size:11.5px; color:var(--muted); line-height:1.65;
-      padding: 10px 12px;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
+      font-size: 11.5px; color: var(--muted); line-height: 1.65;
+      padding: 12px 14px;
+      background: var(--s1);
+      border-radius: 10px;
     }
-    .expand-note strong { color:var(--text); font-weight:600; }
-
-    /* ── STAT GRIDS ── */
-    .stat-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-    .stat-row.two { grid-template-columns:1fr 1fr; }
-    .stat { display:flex; flex-direction:column; gap:3px; position:relative; }
-    .stat-val { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1; }
-    .stat-unit { font-size:10px; font-weight:400; color:var(--faint); margin-left:2px; }
-    .stat-lbl  { font-size:11px; color:var(--muted); line-height:1.4; }
-    /* quality sub-number (shown below quality label) */
-    .stat-num  { font-size:10px; color:var(--faint); margin-top:1px; }
-
-    /* ── QUALITY TAGS ── */
-    .qual-tag {
-      display:inline-block; font-size:10px; font-weight:600;
-      letter-spacing:0.04em; padding:2px 6px; border-radius:4px;
-      background: var(--bg); border: 1px solid var(--border);
-      color: var(--muted); margin-top:3px;
-    }
-
-    /* ── CAPACITY LINES ── */
-    .cap-line { font-size:13px; color:var(--text); line-height:1.7; }
-    .cap-line.sub { color:var(--muted); font-size:12px; }
-
-    /* spacer between card groups */
-    .card-gap { height:10px; }
+    .expand-note strong { color: var(--text); font-weight: 600; }
 
     /* ── BUTTON ── */
     #results-state { flex:1; display:flex; flex-direction:column; }
@@ -129,8 +203,8 @@
 <body>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -142,20 +216,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
@@ -163,11 +232,11 @@
   <div class="top-header">
     <div class="stage-badge">1/3</div>
     <div class="sub-stepper">
-      <div class="ss-dot done">✓</div>
+      <div class="ss-dot done">&#10003;</div>
       <div class="ss-line dark"></div>
-      <div class="ss-dot done">✓</div>
+      <div class="ss-dot done">&#10003;</div>
       <div class="ss-line dark"></div>
-      <div class="ss-dot done">✓</div>
+      <div class="ss-dot done">&#10003;</div>
     </div>
   </div>
 
@@ -176,79 +245,102 @@
 
   <div class="loading" id="loading-state">
     <div class="spinner"></div>
-    <span>Analyzing site &amp; simulating loads…</span>
+    <span>Analyzing site &amp; simulating loads...</span>
   </div>
 
   <div id="results-state" style="display:none">
 
-    <!-- ── Card 1: Site & Soil ── -->
-    <div class="card-row">
-      <div class="result-card">
-        <div class="card-label">Site &amp; Soil</div>
-        <div class="stat-row">
-          <div class="stat">
-            <div class="stat-val" id="r-k-qual">—</div>
-            <div class="stat-lbl">Soil conductivity</div>
-            <div class="stat-num" id="r-k-num"></div>
+    <!-- ── Dashboard Tiles ── -->
+    <div class="dash-grid">
+
+      <!-- Soil conductivity -->
+      <div class="tile soil">
+        <div class="tile-val" id="r-k-val">--</div>
+        <div class="tile-lbl">Soil conductivity</div>
+        <div class="tile-sub" id="r-k-qual"></div>
+      </div>
+
+      <!-- Ground temperature -->
+      <div class="tile soil">
+        <div class="tile-val" id="r-tg">--<span class="t-unit" data-unit="temperature">&#176;C</span></div>
+        <div class="tile-lbl">Ground temp.</div>
+        <div class="tile-sub" id="r-tg-tag"></div>
+      </div>
+
+      <!-- Peak heating -->
+      <div class="tile load-h">
+        <div class="tile-icon heat-i">
+          <svg width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M7 1c0 4-5 6-5 10a5 5 0 0 0 10 0c0-4-5-6-5-10z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="tile-val" id="r-qh">--<span class="t-unit" data-unit="power">kW</span></div>
+        <div class="tile-lbl">Peak heating</div>
+      </div>
+
+      <!-- Peak cooling -->
+      <div class="tile load-c">
+        <div class="tile-icon cool-i">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+        <div class="tile-val" id="r-qc">--<span class="t-unit" data-unit="power">kW</span></div>
+        <div class="tile-lbl">Peak cooling</div>
+      </div>
+
+      <!-- Climate zone — full-width compact row -->
+      <div class="tile matcha tile-wide">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="tile-icon zone-i">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M2 8h12M8 2a10 10 0 0 1 0 12M8 2a10 10 0 0 0 0 12" stroke="currentColor" stroke-width="1.2"/></svg>
           </div>
-          <div class="stat">
-            <div class="stat-val" id="r-tg">—<span class="stat-unit" data-unit="temperature">°C</span></div>
-            <div class="stat-lbl">Ground temp.</div>
-            <div class="qual-tag" id="r-tg-tag"></div>
-          </div>
-          <div class="stat">
-            <div class="stat-val" id="r-climate">—</div>
-            <div class="stat-lbl">Climate zone</div>
-            <div class="stat-num" id="r-climate-desc"></div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <span class="tile-val" id="r-climate" style="font-size:22px;">--</span>
+              <span class="tile-lbl">Climate zone</span>
+            </div>
+            <div class="tile-sub" id="r-climate-desc"></div>
           </div>
         </div>
       </div>
-      <button class="expand-btn" id="btn-soil" aria-label="Learn more about site and soil">+</button>
+
+    </div>
+
+    <!-- ── Dark hero bar: Borehole Capacity ── -->
+    <div class="hero-bar">
+      <div class="hb-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 2v10a3 3 0 0 0 6 0V2" stroke="#f5f3f0" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="15" r="1" fill="#f5f3f0"/></svg>
+      </div>
+      <div class="hb-content">
+        <div class="hb-title" id="r-cap-shape">--</div>
+        <div class="hb-sub" id="r-cap-range">--</div>
+      </div>
+    </div>
+
+    <!-- ── Expand: Details ── -->
+    <div class="expand-row" id="er-soil" onclick="toggleExpand('soil')">
+      <span class="er-label">Site &amp; soil details</span>
+      <span class="er-arrow">&#9662;</span>
     </div>
     <div class="expand-panel" id="panel-soil">
-      <div class="expand-note" id="note-soil">—</div>
+      <div class="expand-note" id="note-soil">--</div>
     </div>
 
-    <div class="card-gap"></div>
-
-    <!-- ── Card 2: Building Loads ── -->
-    <div class="card-row">
-      <div class="result-card">
-        <div class="card-label">Building Loads</div>
-        <div class="stat-row two">
-          <div class="stat" id="stat-heat">
-            <div class="stat-val" id="r-qh">—<span class="stat-unit" data-unit="power">kW</span></div>
-            <div class="stat-lbl">Peak heating</div>
-          </div>
-          <div class="stat" id="stat-cool">
-            <div class="stat-val" id="r-qc">—<span class="stat-unit" data-unit="power">kW</span></div>
-            <div class="stat-lbl">Peak cooling</div>
-          </div>
-        </div>
-      </div>
-      <button class="expand-btn" id="btn-loads" aria-label="Learn more about building loads">+</button>
+    <div class="expand-row" id="er-loads" onclick="toggleExpand('loads')">
+      <span class="er-label">Load analysis details</span>
+      <span class="er-arrow">&#9662;</span>
     </div>
     <div class="expand-panel" id="panel-loads">
-      <div class="expand-note" id="note-loads">—</div>
+      <div class="expand-note" id="note-loads">--</div>
     </div>
 
-    <div class="card-gap"></div>
-
-    <!-- ── Card 3: Borehole Capacity ── -->
-    <div class="card-row">
-      <div class="result-card">
-        <div class="card-label">Borehole Capacity</div>
-        <div class="cap-line" id="r-cap-shape">—</div>
-        <div class="cap-line sub" id="r-cap-range">—</div>
-      </div>
-      <button class="expand-btn" id="btn-cap" aria-label="Learn more about borehole capacity">+</button>
+    <div class="expand-row" id="er-cap" onclick="toggleExpand('cap')">
+      <span class="er-label">Borehole capacity details</span>
+      <span class="er-arrow">&#9662;</span>
     </div>
     <div class="expand-panel" id="panel-cap">
-      <div class="expand-note" id="note-cap">—</div>
+      <div class="expand-note" id="note-cap">--</div>
     </div>
 
     <div class="btn-bottom">
-      <button class="back-btn" id="back-btn" onclick="history.back()"><span class="sb-label">‹ Back</span></button>
+      <button class="back-btn" id="back-btn" onclick="history.back()"><span class="sb-label">&#8249; Back</span></button>
       <button id="continue-btn" onclick="goNext()">
         <span class="sb-label">Borefield Design</span>
       </button>
@@ -278,21 +370,19 @@ const shapeLabel = {
 function setText(id, v) {
   const el = document.getElementById(id);
   if (!el) return;
-  const unit = el.querySelector('.stat-unit');
+  const unit = el.querySelector('.t-unit');
   if (unit) { el.childNodes[0].nodeValue = v; } else { el.textContent = v; }
 }
 function refreshUnits() {
-  document.querySelectorAll('.stat-unit[data-unit]').forEach(el => el.textContent = GeoUnits.label(el.dataset.unit));
+  document.querySelectorAll('.t-unit[data-unit]').forEach(el => el.textContent = GeoUnits.label(el.dataset.unit));
 }
 
-function initExpand(btnId, panelId) {
-  const btn = document.getElementById(btnId);
-  const panel = document.getElementById(panelId);
-  if (!btn || !panel) return;
-  btn.addEventListener('click', () => {
-    const open = panel.classList.toggle('open');
-    btn.textContent = open ? '−' : '+';
-  });
+function toggleExpand(key) {
+  const row = document.getElementById('er-' + key);
+  const panel = document.getElementById('panel-' + key);
+  if (!row || !panel) return;
+  const open = panel.classList.toggle('open');
+  row.classList.toggle('open', open);
 }
 
 // ── Fetch & populate ──
@@ -326,30 +416,30 @@ function initExpand(btnId, panelId) {
     const d = await res.json();
     sessionStorage.setItem('gl_result1', JSON.stringify(d));
 
-    const kw  = v => v != null ? GeoUnits.format(Math.abs(v) / 1000, 'power', 0) : '—';
-    const fmt = (v, dec=1) => v != null ? (+v).toFixed(dec) : '—';
+    const kw  = v => v != null ? GeoUnits.format(Math.abs(v) / 1000, 'power', 0) : '--';
+    const fmt = (v, dec=1) => v != null ? (+v).toFixed(dec) : '--';
 
-    // ── Card 1: Site & Soil ──
+    // ── Tiles: Site & Soil ──
     const k   = d.k;
     const tg  = d.T_ground;
-    const cz  = d.climate_zone || '—';
-    setText('r-k-qual', soilQuality(k));
-    document.getElementById('r-k-num').textContent = k != null ? `${fmt(k,2)} W/m·K` : '';
+    const cz  = d.climate_zone || '--';
+
+    setText('r-k-val', fmt(k, 2));
+    document.getElementById('r-k-qual').textContent = k != null ? soilQuality(k) + ' \u00B7 ' + fmt(k,2) + ' W/m\u00B7K' : '';
     setText('r-tg', GeoUnits.format(tg, 'temperature', 1));
     document.getElementById('r-tg-tag').textContent = tg != null ? groundTempTag(tg) : '';
     setText('r-climate', cz);
     document.getElementById('r-climate-desc').textContent = climateDesc[cz] || '';
 
     document.getElementById('note-soil').innerHTML =
-      `With soil conductivity of <strong>${fmt(k,2)} W/m·K</strong>, your ground has <strong>${soilQuality(k).toLowerCase()}</strong> heat transfer capacity. ${k>=2?'Shorter loops will be sufficient.':'Longer loops will be needed to compensate.'} A ground temperature of <strong>${fmt(tg,1)}°C</strong> (${groundTempTag(tg).toLowerCase()}) in a <strong>${climateDesc[cz]||cz}</strong> climate (Zone ${cz}) means the loop will operate at a ${tg<18?'favorable':'moderate'} thermal gradient year-round.`;
+      `With soil conductivity of <strong>${fmt(k,2)} W/m\u00B7K</strong>, your ground has <strong>${soilQuality(k).toLowerCase()}</strong> heat transfer capacity. ${k>=2?'Shorter loops will be sufficient.':'Longer loops will be needed to compensate.'} A ground temperature of <strong>${fmt(tg,1)}\u00B0C</strong> (${groundTempTag(tg).toLowerCase()}) in a <strong>${climateDesc[cz]||cz}</strong> climate (Zone ${cz}) means the loop will operate at a ${tg<18?'favorable':'moderate'} thermal gradient year-round.`;
 
-    // ── Card 2: Building Loads ──
+    // ── Tiles: Building Loads ──
     const qh = d.q_h, qc = d.q_c;
     setText('r-qh', kw(qh));
     setText('r-qc', kw(qc));
     refreshUnits();
 
-    // Dominant load labels for expand note
     const heatDom = qh >= qc;
     const domLabel = heatDom ? 'heating' : 'cooling';
     const othLabel = heatDom ? 'cooling' : 'heating';
@@ -359,34 +449,31 @@ function initExpand(btnId, panelId) {
     document.getElementById('note-loads').innerHTML =
       `The dominant peak is <strong>peak ${domLabel}</strong> at <strong>${domVal} kW</strong>. It is larger than peak ${othLabel} (<strong>${othVal} kW</strong>). The borefield will be sized to meet this demand.`;
 
-    // ── Card 3: Borehole Capacity ──
+    // ── Hero bar: Borehole Capacity ──
     const shape  = d.footprint_shape || payload.footprint_shape || 'elongated';
     const floors = d.num_floors || payload.num_floors || 1;
     const area   = d.floor_area_m2 || payload.floor_area_m2;
     const fpM2   = area && floors ? Math.round(area / floors) : null;
     const sl     = shapeLabel[shape] || 'Standard';
-    const areaStr = fpM2 ? `, ~${fpM2} m²` : '';
+    const areaStr = fpM2 ? `, ~${fpM2} m\u00B2` : '';
 
     document.getElementById('r-cap-shape').textContent = `${sl}${areaStr}, ${floors} floor(s)`;
 
     const nbMin = d.nb_min, nbMax = d.nb_max, nbHint = d.n_boreholes_hint;
     document.getElementById('r-cap-range').textContent =
       nbMin != null && nbMax != null
-        ? `${nbMin}–${nbMax} boreholes fit at 6 m spacing`
-        : nbHint != null ? `${nbHint} boreholes at 6 m spacing` : '—';
+        ? `${nbMin}\u2013${nbMax} boreholes fit at 6 m spacing`
+        : nbHint != null ? `${nbHint} boreholes at 6 m spacing` : '--';
 
     document.getElementById('note-cap').innerHTML =
-      `<strong>${sl}</strong> footprint and <strong>${floors} floor(s)</strong> come from your building inputs on the previous page — not model estimates. ` +
+      `<strong>${sl}</strong> footprint and <strong>${floors} floor(s)</strong> come from your building inputs on the previous page \u2014 not model estimates. ` +
       (nbMin != null && nbMax != null
-        ? `The range <strong>${nbMin}–${nbMax} boreholes</strong> reflects how many vertical loops physically fit in your building footprint at 6 m center-to-center spacing.`
+        ? `The range <strong>${nbMin}\u2013${nbMax} boreholes</strong> reflects how many vertical loops physically fit in your building footprint at 6 m center-to-center spacing.`
         : 'Borehole count will be refined in the sizing step.');
 
     // show results
     document.getElementById('results-state').style.display = '';
     document.getElementById('loading-state').style.display  = 'none';
-    initExpand('btn-soil',  'panel-soil');
-    initExpand('btn-loads', 'panel-loads');
-    initExpand('btn-cap',   'panel-cap');
     initSpecularButton();
 
   } catch (err) {

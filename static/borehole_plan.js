@@ -59,7 +59,7 @@
     const maxY = Math.max(...ys) + ownership;
 
     // ── Fit scale: leave 50px margin on each side for labels ──
-    const margin = 50;
+    const margin = 35;
     const scaleX = (W - 2 * margin) / (maxX - minX);
     const scaleY = (H - 2 * margin) / (maxY - minY);
     const scale = Math.min(scaleX, scaleY);
@@ -76,8 +76,8 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 
-    // ── Grid: every B metres, light gray thin lines ──
-    ctx.strokeStyle = '#e0e0e0';
+    // ── Grid: every B metres, very subtle matcha tint ──
+    ctx.strokeStyle = 'rgba(85,116,52,0.07)';
     ctx.lineWidth = 0.5;
     ctx.setLineDash([]);
     const gridStep = B;
@@ -113,7 +113,7 @@
     ctx.closePath();
     ctx.fillStyle = getToken('--color-building-fill', 'rgba(163, 209, 187, 0.25)');
     ctx.fill();
-    ctx.strokeStyle = getToken('--color-building-stroke', '#4a4540');
+    ctx.strokeStyle = getToken('--color-building-stroke', '#557434');
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -178,20 +178,6 @@
       });
     }
 
-    // ── Top-right label block ──
-    const placedSpacingM = NB > 0
-      ? (2 * (bboxW + 2 * setback + bboxH_m + 2 * setback)) / NB
-      : B;
-    const lblLines = [
-      `NB = ${NB} boreholes`,
-      `H = ${_fL(H_bh)} / each`,
-      `L = ${_fL(L_total)} total`,
-      `Spacing = ${_fL(placedSpacingM, 1)}`,
-    ];
-    ctx.fillStyle = '#1a1a1a'; ctx.textAlign = 'right'; ctx.textBaseline = 'top';
-    ctx.font = '10px monospace';
-    lblLines.forEach((ln, i) => ctx.fillText(ln, W - 8, 8 + i * 14));
-
     // ── Scale bar (bottom-left): pick a nice round number ~20% of building width ──
     const rawBarM = (maxX - minX) * 0.2;
     // Nice round values in metres; if imperial pick ft-friendly values converted back to m for pixel math
@@ -203,11 +189,11 @@
       Math.abs(v - rawBarM) < Math.abs(best - rawBarM) ? v : best);
     const barPx = barM * scale;
     const barX = 10, barY = H - 20;
-    ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.setLineDash([]);
+    ctx.strokeStyle = '#557434'; ctx.lineWidth = 2; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(barX, barY); ctx.lineTo(barX + barPx, barY); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(barX, barY - 4); ctx.lineTo(barX, barY + 4); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(barX + barPx, barY - 4); ctx.lineTo(barX + barPx, barY + 4); ctx.stroke();
-    ctx.fillStyle = '#333'; ctx.font = '9px sans-serif';
+    ctx.fillStyle = '#557434'; ctx.font = '9px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     ctx.fillText(_fL(barM, 0), barX + barPx / 2, barY + 5);
 
@@ -231,7 +217,7 @@
 
   // Helper: draw a dimension line with arrow ends and text label
   function _drawDimension(ctx, x0, y0, x1, y1, label, vertical = false) {
-    ctx.strokeStyle = '#555'; ctx.lineWidth = 0.8; ctx.fillStyle = '#555';
+    ctx.strokeStyle = '#557434'; ctx.lineWidth = 0.8; ctx.fillStyle = '#557434';
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
     // Arrowheads
     const angle = Math.atan2(y1 - y0, x1 - x0);
@@ -240,9 +226,9 @@
     // Label
     ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     if (!vertical) {
-      ctx.fillText(label, (x0 + x1) / 2, y0 - 8);
+      ctx.fillText(label, (x0 + x1) / 2, y0 + 14);
     } else {
-      ctx.save(); ctx.translate((x0 + x1) / 2 + 14, (y0 + y1) / 2);
+      ctx.save(); ctx.translate((x0 + x1) / 2 + 16, (y0 + y1) / 2);
       ctx.rotate(-Math.PI / 2); ctx.fillText(label, 0, 0); ctx.restore();
     }
   }

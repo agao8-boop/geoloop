@@ -9,8 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/design-tokens.css">
-  <link rel="stylesheet" href="/static/pilnav.css">  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style><style>
+  <link rel="stylesheet" href="/static/pilnav.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg:     #f5f3f0;
@@ -21,7 +22,7 @@
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; min-height:100vh; padding-top:56px; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
 
 
     .main { padding:28px 24px 40px; }
@@ -50,7 +51,7 @@
     @keyframes spin { to { transform:rotate(360deg); } }
     .sub-loading { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; padding:16px 0; }
 
-    .result-card { background:white; border:1.5px solid var(--border); border-radius:16px; padding:18px; margin-bottom:12px; }
+    .result-card { background:white; border:1.5px solid transparent; border-radius:16px; padding:18px; margin-bottom:12px; box-shadow:0 1px 6px rgba(0,0,0,.06); }
     .card-label { font-size:10px; font-weight:600; color:var(--faint); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:14px; }
     .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .stat { display:flex; flex-direction:column; gap:4px; }
@@ -76,8 +77,8 @@
     .dom-mode-pill { display:inline-flex; align-items:center; gap:5px; background:var(--text); color:#f5f3f0; font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:100px; margin-bottom:12px; }
 
     .compare-row { display:flex; align-items:stretch; gap:10px; margin-bottom:12px; }
-    .compare-col { flex:0.7; background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; display:flex; flex-direction:column; }
-    .compare-col.hi { flex:1.3; border-color:var(--text); }
+    .compare-col { flex:0.7; background:white; border:1.5px solid transparent; border-radius:14px; padding:14px; display:flex; flex-direction:column; box-shadow:0 1px 6px rgba(0,0,0,.06); }
+    .compare-col.hi { flex:1.3; box-shadow:0 2px 10px rgba(0,0,0,.1); }
     .compare-head { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
     .compare-head.hi { color:var(--text); }
     .compare-arrow { font-size:18px; color:var(--muted); flex-shrink:0; align-self:center; }
@@ -96,19 +97,19 @@
 
     .chart-section { margin-bottom:16px; }
     .chart-title { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:8px; }
-    .chart-wrap { background:white; border:1.5px solid var(--border); border-radius:14px; padding:12px; height:180px; position:relative; }
+    .chart-wrap { background:white; border:1.5px solid transparent; border-radius:14px; padding:12px; height:180px; position:relative; box-shadow:0 1px 6px rgba(0,0,0,.06); }
     .chart-wrap canvas { display:block !important; }
 
     /* System cost */
-    .equip-card { background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; margin-bottom:8px; }
+    .equip-card { background:white; border:1.5px solid transparent; border-radius:14px; padding:14px; margin-bottom:8px; box-shadow:0 1px 6px rgba(0,0,0,.06); }
     .equip-head { font-size:10px; font-weight:700; color:var(--faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
     .equip-main { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
     .equip-val { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
     .equip-cap { font-size:11px; color:var(--muted); }
 
     .scenario-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
-    .scenario-card { background:white; border:1.5px solid var(--border); border-radius:12px; padding:12px 8px; text-align:center; }
-    .scenario-card.hi { border-color:var(--text); }
+    .scenario-card { background:white; border:1.5px solid transparent; border-radius:12px; padding:12px 8px; text-align:center; box-shadow:0 1px 6px rgba(0,0,0,.06); }
+    .scenario-card.hi { box-shadow:0 2px 10px rgba(0,0,0,.1); }
     .sc-label { font-size:10px; font-weight:700; color:var(--faint); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
     .sc-val { font-size:13px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
 
@@ -122,8 +123,8 @@
 
     /* Cost benchmark */
     .cost-compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
-    .cost-col { background:white; border:1.5px solid var(--border); border-radius:14px; padding:14px; }
-    .cost-col.hi { border-color:var(--text); }
+    .cost-col { background:white; border:1.5px solid transparent; border-radius:14px; padding:14px; box-shadow:0 1px 6px rgba(0,0,0,.06); }
+    .cost-col.hi { box-shadow:0 2px 10px rgba(0,0,0,.1); }
     .cost-head { font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); margin-bottom:8px; }
     .cost-head.hi { color:var(--text); }
     .cost-val { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
@@ -166,8 +167,8 @@
 <body>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -179,20 +180,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
