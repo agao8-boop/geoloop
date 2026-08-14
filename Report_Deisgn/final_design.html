@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoLoop Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- GeoLoop grid mark logo -->
+            <div class="logo" style="background-color:transparent; padding:0; padding-left:5px;">
+                <svg width="28" height="26" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+                    <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#555"/>
+                    <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#555"/>
+                    <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#555" opacity=".75"/>
+                    <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#555" opacity=".75"/>
+                    <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#555" opacity=".5"/>
+                    <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#555" opacity=".5"/>
+                    <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#555" opacity=".3"/>
+                    <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#555" opacity=".3"/>
+                    <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#555"/>
+                </svg>
+            </div>
+            <nav class="nav-icons">
+                <div class="nav-icons-main" style="margin:0; margin-top:auto;">
+                    <!-- Contact info as vertical text -->
+                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); font-size:0.65rem; color:var(--c-text-gray); letter-spacing:0.3px; white-space:nowrap; margin-bottom:0.75rem;">
+                        Almanzo Gao | agao8@stanford.edu | Stanford CEE 299
+                    </div>
+                </div>
+                <!-- LinkedIn + Email icons at bottom, compact -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:0.3rem; margin-bottom:0.25rem;">
+                    <a href="https://www.linkedin.com/in/almanzogao/" target="_blank" class="icon active" title="LinkedIn" style="text-decoration:none; width:32px; height:32px; border-radius:10px;">
+                        <svg width="14" height="14" viewBox="0 0 18 18" fill="currentColor"><path d="M4.5 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM1.5 5h3v10h-3V5zm5.5 0h2.9v1.4h0c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7V15h-3v-4.8c0-1.1 0-2.6-1.6-2.6s-1.8 1.2-1.8 2.5V15H7V5z"/></svg>
+                    </a>
+                    <a href="mailto:agao8@stanford.edu" class="icon" title="Email" style="text-decoration:none; width:32px; height:32px; border-radius:10px; background:transparent; box-shadow:0 2px 8px rgba(0,0,0,0.12); border:1px solid #eee;">
+                        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="14" height="12" rx="2"/><path d="M2 5l7 5 7-5"/></svg>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Layout Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Navigation -->
+            <header class="topbar">
+                <!-- <div class="search-bar">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#999" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg>
+                    <input type="text" placeholder="Search">
+                </div> -->
+                <div class="tickers" style="flex:1; text-align:center;">
+                    <span style="font-size:1.05rem; color:var(--c-text-gray); font-weight:500;">Hello there, here is your geothermal site assessment for <strong style="color:var(--c-dark);">Chicago, IL 60601</strong></span>
+                </div>
+                <div class="user-profile">
+                    <span class="name" style="font-size:1.1rem; font-weight:700; letter-spacing:-0.5px;">GeoLoop</span>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-layout">
+                <!-- Center Column -->
+                <main class="center-column">
+                    <div class="header-row">
+                        <h1>Overview</h1>
+                        <a href="#" class="text-link">What does this mean?</a>
+                    </div>
+
+                    <!-- Wallets Section -->
+                    <section class="wallets-section">
+                        <div class="wallet-intro" style="display:flex; flex-direction:column; gap:0.75rem;">
+                            <h2>Site</h2>
+                            <p>Understand the climate, ground, and building conditions driving your design</p>
+                            <a href="#" class="text-link dark-link">View more site analysis ➔</a>
+                        </div>
+                        <div class="cards-container">
+                            <div class="card bg-green">
+                                <div class="card-title"><span class="icon-circle dark">☀</span> Climate</div>
+                                <div class="card-value small" style="font-size:inherit;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">&nbsp;</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">&nbsp;</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:6px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">&nbsp;</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Climate Zone</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:6px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">5A: Cool, Humid</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">&nbsp;</span>
+                                </div>
+                            </div>
+                            <div class="card bg-white">
+                                <div class="card-title"><span class="icon-circle dark">⛰</span> Subsurface Info</div>
+                                <div class="card-value small" style="font-size:inherit;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">4.00</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">W/m·K</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Soil conductivity</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:6px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">15.2</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">°C</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Ground temperature</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:6px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">0.154</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">m²/day</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Diffusivity</span>
+                                </div>
+                            </div>
+                            <div class="card bg-white">
+                                <div class="card-title"><span class="icon-circle dark">⊞</span> Building</div>
+                                <div class="card-value small" style="font-size:inherit;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">30%</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">WWR</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Window-to-wall ratio</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:6px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">Standard</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Infiltration &amp; Insulation</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:6px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">Double Low-E</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Glazing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Middle Row: Operations & Earnings -->
+                    <section class="middle-row">
+                        <div class="card bg-orange operations">
+                            <div class="op-header">
+                                <h3>Operations</h3>
+                                <nav class="op-tabs">
+                                    <span class="active">Exchange</span>
+                                    <span>Buy</span>
+                                    <span>Sell</span>
+                                    <span>Send</span>
+                                </nav>
+                            </div>
+                            <div class="op-inputs">
+                                <div class="input-group">
+                                    <div class="dropdown"><span class="icon-circle dark small">$</span> Dollar ⌄</div>
+                                    <input type="text" value="$ 323.65">
+                                </div>
+                                <div class="swap-icon">⇌</div>
+                                <div class="input-group">
+                                    <div class="dropdown"><span class="icon-circle dark small">ꜩ</span> Tezos ⌄</div>
+                                    <input type="text" value="100.00 XTZ">
+                                </div>
+                            </div>
+                            <div class="op-footer">
+                                <div class="op-details">
+                                    <p>Available: $ 107,500.00</p>
+                                    <p>Rate: 1.00 USD = 3.23 XTZ</p>
+                                    <p>Fee: 13.17 USD</p>
+                                </div>
+                                <button class="btn-dark">⇌ Exchange</button>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white earnings">
+                            <div class="earn-header">
+                                <h3>Load Profile</h3>
+                                <nav class="time-tabs">
+                                    <span class="active" style="border-bottom:2px solid var(--c-dark); padding-bottom:2px;">Annual Hourly Load Profile</span>
+                                    <span>LDC</span>
+                                </nav>
+                            </div>
+                            <div class="chart-placeholder" style="flex:1; display:flex; align-items:stretch;">
+                                <svg viewBox="-5 10 450 218" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%; display:block;">
+                                    <defs>
+                                        <linearGradient id="loadGrad" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stop-color="#2e64c8" stop-opacity="0.20"/>
+                                            <stop offset="15%" stop-color="#2e64c8" stop-opacity="0.18"/>
+                                            <stop offset="40%" stop-color="#c94030" stop-opacity="0.15"/>
+                                            <stop offset="55%" stop-color="#c94030" stop-opacity="0.22"/>
+                                            <stop offset="70%" stop-color="#c94030" stop-opacity="0.15"/>
+                                            <stop offset="85%" stop-color="#2e64c8" stop-opacity="0.18"/>
+                                            <stop offset="100%" stop-color="#2e64c8" stop-opacity="0.20"/>
+                                        </linearGradient>
+                                        <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stop-color="#2e64c8"/>
+                                            <stop offset="15%" stop-color="#2e64c8"/>
+                                            <stop offset="40%" stop-color="#9040a0"/>
+                                            <stop offset="55%" stop-color="#c94030"/>
+                                            <stop offset="70%" stop-color="#9040a0"/>
+                                            <stop offset="85%" stop-color="#2e64c8"/>
+                                            <stop offset="100%" stop-color="#2e64c8"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <text x="42" y="33" text-anchor="end" style="font-size:10px; fill:#a09c97;">400 kW</text>
+                                    <line x1="45" y1="30" x2="430" y2="30" stroke="#eee" stroke-width="0.5"/>
+                                    <text x="42" y="73" text-anchor="end" style="font-size:10px; fill:#a09c97;">300 kW</text>
+                                    <line x1="45" y1="70" x2="430" y2="70" stroke="#eee" stroke-width="0.5"/>
+                                    <text x="42" y="113" text-anchor="end" style="font-size:10px; fill:#a09c97;">200 kW</text>
+                                    <line x1="45" y1="110" x2="430" y2="110" stroke="#eee" stroke-width="0.5"/>
+                                    <text x="42" y="153" text-anchor="end" style="font-size:10px; fill:#a09c97;">100 kW</text>
+                                    <line x1="45" y1="150" x2="430" y2="150" stroke="#eee" stroke-width="0.5"/>
+                                    <line x1="45" y1="190" x2="430" y2="190" stroke="#ddd" stroke-width="0.5"/>
+                                    <polygon points="45.0,154.1 46.9,154.1 48.8,153.2 50.7,154.5 52.6,153.6 54.4,152.2 56.3,151.3 58.2,148.2 60.1,146.2 62.0,145.0 63.9,145.6 65.8,148.1 67.7,152.1 69.6,154.7 71.5,156.9 73.3,158.3 75.2,157.3 77.1,156.4 79.0,156.4 80.9,158.8 82.8,159.8 84.7,160.0 86.6,158.4 88.5,155.5 90.4,152.6 92.2,150.7 94.1,149.0 96.0,147.6 97.9,147.7 99.8,148.6 101.7,151.0 103.6,150.7 105.5,150.5 107.4,149.7 109.3,149.3 111.1,149.6 113.0,149.6 114.9,147.6 116.8,143.1 118.7,136.1 120.6,130.4 122.5,129.2 124.4,131.7 126.3,136.1 128.2,140.9 130.0,142.8 131.9,143.0 133.8,143.5 135.7,143.0 137.6,140.9 139.5,138.4 141.4,137.4 143.3,135.9 145.2,132.9 147.1,131.9 148.9,131.1 150.8,132.7 152.7,136.8 154.6,139.0 156.5,138.1 158.4,135.7 160.3,132.4 162.2,129.5 164.1,129.3 165.9,130.2 167.8,130.8 169.7,130.4 171.6,129.7 173.5,127.8 175.4,126.6 177.3,126.3 179.2,124.8 181.1,125.9 183.0,123.5 184.8,121.5 186.7,121.9 188.6,121.2 190.5,122.0 192.4,121.7 194.3,121.6 196.2,120.1 198.1,120.4 200.0,120.9 201.9,117.4 203.7,115.8 205.6,114.9 207.5,114.5 209.4,115.8 211.3,116.7 213.2,112.8 215.1,113.7 217.0,115.2 218.9,111.9 220.8,112.5 222.6,108.1 224.5,106.4 226.4,109.1 228.3,108.1 230.2,106.6 232.1,103.8 234.0,102.5 235.9,103.8 237.8,104.9 239.7,106.7 241.5,106.4 243.4,105.7 245.3,106.2 247.2,104.3 249.1,102.1 251.0,100.6 252.9,97.2 254.8,94.7 256.7,96.7 258.6,98.4 260.4,99.6 262.3,101.6 264.2,100.5 266.1,100.9 268.0,103.2 269.9,103.8 271.8,104.0 273.7,103.0 275.6,100.4 277.5,100.6 279.3,100.6 281.2,100.7 283.1,102.3 285.0,100.9 286.9,104.2 288.8,107.2 290.7,108.5 292.6,109.1 294.5,106.7 296.3,106.2 298.2,108.8 300.1,112.6 302.0,116.1 303.9,118.1 305.8,116.7 307.7,115.0 309.6,114.6 311.5,111.9 313.4,110.4 315.2,107.8 317.1,107.2 319.0,108.3 320.9,108.7 322.8,113.0 324.7,112.9 326.6,114.5 328.5,119.7 330.4,120.9 332.3,124.1 334.1,124.8 336.0,124.1 337.9,127.1 339.8,127.0 341.7,125.7 343.6,125.6 345.5,125.9 347.4,129.1 349.3,134.0 351.2,134.0 353.0,130.1 354.9,129.8 356.8,128.7 358.7,129.7 360.6,133.4 362.5,131.2 364.4,133.0 366.3,132.7 368.2,131.0 370.1,134.1 371.9,134.2 373.8,136.3 375.7,138.2 377.6,137.4 379.5,136.4 381.4,136.7 383.3,137.3 385.2,139.1 387.1,141.8 389.0,141.5 390.8,139.4 392.7,139.1 394.6,138.1 396.5,139.5 398.4,143.4 400.3,146.2 402.2,150.0 404.1,153.2 406.0,157.0 407.8,155.7 409.7,153.1 411.6,149.2 413.5,145.2 415.4,144.6 417.3,146.0 419.2,146.2 421.1,148.7 423.0,152.4 424.9,154.5 426.7,156.9 428.6,157.1 430.0,190.0 45.0,190.0" fill="url(#loadGrad)"/>
+                                    <polyline fill="none" stroke="url(#lineGrad)" stroke-width="1.5" stroke-linejoin="round"
+                                        points="45.0,154.1 46.9,154.1 48.8,153.2 50.7,154.5 52.6,153.6 54.4,152.2 56.3,151.3 58.2,148.2 60.1,146.2 62.0,145.0 63.9,145.6 65.8,148.1 67.7,152.1 69.6,154.7 71.5,156.9 73.3,158.3 75.2,157.3 77.1,156.4 79.0,156.4 80.9,158.8 82.8,159.8 84.7,160.0 86.6,158.4 88.5,155.5 90.4,152.6 92.2,150.7 94.1,149.0 96.0,147.6 97.9,147.7 99.8,148.6 101.7,151.0 103.6,150.7 105.5,150.5 107.4,149.7 109.3,149.3 111.1,149.6 113.0,149.6 114.9,147.6 116.8,143.1 118.7,136.1 120.6,130.4 122.5,129.2 124.4,131.7 126.3,136.1 128.2,140.9 130.0,142.8 131.9,143.0 133.8,143.5 135.7,143.0 137.6,140.9 139.5,138.4 141.4,137.4 143.3,135.9 145.2,132.9 147.1,131.9 148.9,131.1 150.8,132.7 152.7,136.8 154.6,139.0 156.5,138.1 158.4,135.7 160.3,132.4 162.2,129.5 164.1,129.3 165.9,130.2 167.8,130.8 169.7,130.4 171.6,129.7 173.5,127.8 175.4,126.6 177.3,126.3 179.2,124.8 181.1,125.9 183.0,123.5 184.8,121.5 186.7,121.9 188.6,121.2 190.5,122.0 192.4,121.7 194.3,121.6 196.2,120.1 198.1,120.4 200.0,120.9 201.9,117.4 203.7,115.8 205.6,114.9 207.5,114.5 209.4,115.8 211.3,116.7 213.2,112.8 215.1,113.7 217.0,115.2 218.9,111.9 220.8,112.5 222.6,108.1 224.5,106.4 226.4,109.1 228.3,108.1 230.2,106.6 232.1,103.8 234.0,102.5 235.9,103.8 237.8,104.9 239.7,106.7 241.5,106.4 243.4,105.7 245.3,106.2 247.2,104.3 249.1,102.1 251.0,100.6 252.9,97.2 254.8,94.7 256.7,96.7 258.6,98.4 260.4,99.6 262.3,101.6 264.2,100.5 266.1,100.9 268.0,103.2 269.9,103.8 271.8,104.0 273.7,103.0 275.6,100.4 277.5,100.6 279.3,100.6 281.2,100.7 283.1,102.3 285.0,100.9 286.9,104.2 288.8,107.2 290.7,108.5 292.6,109.1 294.5,106.7 296.3,106.2 298.2,108.8 300.1,112.6 302.0,116.1 303.9,118.1 305.8,116.7 307.7,115.0 309.6,114.6 311.5,111.9 313.4,110.4 315.2,107.8 317.1,107.2 319.0,108.3 320.9,108.7 322.8,113.0 324.7,112.9 326.6,114.5 328.5,119.7 330.4,120.9 332.3,124.1 334.1,124.8 336.0,124.1 337.9,127.1 339.8,127.0 341.7,125.7 343.6,125.6 345.5,125.9 347.4,129.1 349.3,134.0 351.2,134.0 353.0,130.1 354.9,129.8 356.8,128.7 358.7,129.7 360.6,133.4 362.5,131.2 364.4,133.0 366.3,132.7 368.2,131.0 370.1,134.1 371.9,134.2 373.8,136.3 375.7,138.2 377.6,137.4 379.5,136.4 381.4,136.7 383.3,137.3 385.2,139.1 387.1,141.8 389.0,141.5 390.8,139.4 392.7,139.1 394.6,138.1 396.5,139.5 398.4,143.4 400.3,146.2 402.2,150.0 404.1,153.2 406.0,157.0 407.8,155.7 409.7,153.1 411.6,149.2 413.5,145.2 415.4,144.6 417.3,146.0 419.2,146.2 421.1,148.7 423.0,152.4 424.9,154.5 426.7,156.9 428.6,157.1"/>
+                                    <!-- GSHP capacity line (commented out for now)
+                                    <line x1="45" y1="106" x2="430" y2="106" stroke="#557434" stroke-width="1" stroke-dasharray="5,3"/>
+                                    <text x="430" y="101" text-anchor="end" style="font-size:6.5px; fill:#557434; font-weight:600;">GSHP Limit</text>
+                                    -->
+                                    <!-- Peaker capacity line (commented out for now)
+                                    <line x1="45" y1="47" x2="430" y2="47" stroke="#557434" stroke-width="1" stroke-dasharray="5,3"/>
+                                    <text x="430" y="42" text-anchor="end" style="font-size:6.5px; fill:#557434; font-weight:600;">Peaker Limit</text>
+                                    -->
+                                    <!-- Peak bubble with triangle -->
+                                    <rect x="229" y="55" width="52" height="32" rx="4" fill="#1a1a1a"/>
+                                    <polygon points="251,87 255,95 259,87" fill="#1a1a1a"/>
+                                    <text x="255" y="66" text-anchor="middle" style="font-size:8px; fill:#999; font-weight:500;">Peak</text>
+                                    <text x="255" y="76" text-anchor="middle" style="font-size:9px; fill:white; font-weight:700;">238 kW</text>
+                                    <text x="255" y="85" text-anchor="middle" style="font-size:7px; fill:#999;">Jul 18</text>
+                                    <text x="45" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,45,205)">Jan</text>
+                                    <text x="78" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,78,205)">Feb</text>
+                                    <text x="107" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,107,205)">Mar</text>
+                                    <text x="140" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,140,205)">Apr</text>
+                                    <text x="172" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,172,205)">May</text>
+                                    <text x="204" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,204,205)">Jun</text>
+                                    <text x="236" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,236,205)">Jul</text>
+                                    <text x="269" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,269,205)">Aug</text>
+                                    <text x="301" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,301,205)">Sep</text>
+                                    <text x="333" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,333,205)">Oct</text>
+                                    <text x="366" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,366,205)">Nov</text>
+                                    <text x="397" y="205" style="font-size:10px; fill:#a09c97;" transform="rotate(-35,397,205)">Dec</text>
+                                    <text x="237" y="220" text-anchor="middle" style="font-size:10px; fill:#7a7a8c;">Time (8,760 hrs)</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Bottom Row: Top PoS & Promo -->
+                    <section class="bottom-row">
+                        <div class="card bg-white top-pos">
+                            <div class="pos-header" style="margin-bottom:0.25rem;">
+                                <h3>Borefield Design Layout</h3>
+                                <span class="text-link" style="pointer-events:none;">Large Hotel</span>
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                <svg viewBox="0 0 360 192" style="width:100%; max-width:360px; height:auto;">
+                                    <defs>
+                                        <marker id="arrowL" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6" fill="none" stroke="#555" stroke-width="0.7"/></marker>
+                                        <marker id="arrowR" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#555" stroke-width="0.7"/></marker>
+                                        <marker id="arrowU" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto"><path d="M0,6 L3,0 L6,6" fill="none" stroke="#555" stroke-width="0.7"/></marker>
+                                        <marker id="arrowD" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto"><path d="M0,0 L3,6 L6,0" fill="none" stroke="#555" stroke-width="0.7"/></marker>
+                                    </defs>
+                                    <!-- Building footprint -->
+                                    <rect x="80" y="40" width="200" height="100" rx="2" fill="#e8f0e4" stroke="#3a5a2a" stroke-width="1.5"/>
+                                    <!-- Borehole connections: green dashed lines around perimeter -->
+                                    <g stroke="#3a7a3a" stroke-width="0.8" stroke-dasharray="3,2" fill="none">
+                                        <!-- Top row connections -->
+                                        <line x1="66" y1="25" x2="84" y2="25"/><line x1="96" y1="25" x2="114" y2="25"/><line x1="126" y1="25" x2="144" y2="25"/><line x1="156" y1="25" x2="174" y2="25"/><line x1="186" y1="25" x2="204" y2="25"/><line x1="216" y1="25" x2="234" y2="25"/><line x1="246" y1="25" x2="264" y2="25"/><line x1="276" y1="25" x2="294" y2="25"/>
+                                        <!-- Bottom row connections -->
+                                        <line x1="66" y1="155" x2="84" y2="155"/><line x1="96" y1="155" x2="114" y2="155"/><line x1="126" y1="155" x2="144" y2="155"/><line x1="156" y1="155" x2="174" y2="155"/><line x1="186" y1="155" x2="204" y2="155"/><line x1="216" y1="155" x2="234" y2="155"/><line x1="246" y1="155" x2="264" y2="155"/><line x1="276" y1="155" x2="294" y2="155"/>
+                                        <!-- Left column connections -->
+                                        <line x1="60" y1="31" x2="60" y2="51"/><line x1="60" y1="63" x2="60" y2="83"/><line x1="60" y1="95" x2="60" y2="117"/><line x1="60" y1="129" x2="60" y2="149"/>
+                                        <!-- Right column connections -->
+                                        <line x1="300" y1="31" x2="300" y2="64"/><line x1="300" y1="76" x2="300" y2="104"/><line x1="300" y1="116" x2="300" y2="149"/>
+                                        <!-- Corner connections removed -->
+                                    </g>
+                                    <!-- Boreholes: 23 total around perimeter -->
+                                    <!-- Top row: 9 -->
+                                    <g fill="none" stroke="#3a7a3a" stroke-width="1.2">
+                                        <circle cx="60" cy="25" r="6"/><line x1="55.8" y1="20.8" x2="64.2" y2="29.2"/><line x1="64.2" y1="20.8" x2="55.8" y2="29.2"/>
+                                        <circle cx="90" cy="25" r="6"/><line x1="85.8" y1="20.8" x2="94.2" y2="29.2"/><line x1="94.2" y1="20.8" x2="85.8" y2="29.2"/>
+                                        <circle cx="120" cy="25" r="6"/><line x1="115.8" y1="20.8" x2="124.2" y2="29.2"/><line x1="124.2" y1="20.8" x2="115.8" y2="29.2"/>
+                                        <circle cx="150" cy="25" r="6"/><line x1="145.8" y1="20.8" x2="154.2" y2="29.2"/><line x1="154.2" y1="20.8" x2="145.8" y2="29.2"/>
+                                        <circle cx="180" cy="25" r="6"/><line x1="175.8" y1="20.8" x2="184.2" y2="29.2"/><line x1="184.2" y1="20.8" x2="175.8" y2="29.2"/>
+                                        <circle cx="210" cy="25" r="6"/><line x1="205.8" y1="20.8" x2="214.2" y2="29.2"/><line x1="214.2" y1="20.8" x2="205.8" y2="29.2"/>
+                                        <circle cx="240" cy="25" r="6"/><line x1="235.8" y1="20.8" x2="244.2" y2="29.2"/><line x1="244.2" y1="20.8" x2="235.8" y2="29.2"/>
+                                        <circle cx="270" cy="25" r="6"/><line x1="265.8" y1="20.8" x2="274.2" y2="29.2"/><line x1="274.2" y1="20.8" x2="265.8" y2="29.2"/>
+                                        <circle cx="300" cy="25" r="6"/><line x1="295.8" y1="20.8" x2="304.2" y2="29.2"/><line x1="304.2" y1="20.8" x2="295.8" y2="29.2"/>
+                                    </g>
+                                    <!-- Bottom row: 9 -->
+                                    <g fill="none" stroke="#3a7a3a" stroke-width="1.2">
+                                        <circle cx="60" cy="155" r="6"/><line x1="55.8" y1="150.8" x2="64.2" y2="159.2"/><line x1="64.2" y1="150.8" x2="55.8" y2="159.2"/>
+                                        <circle cx="90" cy="155" r="6"/><line x1="85.8" y1="150.8" x2="94.2" y2="159.2"/><line x1="94.2" y1="150.8" x2="85.8" y2="159.2"/>
+                                        <circle cx="120" cy="155" r="6"/><line x1="115.8" y1="150.8" x2="124.2" y2="159.2"/><line x1="124.2" y1="150.8" x2="115.8" y2="159.2"/>
+                                        <circle cx="150" cy="155" r="6"/><line x1="145.8" y1="150.8" x2="154.2" y2="159.2"/><line x1="154.2" y1="150.8" x2="145.8" y2="159.2"/>
+                                        <circle cx="180" cy="155" r="6"/><line x1="175.8" y1="150.8" x2="184.2" y2="159.2"/><line x1="184.2" y1="150.8" x2="175.8" y2="159.2"/>
+                                        <circle cx="210" cy="155" r="6"/><line x1="205.8" y1="150.8" x2="214.2" y2="159.2"/><line x1="214.2" y1="150.8" x2="205.8" y2="159.2"/>
+                                        <circle cx="240" cy="155" r="6"/><line x1="235.8" y1="150.8" x2="244.2" y2="159.2"/><line x1="244.2" y1="150.8" x2="235.8" y2="159.2"/>
+                                        <circle cx="270" cy="155" r="6"/><line x1="265.8" y1="150.8" x2="274.2" y2="159.2"/><line x1="274.2" y1="150.8" x2="265.8" y2="159.2"/>
+                                        <circle cx="300" cy="155" r="6"/><line x1="295.8" y1="150.8" x2="304.2" y2="159.2"/><line x1="304.2" y1="150.8" x2="295.8" y2="159.2"/>
+                                    </g>
+                                    <!-- Left column: 3 (excluding corners) -->
+                                    <g fill="none" stroke="#3a7a3a" stroke-width="1.2">
+                                        <circle cx="60" cy="57" r="6"/><line x1="55.8" y1="52.8" x2="64.2" y2="61.2"/><line x1="64.2" y1="52.8" x2="55.8" y2="61.2"/>
+                                        <circle cx="60" cy="90" r="6"/><line x1="55.8" y1="85.8" x2="64.2" y2="94.2"/><line x1="64.2" y1="85.8" x2="55.8" y2="94.2"/>
+                                        <circle cx="60" cy="123" r="6"/><line x1="55.8" y1="118.8" x2="64.2" y2="127.2"/><line x1="64.2" y1="118.8" x2="55.8" y2="127.2"/>
+                                    </g>
+                                    <!-- Right column: 2 (excluding corners) -->
+                                    <g fill="none" stroke="#3a7a3a" stroke-width="1.2">
+                                        <circle cx="300" cy="70" r="6"/><line x1="295.8" y1="65.8" x2="304.2" y2="74.2"/><line x1="304.2" y1="65.8" x2="295.8" y2="74.2"/>
+                                        <circle cx="300" cy="110" r="6"/><line x1="295.8" y1="105.8" x2="304.2" y2="114.2"/><line x1="304.2" y1="105.8" x2="295.8" y2="114.2"/>
+                                    </g>
+                                    <!-- Dimension: width (horizontal) -->
+                                    <line x1="63" y1="175" x2="297" y2="175" stroke="#555" stroke-width="0.7"/>
+                                    <polygon points="63,172 55,175 63,178" fill="#555"/>
+                                    <polygon points="297,172 305,175 297,178" fill="#555"/>
+                                    <text x="180" y="186" text-anchor="middle" style="font-size:8px; fill:#555;">61.5 m</text>
+                                    <!-- Dimension: height (vertical) -->
+                                    <line x1="325" y1="28" x2="325" y2="152" stroke="#555" stroke-width="0.7"/>
+                                    <polygon points="322,28 325,20 328,28" fill="#555"/>
+                                    <polygon points="322,152 325,160 328,152" fill="#555"/>
+                                    <text x="340" y="95" text-anchor="middle" style="font-size:8px; fill:#555;" transform="rotate(90,340,95)">30.7 m</text>
+                                    <!-- Scale bar removed -->
+                                </svg>
+                                <p style="font-size:0.65rem; color:#888; margin-top:0.15rem; text-align:center;">Rectangle (2:1) · 1,891 m² · 6 floors</p>
+                            </div>
+                        </div>
+
+                        <div class="card bg-dark promo">
+                            <h3>Stack your PoS tokens<br>with Palmer</h3>
+                            <p>PoS is a cryptocurrency mechanism<br>for processing transactions and<br>creating new blocks in a blockchain</p>
+                            <button class="btn-arrow">↘</button>
+                        </div>
+                    </section>
+                </main>
+
+                <!-- Right Column (Feasibility Score) -->
+                <aside class="right-column">
+                    <nav class="right-tabs">
+                        <h2 class="active">Feasibility Score</h2>
+                        <!-- <h2>Borrow</h2> -->
+                    </nav>
+
+                    <!-- Score Card — from result_report.html, static Chicago 60601 data -->
+                    <div class="score-card" style="border-radius:16px; padding:26px 22px; color:white; background:linear-gradient(135deg,#1a4a90 0%,#2560b8 60%,#3478d4 100%); box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+                        <div style="display:flex; align-items:flex-start; gap:16px; margin-bottom:22px;">
+                            <div style="font-size:64px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#a8c8ff;">81</div>
+                            <div style="padding-top:6px;">
+                                <div><span style="display:inline-block; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 14px; border-radius:100px; background:rgba(255,255,255,0.2); color:white; margin-bottom:8px;">Excellent</span></div>
+                                <div style="font-size:14px; color:rgba(255,255,255,0.75);">+11 vs benchmark</div>
+                            </div>
+                        </div>
+                        <div style="font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.7); margin-bottom:28px;">GSHP Feasibility Score / 100</div>
+                        <!-- Factor bars -->
+                        <div style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Soil conductivity</span><span>32 / 40 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:80%;"></div></div>
+                        </div>
+                        <div style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Climate balance</span><span>22 / 30 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:73%;"></div></div>
+                        </div>
+                        <div style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Ground temperature</span><span>17 / 20 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:85%;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Building suitability</span><span>10 / 10 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:100%;"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Hero stats — 2×2, no card, vertical line only, extra row gap -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; row-gap:18px; padding:16px 0;">
+                        <!-- Row 1: Heating | Cooling -->
+                        <div style="padding:0 16px; border-right:1px solid #dddbd7;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#c94030;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">HEATING</span>
+                            </div>
+                            <div><span style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#c94030;">78.7</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">kW</span></div>
+                            <div style="font-size:11px; color:#a09c97; margin-top:4px;">Peak design load</div>
+                        </div>
+                        <div style="padding:0 16px 0 22px;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#2e64c8;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">COOLING</span>
+                            </div>
+                            <div><span style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#2e64c8;">358</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">kW</span></div>
+                            <div style="font-size:11px; color:#a09c97; margin-top:4px;">Peak design load</div>
+                        </div>
+                        <!-- Row 2: Boreholes | Hybrid Peaker -->
+                        <div style="padding:0 16px; border-right:1px solid #dddbd7;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#557434;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">BOREHOLES</span>
+                            </div>
+                            <div><span style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#557434;">23</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">NB</span></div>
+                            <div style="font-size:11px; color:#a09c97; margin-top:4px;">125 m each</div>
+                        </div>
+                        <div style="padding:0 16px 0 22px;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#557434;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">PEAKER</span>
+                            </div>
+                            <div><span style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#557434;">149</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">kW</span></div>
+                            <div style="font-size:11px; color:#a09c97; margin-top:4px;">Chiller</div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
