@@ -131,6 +131,7 @@ def serve_html_page(page):
         "stage1a", "stage1b", "stage1c", "stage2",
         "result_1", "result_final", "result_strategy", "result_report",
         "signup", "account", "phone_preview", "contact",
+        "report_dashboard",
     }
     if page not in allowed:
         from flask import abort
