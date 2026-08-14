@@ -72,8 +72,8 @@
                     </div>
 
                     <!-- Wallets Section -->
-                    <section class="wallets-section">
-                        <div class="wallet-intro" style="display:flex; flex-direction:column; gap:0.5rem;">
+                    <section class="wallets-section" style="gap:1rem;">
+                        <div class="wallet-intro" style="display:flex; flex-direction:column; gap:0.4rem;">
                             <h2>Site</h2>
                             <p>Understand the climate, ground, and building conditions driving your design</p>
                             <a href="#" class="text-link dark-link">View more site analysis ➔</a>
@@ -242,11 +242,11 @@
                     <!-- Bottom Row: Top PoS & Promo -->
                     <section class="bottom-row">
                         <div class="card bg-white top-pos">
-                            <div class="pos-header" style="margin-bottom:0.25rem;">
+                            <div class="pos-header" style="margin-bottom:0;">
                                 <h3>Borefield Design Layout</h3>
                                 <span class="text-link" style="pointer-events:none;">Large Hotel</span>
                             </div>
-                            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;">
                                 <svg viewBox="0 0 360 192" style="width:100%; max-width:360px; height:auto;">
                                     <defs>
                                         <marker id="arrowL" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6" fill="none" stroke="#555" stroke-width="0.7"/></marker>
@@ -316,12 +316,15 @@
                                     <text x="340" y="95" text-anchor="middle" style="font-size:8px; fill:#555;" transform="rotate(90,340,95)">30.7 m</text>
                                     <!-- Scale bar removed -->
                                 </svg>
-                                <p style="font-size:0.65rem; color:#888; margin-top:0.15rem; text-align:center;">Rectangle (2:1) · 1,891 m² · 6 floors</p>
+                                <p style="font-size:0.65rem; color:#888; margin-top:0; margin-bottom:-0.5rem; text-align:center;">Rectangle (2:1) · 1,891 m² · 6 floors</p>
                             </div>
                         </div>
 
-                        <div class="card bg-dark promo">
-                            <h3 style="color:var(--c-purple); font-size:1.1rem; font-weight:700; margin-bottom:0.75rem;">Estimated Performance</h3>
+                        <div class="card bg-dark promo" style="padding-bottom:1rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                                <h3 style="color:var(--c-purple); font-size:1.1rem; font-weight:700; margin-bottom:0;">Estimated Performance</h3>
+                                <button class="btn-arrow" style="position:static; width:28px; height:28px; font-size:0.85rem; flex-shrink:0;">↘</button>
+                            </div>
                             <div style="display:flex; flex-direction:column; gap:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
                                     <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Dominant load mode</span>
@@ -339,12 +342,11 @@
                                     <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">GSHP coverage (energy)</span>
                                     <span style="font-size:1rem; font-weight:800; color:#a8c8ff;">87.5%</span>
                                 </div>
-                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0 1rem 0;">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0 0 0;">
                                     <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Borefield reduction (hybrid)</span>
                                     <span style="font-size:1rem; font-weight:800; color:#a8c8ff;">42.3%</span>
                                 </div>
                             </div>
-                            <button class="btn-arrow" style="width:32px; height:32px; font-size:1rem;">↘</button>
                         </div>
                     </section>
                 </main>
