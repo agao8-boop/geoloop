@@ -131,32 +131,37 @@
                     <section class="middle-row">
                         <div class="card bg-orange operations">
                             <div class="op-header">
-                                <h3>Operations</h3>
-                                <nav class="op-tabs">
-                                    <span class="active">Exchange</span>
-                                    <span>Buy</span>
-                                    <span>Sell</span>
-                                    <span>Send</span>
-                                </nav>
+                                <h3>Cost &amp; Savings</h3>
+                                <span style="font-size:0.75rem; color:#888; font-weight:500;">30-year lifecycle</span>
                             </div>
                             <div class="op-inputs">
-                                <div class="input-group">
-                                    <div class="dropdown"><span class="icon-circle dark small">$</span> Dollar ⌄</div>
-                                    <input type="text" value="$ 323.65">
+                                <div class="input-group" style="padding:0.75rem; text-align:center;">
+                                    <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7a7a8c; margin-bottom:4px;">GSHP System</div>
+                                    <div style="font-size:1.35rem; font-weight:800; color:var(--c-dark); letter-spacing:-0.02em;">$1,840,000</div>
                                 </div>
-                                <div class="swap-icon">⇌</div>
-                                <div class="input-group">
-                                    <div class="dropdown"><span class="icon-circle dark small">ꜩ</span> Tezos ⌄</div>
-                                    <input type="text" value="100.00 XTZ">
+                                <div class="swap-icon" style="font-size:0.75rem; font-weight:700; color:#888;">vs.</div>
+                                <div class="input-group" style="padding:0.75rem; text-align:center;">
+                                    <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7a7a8c; margin-bottom:4px;">Conventional HVAC</div>
+                                    <div style="font-size:1.35rem; font-weight:800; color:var(--c-dark); letter-spacing:-0.02em;">$920,000</div>
                                 </div>
                             </div>
-                            <div class="op-footer">
-                                <div class="op-details">
-                                    <p>Available: $ 107,500.00</p>
-                                    <p>Rate: 1.00 USD = 3.23 XTZ</p>
-                                    <p>Fee: 13.17 USD</p>
+                            <div class="op-footer" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                                <div style="display:flex; gap:1.5rem; font-size:0.72rem; color:#555; font-weight:500; line-height:1.7;">
+                                    <div style="flex:1;">
+                                        <p>Drilling &amp; loops · $1,120K</p>
+                                        <p>Heat pumps · $480K</p>
+                                        <p>Distribution · $240K</p>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <p>Boiler · $380K</p>
+                                        <p>Chiller · $410K</p>
+                                        <p>Distribution · $130K</p>
+                                    </div>
                                 </div>
-                                <button class="btn-dark">⇌ Exchange</button>
+                                <div style="border-top:1px solid rgba(0,0,0,0.1); padding-top:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:0.8rem; font-weight:600; color:var(--c-dark);">Net 30-yr savings</span>
+                                    <span style="font-size:1rem; font-weight:800; color:#3a7a3a;">$620,000</span>
+                                </div>
                             </div>
                         </div>
 
@@ -316,9 +321,29 @@
                         </div>
 
                         <div class="card bg-dark promo">
-                            <h3>Stack your PoS tokens<br>with Palmer</h3>
-                            <p>PoS is a cryptocurrency mechanism<br>for processing transactions and<br>creating new blocks in a blockchain</p>
-                            <button class="btn-arrow">↘</button>
+                            <h3 style="color:rgba(255,255,255,0.5); font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">Estimated Performance</h3>
+                            <div style="display:flex; flex-direction:column; gap:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Dominant load mode</span>
+                                    <span style="font-size:0.85rem; font-weight:700; color:white;">cooling</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Peaker capacity</span>
+                                    <span style="font-size:0.85rem; font-weight:700; color:white;">149 kW <span style="font-weight:400; font-size:0.7rem; color:rgba(255,255,255,0.45);">(chiller)</span></span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">GSHP coverage (hours)</span>
+                                    <span style="font-size:1rem; font-weight:800; color:#a8c8ff;">98.2%</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">GSHP coverage (energy)</span>
+                                    <span style="font-size:1rem; font-weight:800; color:#a8c8ff;">87.5%</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0;">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Borefield reduction (hybrid)</span>
+                                    <span style="font-size:1rem; font-weight:800; color:#a8c8ff;">42.3%</span>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </main>
