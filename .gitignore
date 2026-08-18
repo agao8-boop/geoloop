@@ -13,3 +13,17 @@ __pycache__/
 *.pyc
 .DS_Store
 .codebase-memory/
+.vscode/
+
+# large datasets (exceed GitHub limits; keep local only)
+data/
+
+# nested unrelated project (its own git repo)
+travel-photo-abstraction/
+
+# personal / working notes (kept out of the public repo)
+interview_prep_intersect.md
+weekly_progress/
+DESIGN-IS-2026-07-18/
+HANDOFF-SETUP.md
+.handoff/

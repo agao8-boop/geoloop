@@ -175,7 +175,7 @@ function doLogin() {
 function showNamePanel() {
   document.getElementById('signup-panel').style.display = 'none';
   document.getElementById('login-panel').style.display  = 'none';
-  document.getElementById('name-panel').style.display   = '';
+  document.getElementById('name-panel').style.display   = 'block';
   // Prefill with date-based default
   const d = new Date();
   document.getElementById('inp-proj').value =
@@ -185,6 +185,12 @@ function showNamePanel() {
 function saveAndGo(skipName) {
   const nameEl = document.getElementById('inp-proj');
   const projName = skipName ? 'Untitled Analysis' : (nameEl.value.trim() || 'Untitled Analysis');
+  const source = new URLSearchParams(location.search).get('source') || 'report';
+  if (source === 'welcome') {
+    sessionStorage.setItem('gl_pending_project_name', projName);
+    window.location.assign('/onboarding_1.html');
+    return;
+  }
 
   // Collect current analysis data from sessionStorage
   const sizing   = JSON.parse(sessionStorage.getItem('gl_result_final')    || '{}');
@@ -211,7 +217,7 @@ function saveAndGo(skipName) {
   projects.unshift(project);
   localStorage.setItem('gl_projects_' + user.email, JSON.stringify(projects));
 
-  window.location.href = 'account.html';
+  (window.top || window).location.assign('/account.html?fresh=' + Date.now());
 }
 
 function showErr(el, msg) { el.textContent = msg; el.classList.add('show'); }

@@ -21,7 +21,7 @@
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-top: 56px; padding-bottom: env(safe-area-inset-bottom); }
 
     /* Nav */
 
@@ -69,6 +69,12 @@
     .err-msg { font-size:11px; color:#e05c4a; margin-top:5px; display:none; }
     .err-msg.show { display:block; }
 
+
+    /* ── Icon-inside input wrapper ── */
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; flex-shrink: 0; }
+    .input-icon-wrap input { padding-left: 42px; }
+
     /* ── BOTTOM BUTTON ── */
     .btn-bottom { margin-top:auto; padding-top:0; display:flex; justify-content:center; align-items:center; gap:16px; }
     .back-btn { position:relative; display:inline-flex; align-items:center; justify-content:center; overflow:visible; isolation:isolate; background:transparent; color:var(--text); font-family:var(--font); font-weight:700; font-size:0.95rem; letter-spacing:0.01em; line-height:1; padding:11px 20px; border-radius:100px; border:1px solid var(--border); cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; transition:transform 0.15s ease; }
@@ -87,8 +93,8 @@
 <body>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -100,20 +106,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
@@ -137,11 +138,14 @@
 
     <div class="field" id="f-zip">
       <div class="field-header">
-        <span class="field-label">ZIP Code <span class="req">*</span></span>
+        <span class="req-dot"></span><span class="field-label">ZIP Code</span>
         <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
         <div class="tooltip">5-digit US ZIP code. Used to look up your climate zone, soil thermal conductivity, and ground temperature from county-level geological survey data.</div>
       </div>
-      <input type="text" id="zip" inputmode="numeric" maxlength="5" placeholder="5-digit US ZIP code" autocomplete="postal-code">
+      <div class="input-icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <input type="text" id="zip" inputmode="numeric" maxlength="5" placeholder="5-digit US ZIP code" autocomplete="postal-code">
+      </div>
       <div class="err-msg" id="zip-err">Please enter a valid 5-digit ZIP code.</div>
       <div class="field-hint">Climate zone and soil k/α are auto-detected via USGS + ML model.</div>
     </div>

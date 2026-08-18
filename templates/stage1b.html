@@ -21,7 +21,7 @@
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-top: 56px; padding-bottom: env(safe-area-inset-bottom); }
 
     /* Nav */
 
@@ -95,8 +95,8 @@
 <body>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -108,20 +108,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
@@ -145,7 +140,7 @@
     <!-- Building Type -->
     <div class="field" id="f-type">
       <div class="field-header">
-        <span class="field-label">Building Type <span class="req">*</span></span>
+        <span class="req-dot"></span><span class="field-label">Building Type</span>
         <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
         <div class="tooltip">Selects the matching DOE prototype EnergyPlus model. Affects thermal loads, occupancy schedules, and peak demand estimates.</div>
       </div>
@@ -193,7 +188,7 @@
           <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
           <div class="tooltip">Total gross conditioned floor area in m². Leave blank to use the DOE prototype default for the selected building type.</div>
         </div>
-        <input type="number" id="floor-area" inputmode="decimal" min="10" step="1" placeholder="DOE default">
+        <input type="number" id="floor-area" inputmode="decimal" min="10" step="1" placeholder="DOE default" class="gl-underline">
         <div class="field-hint">m² · blank = prototype default</div>
       </div>
       <div class="field">
@@ -202,7 +197,7 @@
           <button class="info-btn" onclick="toggleTip(this)" aria-label="More info" type="button">i</button>
           <div class="tooltip">Number of above-grade floors. Used to scale the prototype thermal loads to your building dimensions.</div>
         </div>
-        <input type="number" id="floors" inputmode="numeric" min="1" max="200" step="1" placeholder="DOE default">
+        <input type="number" id="floors" inputmode="numeric" min="1" max="200" step="1" placeholder="DOE default" class="gl-underline">
         <div class="field-hint">Above-grade only</div>
       </div>
     </div>
@@ -215,7 +210,7 @@
         <div class="tooltip">Building plan geometry. Affects the perimeter-to-area ratio used to estimate how many boreholes fit around the building edge.</div>
       </div>
       <div class="select-wrap">
-        <select id="footprint-shape">
+        <select id="footprint-shape" class="gl-underline">
           <option value="square">Square (1:1)</option>
           <option value="rect_2_1" selected>Rectangle (2:1)</option>
           <option value="l_shape">L-shape</option>
@@ -233,7 +228,7 @@
         <div class="tooltip">Sets the baseline envelope performance tier. Defaults for WWR, infiltration, and glazing are auto-adjusted from age — override on the next screen only if the building has been retrofitted.</div>
       </div>
       <div class="select-wrap">
-        <select id="building-age">
+        <select id="building-age" class="gl-underline">
           <option value="new">New / planned (&lt;5 yrs)</option>
           <option value="recent">Recent (5–15 yrs)</option>
           <option value="existing" selected>Existing (15–30 yrs)</option>

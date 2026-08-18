@@ -403,16 +403,17 @@ const FLASK = '';
 const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Footprint feasibility': 25 };
 
 function generatePdf() {
-  // iPhone Safari does not reliably print an iframe. Open a top-level copy so
-  // its system print sheet can save the report as a PDF.
-  const printable = new URL(window.location.href);
-  printable.searchParams.set('print', '1');
+  // Open the horizontal dashboard layout for printing as landscape PDF.
+  // sessionStorage data is shared within the same origin, so the dashboard
+  // will read the same gl_result1 / gl_result_final / gl_strategy_result / gl_cost_result.
+  const dashUrl = '/report_dashboard.html';
   if (window.top !== window) {
-    const popup = window.open(printable.href, '_blank');
+    const popup = window.open(dashUrl, '_blank');
     if (popup) popup.addEventListener('load', () => popup.print(), { once: true });
-    else window.top.location.assign(printable.href);
+    else window.top.location.assign(dashUrl);
   } else {
-    window.print();
+    const popup = window.open(dashUrl, '_blank');
+    if (popup) popup.addEventListener('load', () => popup.print(), { once: true });
   }
 }
 

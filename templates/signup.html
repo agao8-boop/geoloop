@@ -21,8 +21,8 @@
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-bottom:env(safe-area-inset-bottom); }
-
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-top:56px; padding-bottom:env(safe-area-inset-bottom); }
+    .gl-waves-bg { position:fixed; inset:0; z-index:-1; pointer-events:none; }
 
     .main { flex:1; padding:32px 24px 40px; max-width:480px; margin:0 auto; width:100%; }
 
@@ -51,10 +51,11 @@
   </style>
 </head>
 <body>
+<div class="gl-waves-bg"></div>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -66,20 +67,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
@@ -242,5 +238,6 @@ function saveAndGo(skipName) {
 function showErr(el, msg) { el.textContent = msg; el.classList.add('show'); }
 </script>
 <script src="/static/pilnav.js"></script>
+<script src="/static/gradient-waves.js"></script>
 </body>
 </html>

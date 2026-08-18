@@ -162,6 +162,15 @@
     justify-content: center;
     max-width: 500px;
   }
+  .controls-label {
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #4b5563;
+    margin-bottom: 4px;
+  }
 
   .btn {
     padding: 8px 18px;
@@ -176,13 +185,13 @@
     transition: background 0.15s, color 0.15s;
   }
   .btn:hover { background: #222; color: #e5e7eb; }
-  .btn.active { background: #1d4ed8; border-color: #2563eb; color: #fff; }
+  .btn.active { background: #1e5c3a; border-color: #2d8a56; color: #fff; }
 </style>
 </head>
 <body>
 
 <div class="scene">
-  <div class="label">iPhone 15 Preview — 393 × 852</div>
+  <div class="label">GeoLoop — iPhone 15 Preview</div>
 
   <div class="phone">
     <div class="screen">
@@ -223,6 +232,18 @@
       <div class="home-bar"></div>
     </div>
   </div>
+  <div class="controls">
+    <div class="controls-label">Jump to page</div>
+    <button class="btn" onclick="navTo('welcome.html')">Welcome</button>
+    <button class="btn" onclick="navTo('stage1a.html')">1a · ZIP</button>
+    <button class="btn" onclick="navTo('stage1b.html')">1b · Building</button>
+    <button class="btn" onclick="navTo('stage1c.html')">1c · Envelope</button>
+    <button class="btn" onclick="navTo('result_1.html')">Site Analysis</button>
+    <button class="btn" onclick="navTo('stage2.html')">2 · Borehole Params</button>
+    <button class="btn" onclick="navTo('result_final.html')">Borefield Results</button>
+    <button class="btn" onclick="navTo('result_strategy.html')">Strategy</button>
+    <button class="btn" onclick="navTo('result_report.html')">Report</button>
+  </div>
 </div>
 
 <script>
@@ -235,6 +256,24 @@
   }
   updateClock();
   setInterval(updateClock, 10000);
+
+  function navTo(page) {
+    document.getElementById('pageFrame').src = '/' + page;
+    document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  // Highlight active button when iframe navigates
+  const frame = document.getElementById('pageFrame');
+  frame.addEventListener('load', () => {
+    try {
+      const src = frame.contentWindow.location.pathname.replace(/^\//, '');
+      document.querySelectorAll('.btn').forEach(b => {
+        const href = b.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+        b.classList.toggle('active', href === src);
+      });
+    } catch (_) {}
+  });
 </script>
 </body>
 </html>

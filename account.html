@@ -89,7 +89,7 @@
   <button class="nav-signout" onclick="signOut()">Sign out</button>
 </nav>
 
-<main class="main" id="main-content" style="display:none">
+<main class="main" id="main-content">
 
   <div class="user-row">
     <div class="avatar" id="avatar-initials"></div>
@@ -123,8 +123,11 @@
 let pendingDeleteId = null;
 
 function init() {
-  const user = JSON.parse(localStorage.getItem('gl_current_user') || 'null');
+  let user = null;
+  try { user = JSON.parse(localStorage.getItem('gl_current_user') || 'null'); } catch (_) {}
   if (!user) { window.location.href = 'signup.html'; return; }
+  user.name = String(user.name || 'GeoLoop user');
+  user.email = String(user.email || '');
 
   // Populate user info
   document.getElementById('user-name-display').textContent = user.name;
@@ -137,7 +140,11 @@ function init() {
 }
 
 function renderProjects(user) {
-  const projects = JSON.parse(localStorage.getItem('gl_projects_' + user.email) || '[]');
+  let projects = [];
+  try {
+    const stored = JSON.parse(localStorage.getItem('gl_projects_' + user.email) || '[]');
+    projects = Array.isArray(stored) ? stored : [];
+  } catch (_) {}
   const container = document.getElementById('project-list-container');
 
   if (!projects.length) {
@@ -181,6 +188,10 @@ function renderProjects(user) {
 }
 
 function openProject(p) {
+  if (p.snapshot && typeof p.snapshot === 'object') {
+    sessionStorage.clear();
+    Object.entries(p.snapshot).forEach(([key, value]) => sessionStorage.setItem(key, value));
+  }
   // Restore key session data so result pages can render
   if (p.zip)           sessionStorage.setItem('gl_result1',       JSON.stringify({ site: { zip: p.zip }, building_type: p.building_type }));
   if (p.building_type) sessionStorage.setItem('gl_building_type', p.building_type);

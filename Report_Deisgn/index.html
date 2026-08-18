@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo"></div>
+            <nav class="nav-icons">
+                <div class="nav-icons-main">
+                    <div class="icon active"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="11" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg></div>
+                    <div class="icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="14" height="12" rx="2"/><path d="M2 7h14"/></svg></div>
+                    <div class="icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div>
+                    <div class="icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="7"/><path d="M9 5v8M6 10l3 3 3-3"/></svg></div>
+                    <div class="icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 9h10M11 5l4 4-4 4M14 9H4M7 13l-4-4 4-4"/></svg></div>
+                </div>
+                <div class="icon settings"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="3"/><path d="M14.7 11a1.2 1.2 0 0 0 .2 1.3l.1.1a1.5 1.5 0 1 1-2.1 2.1l-.1-.1a1.2 1.2 0 0 0-1.3-.2 1.2 1.2 0 0 0-.7 1.1v.2a1.5 1.5 0 1 1-3 0v-.1a1.2 1.2 0 0 0-.8-1.1 1.2 1.2 0 0 0-1.3.2l-.1.1a1.5 1.5 0 1 1-2.1-2.1l.1-.1a1.2 1.2 0 0 0 .2-1.3 1.2 1.2 0 0 0-1.1-.7h-.2a1.5 1.5 0 1 1 0-3h.1a1.2 1.2 0 0 0 1.1-.8 1.2 1.2 0 0 0-.2-1.3l-.1-.1a1.5 1.5 0 1 1 2.1-2.1l.1.1a1.2 1.2 0 0 0 1.3.2h.1a1.2 1.2 0 0 0 .7-1.1v-.2a1.5 1.5 0 1 1 3 0v.1a1.2 1.2 0 0 0 .7 1.1 1.2 1.2 0 0 0 1.3-.2l.1-.1a1.5 1.5 0 1 1 2.1 2.1l-.1.1a1.2 1.2 0 0 0-.2 1.3v.1a1.2 1.2 0 0 0 1.1.7h.2a1.5 1.5 0 1 1 0 3h-.1a1.2 1.2 0 0 0-1.1.7z"/></svg></div>
+            </nav>
+        </aside>
+
+        <!-- Main Layout Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Navigation -->
+            <header class="topbar">
+                <div class="search-bar">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#999" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg>
+                    <input type="text" placeholder="Search">
+                </div>
+                <div class="tickers">
+                    <div class="ticker">
+                        <span class="coin-icon dark">₿</span> Bitcoin BTC <span class="price">$ 29,313.32</span> <span class="neg">- 2.44%</span>
+                    </div>
+                    <div class="ticker">
+                        <span class="coin-icon blue">L</span> Looping LRC <span class="price">$ 0.5978</span> <span class="pos">+ 18.39%</span>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <svg class="notification" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#555" stroke-width="1.5"><path d="M13.5 6.75a4.5 4.5 0 1 0-9 0c0 5.25-2.25 6.75-2.25 6.75h13.5s-2.25-1.5-2.25-6.75"/><path d="M10.3 15.75a1.5 1.5 0 0 1-2.6 0"/></svg>
+                    <div class="avatar"></div>
+                    <span class="name">Audrey Horne</span>
+                    <span class="dropdown-arrow">⌄</span>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-layout">
+                <!-- Center Column -->
+                <main class="center-column">
+                    <div class="header-row">
+                        <h1>Overview</h1>
+                        <a href="#" class="text-link">View advantages</a>
+                    </div>
+
+                    <!-- Wallets Section -->
+                    <section class="wallets-section">
+                        <div class="wallet-intro">
+                            <h2>Wallets</h2>
+                            <p>Start investing, earn crypto and stack tokens</p>
+                            <a href="#" class="text-link dark-link">View all wallets ➔</a>
+                        </div>
+                        <div class="cards-container">
+                            <div class="card bg-green">
+                                <div class="card-title"><span class="icon-circle dark">$</span> Dollar</div>
+                                <div class="card-subtitle">Total balance</div>
+                                <div class="card-value">$ 107,050.00</div>
+                            </div>
+                            <div class="card bg-white">
+                                <div class="card-title"><span class="icon-circle dark">◈</span> Ethereum</div>
+                                <div class="card-value small">17.228 ETH</div>
+                                <div class="card-change pos">+ 1.24%</div>
+                            </div>
+                            <div class="card bg-white">
+                                <div class="card-title"><span class="icon-circle dark">≡</span> Solana</div>
+                                <div class="card-value small">27,360.00 SOL</div>
+                                <div class="card-change neg">- 1.24%</div>
+                            </div>
+                            <div class="card add-wallet">
+                                <span>+</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Middle Row: Operations & Earnings -->
+                    <section class="middle-row">
+                        <div class="card bg-orange operations">
+                            <div class="op-header">
+                                <h3>Operations</h3>
+                                <nav class="op-tabs">
+                                    <span class="active">Exchange</span>
+                                    <span>Buy</span>
+                                    <span>Sell</span>
+                                    <span>Send</span>
+                                </nav>
+                            </div>
+                            <div class="op-inputs">
+                                <div class="input-group">
+                                    <div class="dropdown"><span class="icon-circle dark small">$</span> Dollar ⌄</div>
+                                    <input type="text" value="$ 323.65">
+                                </div>
+                                <div class="swap-icon">⇌</div>
+                                <div class="input-group">
+                                    <div class="dropdown"><span class="icon-circle dark small">ꜩ</span> Tezos ⌄</div>
+                                    <input type="text" value="100.00 XTZ">
+                                </div>
+                            </div>
+                            <div class="op-footer">
+                                <div class="op-details">
+                                    <p>Available: $ 107,500.00</p>
+                                    <p>Rate: 1.00 USD = 3.23 XTZ</p>
+                                    <p>Fee: 13.17 USD</p>
+                                </div>
+                                <button class="btn-dark">⇌ Exchange</button>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white earnings">
+                            <div class="earn-header">
+                                <h3>Earnings <span class="badge pos">+ 13.14%</span></h3>
+                                <nav class="time-tabs">
+                                    <span class="active">Days</span>
+                                    <span>Months</span>
+                                    <span>Years</span>
+                                </nav>
+                            </div>
+                            <div class="chart-placeholder">
+                                <!-- Simulated Chart -->
+                                <div class="chart-area">
+                                    <div class="chart-y-axis">
+                                        <span>$ 600.00</span>
+                                        <span>$ 500.00</span>
+                                        <span>$ 400.00</span>
+                                        <span>$ 300.00</span>
+                                    </div>
+                                    <div class="chart-bars">
+                                        <div class="bar" style="height: 40%;"></div>
+                                        <div class="bar" style="height: 60%;"></div>
+                                        <div class="bar" style="height: 30%;"></div>
+                                        <div class="bar active" style="height: 80%;">
+                                            <div class="tooltip">Gained<br>+ $ 380.34</div>
+                                        </div>
+                                        <div class="bar" style="height: 50%;"></div>
+                                        <div class="bar" style="height: 20%;"></div>
+                                        <div class="bar" style="height: 45%;"></div>
+                                    </div>
+                                </div>
+                                <div class="chart-labels">
+                                    <span>Apr 18</span><span>Apr 19</span><span>Apr 20</span><span>Apr 21</span><span>Apr 22</span><span>Apr 23</span><span>Apr 24</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Bottom Row: Top PoS & Promo -->
+                    <section class="bottom-row">
+                        <div class="card bg-white top-pos">
+                            <div class="pos-header">
+                                <h3>Top-week PoS tokens</h3>
+                                <a href="#" class="text-link">View all PoS-tokens</a>
+                            </div>
+                            <ul class="token-list">
+                                <li>
+                                    <div class="token-info"><span class="icon-circle dark small">≡</span> Solana <span class="ticker-sym">SOL</span></div>
+                                    <div class="token-change pos">+ 6.24%</div>
+                                    <div class="token-price">$ 106.29</div>
+                                </li>
+                                <li>
+                                    <div class="token-info"><span class="icon-circle dark small">❂</span> Cardano <span class="ticker-sym">ADA</span></div>
+                                    <div class="token-change neg">- 2.34%</div>
+                                    <div class="token-price">$ 1.02</div>
+                                </li>
+                                <li>
+                                    <div class="token-info"><span class="icon-circle dark small">◬</span> Algorand <span class="ticker-sym">ALGO</span></div>
+                                    <div class="token-change neg">- 4.04%</div>
+                                    <div class="token-price">$ 0.7212</div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="card bg-dark promo">
+                            <h3>Stack your PoS tokens<br>with Palmer</h3>
+                            <p>PoS is a cryptocurrency mechanism<br>for processing transactions and<br>creating new blocks in a blockchain</p>
+                            <button class="btn-arrow">↘</button>
+                        </div>
+                    </section>
+                </main>
+
+                <!-- Right Column (Earn / Borrow) -->
+                <aside class="right-column">
+                    <nav class="right-tabs">
+                        <h2 class="active">Earn</h2>
+                        <h2>Borrow</h2>
+                    </nav>
+
+                    <div class="card bg-purple earn-widget">
+                        <h3>Right time to earn</h3>
+                        <div class="widget-field">
+                            <label>Token for earning</label>
+                            <div class="dropdown bg-white large"><span class="icon-circle dark small">◈</span> Ethereum ⌄</div>
+                        </div>
+                        <div class="widget-field">
+                            <div class="input-wrapper bg-white">
+                                <input type="text" value="4.00 ETH">
+                                <div class="avail">Available<br>17.228 ETH</div>
+                            </div>
+                        </div>
+                        <div class="widget-field slider-field">
+                            <label>Loan term</label>
+                            <div class="slider-track">
+                                <div class="slider-fill"></div>
+                                <div class="slider-thumb"></div>
+                            </div>
+                            <div class="slider-labels">
+                                <span>1 year</span>
+                                <span>2 years</span>
+                                <span>3 years</span>
+                            </div>
+                        </div>
+                        <button class="btn-dark full-width">↗ Earn crypto</button>
+                    </div>
+
+                    <div class="card bg-white possible-earnings">
+                        <label>Your possible earnings</label>
+                        <div class="earning-amount"><span class="icon-circle dark small">◈</span> 3.5 ETH</div>
+                        <div class="apy-details">
+                            <label>APY</label>
+                            <div class="apy-row">
+                                <span class="percent">5.6%</span> <span class="badge orange">on first 0.25 ETH</span>
+                            </div>
+                            <div class="apy-row">
+                                <span class="percent">2.8%</span> <span class="badge orange">on all other 0.25 ETH</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

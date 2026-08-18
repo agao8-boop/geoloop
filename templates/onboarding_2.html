@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/design-tokens.css">
   <link rel="stylesheet" href="/static/pilnav.css">
-  <style><style>
+  <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -33,6 +33,7 @@
       display: flex;
       flex-direction: column;
       min-height: 100%;
+      padding-top: 56px;
       padding-bottom: env(safe-area-inset-bottom);
     }
 
@@ -205,13 +206,13 @@
     @media (min-width: 640px) {
       .main { padding: 36px 40px 48px; }
     }
-  </style></style>
+  </style>
 </head>
 <body>
 
   <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -223,20 +224,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
   <main class="main">
@@ -251,7 +247,7 @@
 
     <!-- Heading -->
     <div class="heading">
-      <h1>Ready to size your geothermal system<br>in 30 seconds?</h1>
+      <h1>Ready to size your geothermal system<br>in 1 minute?</h1>
       <p>Quick inputs. No expertise needed. No personal info.</p>
     </div>
 
@@ -262,14 +258,9 @@
       <a class="stage-item" href="stage1a.html" role="listitem" aria-label="Go to step 1: Site and Building">
         <div class="stage-icon">
           <svg width="54" height="54" viewBox="0 0 54 54">
-            <defs>
-              <radialGradient id="sg1" cx="36%" cy="32%" r="68%">
-                <stop offset="0%" stop-color="#d8d4ce"/>
-                <stop offset="55%" stop-color="#b0aba4"/>
-                <stop offset="100%" stop-color="#888480"/>
-              </radialGradient>
-            </defs>
-            <circle cx="27" cy="27" r="27" fill="url(#sg1)"/>
+            <circle cx="27" cy="27" r="27" fill="#c4cdb3"/>
+            <!-- building icon -->
+            <path d="M20 38V18l7-4 7 4v20H20zm3-17v3h3v-3h-3zm5 0v3h3v-3h-3zm-5 6v3h3v-3h-3zm5 0v3h3v-3h-3zm-3 6v5h4v-5h-4z" fill="#48583b"/>
           </svg>
         </div>
         <div class="stage-info">
@@ -284,14 +275,11 @@
       <div class="stage-item locked" role="listitem" aria-disabled="true">
         <div class="stage-icon">
           <svg width="54" height="54" viewBox="0 0 54 54">
-            <defs>
-              <radialGradient id="sg2" cx="36%" cy="32%" r="68%">
-                <stop offset="0%" stop-color="#e0ddd9"/>
-                <stop offset="55%" stop-color="#c8c4be"/>
-                <stop offset="100%" stop-color="#a8a49f"/>
-              </radialGradient>
-            </defs>
-            <circle cx="27" cy="27" r="27" fill="url(#sg2)"/>
+            <circle cx="27" cy="27" r="27" fill="#dce3cf"/>
+            <!-- U-tube loop icon -->
+            <path d="M22 17v14a5 5 0 0 0 10 0V17" fill="none" stroke="#5f724e" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 17v-1m10 1v-1" stroke="#5f724e" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="27" cy="36" r="1.2" fill="#5f724e"/>
           </svg>
         </div>
         <div class="stage-info">
@@ -306,14 +294,12 @@
       <div class="stage-item locked" role="listitem" aria-disabled="true">
         <div class="stage-icon">
           <svg width="54" height="54" viewBox="0 0 54 54">
-            <defs>
-              <radialGradient id="sg3" cx="36%" cy="32%" r="68%">
-                <stop offset="0%" stop-color="#e0ddd9"/>
-                <stop offset="55%" stop-color="#c8c4be"/>
-                <stop offset="100%" stop-color="#a8a49f"/>
-              </radialGradient>
-            </defs>
-            <circle cx="27" cy="27" r="27" fill="url(#sg3)"/>
+            <circle cx="27" cy="27" r="27" fill="#e0e2da"/>
+            <!-- bar chart icon -->
+            <rect x="19" y="28" width="4" height="8" rx="1" fill="#6b6f66"/>
+            <rect x="25" y="22" width="4" height="14" rx="1" fill="#6b6f66"/>
+            <rect x="31" y="18" width="4" height="18" rx="1" fill="#6b6f66"/>
+            <rect x="18" y="37" width="18" height="1.5" rx=".5" fill="#6b6f66"/>
           </svg>
         </div>
         <div class="stage-info">

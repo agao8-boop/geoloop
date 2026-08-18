@@ -21,8 +21,8 @@
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-bottom:env(safe-area-inset-bottom); }
-
+    body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100%; padding-top:56px; padding-bottom:env(safe-area-inset-bottom); }
+    .gl-waves-bg { position:fixed; inset:0; z-index:-1; pointer-events:none; }
 
     .main { flex:1; padding:32px 24px 40px; max-width:540px; margin:0 auto; width:100%; }
 
@@ -39,20 +39,39 @@
 
     .project-list { display:flex; flex-direction:column; gap:10px; margin-bottom:28px; }
 
+    /* Project row — no card border, row-style with dividers */
     .project-card {
-      background:white; border:1.5px solid var(--border); border-radius:14px;
-      padding:16px 18px; cursor:pointer; transition:border-color 0.15s, transform 0.1s;
-      display:flex; align-items:center; gap:14px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 14px 0;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
-    .project-card:hover { border-color:#b5b0a8; transform:translateY(-1px); }
-    .project-card:active { transform:scale(0.99); }
+    .project-list > .project-card:first-child { border-top: 1px solid var(--border); }
+    .project-card:hover { opacity: 0.72; }
+    .project-card:active { opacity: 0.5; }
 
-    .project-icon { width:36px; height:36px; border-radius:8px; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .project-body { flex:1; min-width:0; }
-    .project-name { font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .project-meta { font-size:11px; color:var(--muted); margin-top:3px; }
-    .project-delete { background:none; border:none; cursor:pointer; padding:4px 6px; color:var(--faint); font-size:16px; line-height:1; border-radius:6px; transition:color 0.15s, background 0.15s; }
-    .project-delete:hover { color:#e05c4a; background:#fdf0ee; }
+    .project-icon { display: none; } /* Remove icon — not needed */
+    .project-body { flex: 1; min-width: 0; }
+    .project-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .project-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .project-delete { background:none; border:none; cursor:pointer; padding:4px 6px; color:var(--faint); font-size:16px; line-height:1; border-radius:6px; transition:color 0.15s; flex-shrink:0; }
+    .project-delete:hover { color:#e05c4a; }
+
+    /* Score badge — color-coded text, no border */
+    .project-score { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .project-score-num { font-size: 20px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+    .score-excellent { color: #3478d4; }
+    .score-good      { color: #348a48; }
+    .score-fair      { color: #b46824; }
+    .score-poor      { color: #b03838; }
+    .project-score-grade { font-size: 11px; color: var(--muted); }
+    .project-score-arrow { font-size: 13px; color: var(--faint); margin-left: 2px; }
 
     .new-btn { width:100%; font-family:var(--font); font-size:15px; font-weight:700; background:var(--text); color:#f5f3f0; border:none; border-radius:100px; padding:14px; cursor:pointer; transition:opacity 0.15s; }
     .new-btn:active { opacity:0.8; }
@@ -68,10 +87,11 @@
   </style>
 </head>
 <body>
+<div class="gl-waves-bg"></div>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -83,20 +103,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main" id="main-content">
@@ -177,20 +192,22 @@ function renderProjects(user) {
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const metaParts = [p.zip, p.building_type, p.NB ? `${p.NB} boreholes` : null].filter(Boolean);
 
+    const score = p.score || null;
+    const grade = p.grade || null;
+    const gradeColor = { Excellent: 'score-excellent', Good: 'score-good', Fair: 'score-fair', Poor: 'score-poor' };
+    const scoreCls = gradeColor[grade] || 'score-fair';
+    const scoreHtml = score != null
+      ? `<div class="project-score">
+           <span class="project-score-num ${scoreCls}">${score}</span>
+           <span class="project-score-grade">${grade || ''} ›</span>
+         </div>`
+      : '';
     card.innerHTML = `
-      <div class="project-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="3" stroke="#6b7280" stroke-width="1.5"/>
-          <line x1="8" y1="1" x2="8" y2="4" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="8" y1="12" x2="8" y2="15" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="1" y1="8" x2="4" y2="8" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="12" y1="8" x2="15" y2="8" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
       <div class="project-body">
         <div class="project-name">${escHtml(p.name)}</div>
         <div class="project-meta">${dateStr}${metaParts.length ? ' · ' + metaParts.map(escHtml).join(' · ') : ''}</div>
       </div>
+      ${scoreHtml}
       <button class="project-delete" title="Delete" onclick="event.stopPropagation(); askDelete('${escHtml(p.id)}')">×</button>
     `;
     card.addEventListener('click', () => openProject(p));
@@ -239,5 +256,6 @@ function escHtml(s) {
 init();
 </script>
 <script src="/static/pilnav.js"></script>
+<script src="/static/gradient-waves.js"></script>
 </body>
 </html>

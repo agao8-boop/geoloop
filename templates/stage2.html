@@ -21,7 +21,7 @@
       --font:   'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     html, body { height: 100%; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100%; padding-top: 56px; padding-bottom: env(safe-area-inset-bottom); }
 
 
     .main { flex:1; display:flex; flex-direction:column; padding: 28px 24px 40px; }
@@ -39,7 +39,7 @@
     .section-sub   { font-size: 12px; color: var(--faint); font-weight:400; margin-bottom: 24px; line-height:1.5; }
 
     /* ── INFO BOX ── */
-    .info-box { background: white; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; }
+    .info-box { background: transparent; border: none; border-top: 1px solid var(--border); padding: 12px 0 16px; margin-bottom: 16px; }
     .info-box-title { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
     .info-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 3px 0; }
     .info-row .lbl { color: var(--faint); }
@@ -66,8 +66,8 @@
     /* ── ADVANCED SECTIONS (same pattern as result_1 expand) ── */
     .adv-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
     .adv-block {
-      flex:1; background:white; border:1.5px solid var(--border);
-      border-radius:12px; padding:13px 14px;
+      flex:1; background:transparent; border:none; border-top:1px solid var(--border);
+      border-radius:0; padding:13px 0;
       display:flex; align-items:center; justify-content:space-between;
     }
     .adv-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
@@ -81,7 +81,7 @@
     }
     .expand-panel { display:none; margin-bottom:14px; }
     .expand-panel.open { display:block; }
-    .adv-fields { background:white; border:1.5px solid var(--border); border-radius:12px; padding:14px; }
+    .adv-fields { background:transparent; border:none; padding:10px 0 14px; }
     .adv-field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
     .adv-field-row:last-child { margin-bottom:0; }
     .adv-field { display:flex; flex-direction:column; gap:4px; }
@@ -109,8 +109,8 @@
 <body>
 
 <header class="gl-nav-header">
-  <ul class="gl-pill-list" id="gl-pill-nav">
-    <li class="gl-pill gl-pill-logo" aria-label="GeoLoop">
+  <nav class="gl-pill-nav" aria-label="Primary">
+    <a class="gl-pill-logo" href="/" aria-label="Home">
       <svg width="20" height="18" viewBox="0 0 22 20" fill="none" aria-hidden="true">
         <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
         <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="rgba(255,255,255,1)"/>
@@ -122,20 +122,15 @@
         <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="rgba(255,255,255,.3)"/>
         <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="rgba(255,255,255,1)"/>
       </svg>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="units.html" data-label="GeoLoop">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover">GeoLoop</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="account.html" data-label="Home">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover">Home</span></div>
-    </li>
-    <li class="gl-pill gl-pill-text" data-href="contact.html" data-label="Contact">
-      <div class="gl-hover-circle"></div>
-      <div class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover">Contact</span></div>
-    </li>
-  </ul>
+    </a>
+    <div class="gl-pill-nav-items">
+      <ul class="gl-pill-list" role="menubar">
+        <li role="none"><a role="menuitem" href="/welcome.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">GeoLoop</span><span class="gl-pill-label-hover" aria-hidden="true">GeoLoop</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/account.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Home</span><span class="gl-pill-label-hover" aria-hidden="true">Home</span></span></a></li>
+        <li role="none"><a role="menuitem" href="/contact.html" class="gl-pill-btn"><span class="gl-hover-circle" aria-hidden="true"></span><span class="gl-label-stack"><span class="gl-pill-label">Contact</span><span class="gl-pill-label-hover" aria-hidden="true">Contact</span></span></a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
@@ -159,12 +154,12 @@
   <div class="field-row">
     <div class="form-group">
       <label class="form-label" for="borehole-depth">Borehole Depth</label>
-      <input type="number" id="borehole-depth" placeholder="150" min="50" max="600" step="5" value="150">
+      <input type="number" id="borehole-depth" class="gl-underline" placeholder="150" min="50" max="600" step="5" value="150">
       <div class="form-hint">meters (50–600)</div>
     </div>
     <div class="form-group">
       <label class="form-label" for="borehole-spacing">Borehole Spacing</label>
-      <input type="number" id="borehole-spacing" placeholder="6" min="4" max="12" step="0.5" value="6">
+      <input type="number" id="borehole-spacing" class="gl-underline" placeholder="6" min="4" max="12" step="0.5" value="6">
       <div class="form-hint">meters (4–12)</div>
     </div>
   </div>
@@ -172,7 +167,7 @@
   <!-- Layout Configuration (R10: perimeter default, others disabled) -->
   <div class="form-group">
     <label class="form-label" for="layout-config">Layout Configuration</label>
-    <select id="layout-config">
+    <select id="layout-config" class="gl-underline">
       <option value="perimeter" selected>Perimeter loop</option>
       <option value="rectangular" disabled>Rectangular grid (coming soon)</option>
       <option value="parking" disabled>Parking lot (coming soon)</option>
