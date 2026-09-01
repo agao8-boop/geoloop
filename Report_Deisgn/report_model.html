@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoLoop Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+    @media print {
+      @page { size: landscape; margin: 0; }
+      body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .dashboard-container { min-height: 0 !important; height: auto !important; }
+      .sidebar { display: none !important; }
+      .score-card, .card.bg-dark, .card.bg-green, .card.bg-orange {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+    }
+    /* Model tuning: shorten the middle row (Cost & Savings + Load Profile)
+       and leave a margin below the bottom row before the printed edge. */
+    .chart-placeholder { height: 124px !important; }
+    .op-inputs .input-group { min-height: 58px !important; padding: 0.55rem !important; }
+    .operations, .earnings { padding: 1.25rem !important; }
+    .center-column { padding-bottom: 1.75rem !important; }
+    /* Print button — bottom-right, hidden when actually printing */
+    #print-btn {
+      position: fixed; right: 24px; bottom: 24px; z-index: 1000;
+      font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 700;
+      color: #fff; background: #1a1a1a; border: none; border-radius: 12px;
+      padding: 12px 20px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    #print-btn:hover { background: #333; }
+    @media print { #print-btn { display: none !important; } }
+    </style>
+    <!-- ============================================================= -->
+    <!-- GeoLoop Report MODEL                                          -->
+    <!-- Layout, blocks, fonts, colors are FIXED below. Content is     -->
+    <!-- fully data-driven: everything the reader sees comes from one  -->
+    <!-- JSON case file. Swap the case, keep the model.                -->
+    <!--                                                               -->
+    <!--   report_model.html                 -> loads cases/chicago.json -->
+    <!--   report_model.html?data=cases/miami.json -> any case         -->
+    <!--                                                               -->
+    <!-- Build case files with build_cases.py. Schema: see cases/*.json -->
+    <!-- ============================================================= -->
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo" style="background-color:transparent; padding:0; padding-left:5px;">
+                <svg width="28" height="26" viewBox="0 0 22 20" fill="none" aria-hidden="true">
+                    <rect x="0"  y="0"  width="9"  height="3" rx="0.5" fill="#555"/>
+                    <rect x="13" y="0"  width="9"  height="3" rx="0.5" fill="#555"/>
+                    <rect x="0"  y="5"  width="9"  height="3" rx="0.5" fill="#555" opacity=".75"/>
+                    <rect x="13" y="5"  width="9"  height="3" rx="0.5" fill="#555" opacity=".75"/>
+                    <rect x="0"  y="10" width="9"  height="3" rx="0.5" fill="#555" opacity=".5"/>
+                    <rect x="13" y="10" width="9"  height="3" rx="0.5" fill="#555" opacity=".5"/>
+                    <rect x="0"  y="15" width="9"  height="3" rx="0.5" fill="#555" opacity=".3"/>
+                    <rect x="13" y="15" width="9"  height="3" rx="0.5" fill="#555" opacity=".3"/>
+                    <rect x="10" y="0"  width="2"  height="20" rx="0.5" fill="#555"/>
+                </svg>
+            </div>
+            <nav class="nav-icons">
+                <div class="nav-icons-main" style="margin:0; margin-top:auto;">
+                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); font-size:0.65rem; color:var(--c-text-gray); letter-spacing:0.3px; white-space:nowrap; margin-bottom:0.75rem;">
+                        Almanzo Gao | agao8@stanford.edu | Stanford CEE 299
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:0.3rem; margin-bottom:0.25rem;">
+                    <a href="https://www.linkedin.com/in/almanzogao/" target="_blank" class="icon active" title="LinkedIn" style="text-decoration:none; width:32px; height:32px; border-radius:10px;">
+                        <svg width="14" height="14" viewBox="0 0 18 18" fill="currentColor"><path d="M4.5 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM1.5 5h3v10h-3V5zm5.5 0h2.9v1.4h0c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7V15h-3v-4.8c0-1.1 0-2.6-1.6-2.6s-1.8 1.2-1.8 2.5V15H7V5z"/></svg>
+                    </a>
+                    <a href="mailto:agao8@stanford.edu" class="icon" title="Email" style="text-decoration:none; width:32px; height:32px; border-radius:10px; background:transparent; box-shadow:0 2px 8px rgba(0,0,0,0.12); border:1px solid #eee;">
+                        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="14" height="12" rx="2"/><path d="M2 5l7 5 7-5"/></svg>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Layout Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Navigation -->
+            <header class="topbar">
+                <div class="tickers" style="flex:1; text-align:center;">
+                    <span style="font-size:1.05rem; color:var(--c-text-gray); font-weight:500;">Hello there, here is your geothermal site assessment for <strong id="v-location" style="color:var(--c-dark);">--</strong></span>
+                </div>
+                <div class="user-profile">
+                    <span class="name" style="font-size:1.1rem; font-weight:700; letter-spacing:-0.5px;">GeoLoop</span>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-layout">
+                <!-- Center Column -->
+                <main class="center-column" style="padding-top:1.25rem; gap:1rem;">
+                    <div class="header-row" style="margin-bottom:-0.25rem;">
+                        <h1>Overview</h1>
+                        <a href="#" class="text-link">What does this mean?</a>
+                    </div>
+
+                    <!-- Site Cards -->
+                    <section class="wallets-section" style="gap:1rem;">
+                        <div class="wallet-intro" style="display:flex; flex-direction:column; gap:0.4rem;">
+                            <h2>Site</h2>
+                            <p>Understand the climate, ground, and building conditions driving your design</p>
+                            <a href="#" class="text-link dark-link">View more site analysis &#10132;</a>
+                        </div>
+                        <div class="cards-container">
+                            <div class="card bg-green">
+                                <div class="card-title"><span class="icon-circle dark">&#9728;</span> Climate</div>
+                                <div class="card-value small" style="font-size:inherit;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">&nbsp;</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">&nbsp;</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:4px;">
+                                    <span style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">&nbsp;</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Climate Zone</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:4px;">
+                                    <span id="v-climate-zone" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">&nbsp;</span>
+                                </div>
+                            </div>
+                            <div class="card bg-white">
+                                <div class="card-title"><span class="icon-circle dark">&#9968;</span> Subsurface Info</div>
+                                <div class="card-value small" style="font-size:inherit;">
+                                    <span id="v-soil-k" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">W/m&middot;K</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Soil conductivity</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:4px;">
+                                    <span id="v-ground-temp" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">&deg;C</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Ground temperature</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:4px;">
+                                    <span id="v-diffusivity" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">m&sup2;/day</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Diffusivity</span>
+                                </div>
+                            </div>
+                            <div class="card bg-white">
+                                <div class="card-title"><span class="icon-circle dark">&#8862;</span> Building</div>
+                                <div class="card-value small" style="font-size:inherit;">
+                                    <span id="v-wwr" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span> <span style="font-size:0.75rem; color:var(--c-text-gray);">WWR</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Window-to-wall ratio</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:4px;">
+                                    <span id="v-infiltration" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Infiltration &amp; Insulation</span>
+                                </div>
+                                <div class="card-value small" style="font-size:inherit; margin-top:4px;">
+                                    <span id="v-glazing" style="font-weight:700; font-size:1.1rem; color:var(--c-dark);">--</span><br>
+                                    <span style="font-size:0.7rem; color:var(--c-text-gray);">Glazing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Middle Row: Cost & Savings + Load Profile -->
+                    <section class="middle-row">
+                        <div class="card bg-orange operations">
+                            <div class="op-header">
+                                <h3>Cost &amp; Savings</h3>
+                                <span style="font-size:0.75rem; color:#888; font-weight:500;">30-year lifecycle</span>
+                            </div>
+                            <div class="op-inputs">
+                                <div class="input-group" style="padding:0.75rem; text-align:center; min-height:72px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                                    <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7a7a8c; margin-bottom:4px;">GSHP System</div>
+                                    <div id="v-cost-gshp" style="font-size:1.35rem; font-weight:800; color:var(--c-dark); letter-spacing:-0.02em;">--</div>
+                                </div>
+                                <div class="swap-icon" style="font-size:0.75rem; font-weight:700; color:#888;">vs.</div>
+                                <div class="input-group" style="padding:0.75rem; text-align:center; min-height:72px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                                    <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7a7a8c; margin-bottom:4px;">Conv. HVAC</div>
+                                    <div id="v-cost-conv" style="font-size:1.35rem; font-weight:800; color:var(--c-dark); letter-spacing:-0.02em;">--</div>
+                                </div>
+                            </div>
+                            <div class="op-footer" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                                <div style="display:flex; gap:1.5rem; font-size:0.72rem; color:#555; font-weight:500; line-height:1.7; text-align:center;">
+                                    <div style="flex:1;">
+                                        <p id="v-cost-drilling">Drilling &amp; loops &middot; --</p>
+                                        <p id="v-cost-heatpumps">Heat pumps &middot; --</p>
+                                        <p id="v-cost-dist-gshp">Distribution &middot; --</p>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <p id="v-cost-boiler">Boiler &middot; --</p>
+                                        <p id="v-cost-chiller">Chiller &middot; --</p>
+                                        <p id="v-cost-dist-conv">Distribution &middot; --</p>
+                                    </div>
+                                </div>
+                                <div style="border-top:1px solid rgba(0,0,0,0.1); padding-top:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:0.8rem; font-weight:600; color:var(--c-dark);">Net 30-yr savings</span>
+                                    <span id="v-net-savings" style="font-size:1rem; font-weight:800; color:#4a5a3a;">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white earnings">
+                            <div class="earn-header">
+                                <h3>Load Profile</h3>
+                                <nav class="time-tabs">
+                                    <span class="active" style="border-bottom:2px solid var(--c-dark); padding-bottom:2px;">Annual Hourly Load Profile</span>
+                                    <span>LDC</span>
+                                </nav>
+                            </div>
+                            <div class="chart-placeholder" style="flex:1; display:flex; align-items:stretch;">
+                                <svg id="load-profile-svg" viewBox="-5 10 450 218" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%; display:block;">
+                                    <defs>
+                                        <linearGradient id="loadGrad" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stop-color="#2e64c8" stop-opacity="0.20"/>
+                                            <stop offset="15%" stop-color="#2e64c8" stop-opacity="0.18"/>
+                                            <stop offset="40%" stop-color="#c94030" stop-opacity="0.15"/>
+                                            <stop offset="55%" stop-color="#c94030" stop-opacity="0.22"/>
+                                            <stop offset="70%" stop-color="#c94030" stop-opacity="0.15"/>
+                                            <stop offset="85%" stop-color="#2e64c8" stop-opacity="0.18"/>
+                                            <stop offset="100%" stop-color="#2e64c8" stop-opacity="0.20"/>
+                                        </linearGradient>
+                                        <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stop-color="#2e64c8"/>
+                                            <stop offset="15%" stop-color="#2e64c8"/>
+                                            <stop offset="40%" stop-color="#9040a0"/>
+                                            <stop offset="55%" stop-color="#c94030"/>
+                                            <stop offset="70%" stop-color="#9040a0"/>
+                                            <stop offset="85%" stop-color="#2e64c8"/>
+                                            <stop offset="100%" stop-color="#2e64c8"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <g id="lp-grid"></g>
+                                    <g id="lp-curve"></g>
+                                    <g id="lp-peak"></g>
+                                    <text x="45" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,45,207)">Jan</text>
+                                    <text x="78" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,78,207)">Feb</text>
+                                    <text x="107" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,107,207)">Mar</text>
+                                    <text x="140" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,140,207)">Apr</text>
+                                    <text x="172" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,172,207)">May</text>
+                                    <text x="204" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,204,207)">Jun</text>
+                                    <text x="236" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,236,207)">Jul</text>
+                                    <text x="269" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,269,207)">Aug</text>
+                                    <text x="301" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,301,207)">Sep</text>
+                                    <text x="333" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,333,207)">Oct</text>
+                                    <text x="366" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,366,207)">Nov</text>
+                                    <text x="397" y="207" style="font-size:12px; fill:#a09c97;" transform="rotate(-35,397,207)">Dec</text>
+                                    <text x="237" y="222" text-anchor="middle" style="font-size:12px; fill:#7a7a8c;">Time (8,760 hrs)</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Bottom Row: Borefield & Performance -->
+                    <section class="bottom-row">
+                        <div class="card bg-white top-pos">
+                            <div class="pos-header" style="margin-bottom:0;">
+                                <h3>Borefield Design Layout</h3>
+                                <span id="v-building-type" class="text-link" style="pointer-events:none;">--</span>
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;">
+                                <svg id="borefield-svg" viewBox="0 0 360 192" style="width:100%; max-width:360px; height:auto;">
+                                </svg>
+                                <p style="font-size:0.65rem; color:#888; margin-top:0; margin-bottom:-0.5rem; text-align:center;">
+                                    <span id="v-footprint-shape">Rectangle (2:1)</span> &middot; <span id="v-floor-area">--</span> m&sup2; &middot; <span id="v-num-floors">--</span> floors
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card bg-dark promo" style="padding-bottom:1rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                                <h3 style="color:var(--c-purple); font-size:1.1rem; font-weight:700; margin-bottom:0;">Estimated Performance</h3>
+                                <button class="btn-arrow" style="position:static; width:28px; height:28px; font-size:0.85rem; flex-shrink:0;">&#8600;</button>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Dominant load mode</span>
+                                    <span id="v-dominant-mode" style="font-size:0.85rem; font-weight:700; color:white;">--</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Peaker capacity</span>
+                                    <span style="font-size:0.85rem; font-weight:700; color:white;"><span id="v-peaker-kw">--</span> kW <span id="v-peaker-type" style="font-weight:400; font-size:0.7rem; color:rgba(255,255,255,0.45);">--</span></span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">GSHP coverage (hours)</span>
+                                    <span id="v-coverage-hours" style="font-size:1rem; font-weight:800; color:#a8c8ff;">--</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">GSHP coverage (energy)</span>
+                                    <span id="v-coverage-energy" style="font-size:1rem; font-weight:800; color:#a8c8ff;">--</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0 0 0;">
+                                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Borefield reduction (hybrid)</span>
+                                    <span id="v-borefield-reduction" style="font-size:1rem; font-weight:800; color:#a8c8ff;">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+
+                <!-- Right Column (Feasibility Score) -->
+                <aside class="right-column">
+                    <nav class="right-tabs">
+                        <h2 class="active">Feasibility Score</h2>
+                    </nav>
+
+                    <!-- Score Card -->
+                    <div class="score-card" style="border-radius:16px; padding:26px 22px; color:white; background:linear-gradient(135deg,#1a4a90 0%,#2560b8 60%,#3478d4 100%); box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+                        <div style="display:flex; align-items:flex-start; gap:16px; margin-bottom:22px;">
+                            <div id="v-score" style="font-size:64px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#a8c8ff;">--</div>
+                            <div style="padding-top:6px;">
+                                <div><span id="v-score-label" style="display:inline-block; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 14px; border-radius:100px; background:rgba(255,255,255,0.2); color:white; margin-bottom:8px;">--</span></div>
+                                <div id="v-score-delta" style="font-size:14px; color:rgba(255,255,255,0.75);">--</div>
+                            </div>
+                        </div>
+                        <div style="font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.7); margin-bottom:28px;">GSHP Feasibility Score / 100</div>
+                        <div style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Soil conductivity</span><span id="v-bar-soil-text">-- / 40 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div id="v-bar-soil" style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:0%;"></div></div>
+                        </div>
+                        <div style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Climate balance</span><span id="v-bar-climate-text">-- / 30 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div id="v-bar-climate" style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:0%;"></div></div>
+                        </div>
+                        <div style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Ground temperature</span><span id="v-bar-gtemp-text">-- / 20 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div id="v-bar-gtemp" style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:0%;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:6px;"><span>Building suitability</span><span id="v-bar-bldg-text">-- / 10 pts</span></div>
+                            <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div id="v-bar-bldg" style="height:6px; background:rgba(255,255,255,0.75); border-radius:3px; width:0%;"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Hero stats -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; row-gap:18px; padding:16px 0;">
+                        <div style="padding:0 16px; border-right:1px solid #dddbd7;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#c94030;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">HEATING</span>
+                            </div>
+                            <div><span id="v-heat-kw" style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#c94030;">--</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">kW</span></div>
+                            <div style="font-size:11px; color:#a09c97; margin-top:4px;">Peak design load</div>
+                        </div>
+                        <div style="padding:0 16px 0 22px;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#2e64c8;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">COOLING</span>
+                            </div>
+                            <div><span id="v-cool-kw" style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#2e64c8;">--</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">kW</span></div>
+                            <div style="font-size:11px; color:#a09c97; margin-top:4px;">Peak design load</div>
+                        </div>
+                        <div style="padding:0 16px; border-right:1px solid #dddbd7;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#557434;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">BOREHOLES</span>
+                            </div>
+                            <div><span id="v-num-boreholes" style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#557434;">--</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">NB</span></div>
+                            <div id="v-borehole-depth" style="font-size:11px; color:#a09c97; margin-top:4px;">-- m each</div>
+                        </div>
+                        <div style="padding:0 16px 0 22px;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:#557434;"></span>
+                                <span style="font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#7a7a8c;">PEAKER</span>
+                            </div>
+                            <div><span id="v-hero-peaker-kw" style="font-size:28px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:#557434;">--</span><span style="font-size:11px; font-weight:400; margin-left:2px; color:#7a7a8c;">kW</span></div>
+                            <div id="v-hero-peaker-type" style="font-size:11px; color:#a09c97; margin-top:4px;">--</div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+<!-- Print / Save-as-PDF (pops the browser print dialog for this page) -->
+<button id="print-btn" onclick="window.print()" title="Print or Save as PDF">Print &#8599;</button>
+
+<!-- Fallback data if no case file is reachable (kept minimal). -->
+<script id="report-data" type="application/json">{ "location": "No case loaded" }</script>
+
+<script>
+(async function () {
+  const $ = id => document.getElementById(id);
+  const setTxt = (id, v) => { const e = $(id); if (e) e.textContent = (v === undefined || v === null || v === '') ? '--' : v; };
+  const fmtDollar = n => (n === undefined || n === null) ? '--' : '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const fmtK = n => (n === undefined || n === null) ? '--' : '$' + Math.round(Number(n) / 1000).toLocaleString('en-US') + 'K';
+
+  async function loadData() {
+    // 1) explicit case file (standalone testing): report_model.html?data=cases/x.json
+    const p = new URLSearchParams(location.search).get('data');
+    if (p) { try { const r = await fetch(p); if (r.ok) return await r.json(); } catch (e) { console.error('case load failed:', p, e); } }
+    // 2) live tool data, inherited via sessionStorage when opened from the result page
+    const live = mapSession();
+    if (live) return live;
+    // 3) standalone default, then embedded fallback
+    try { const r = await fetch('cases/chicago.json'); if (r.ok) return await r.json(); } catch (e) {}
+    const el = $('report-data'); return el ? JSON.parse(el.textContent) : {};
+  }
+
+  // Map the live tool's sessionStorage (gl_result1 / gl_result_final /
+  // gl_strategy_result / gl_cost_result) into the report-model schema.
+  function mapSession() {
+    let r1, sizing, strategy, cost;
+    try {
+      r1       = JSON.parse(sessionStorage.getItem('gl_result1')         || 'null');
+      sizing   = JSON.parse(sessionStorage.getItem('gl_result_final')    || 'null');
+      strategy = JSON.parse(sessionStorage.getItem('gl_strategy_result') || 'null');
+      cost     = JSON.parse(sessionStorage.getItem('gl_cost_result')     || 'null');
+    } catch (e) { return null; }
+    if (!r1 && !sizing) return null;
+    r1 = r1 || {}; sizing = sizing || {};
+    const site = r1.site || sizing.site_passthrough || {};
+    const ss = k => sessionStorage.getItem(k);
+    const num = (v, d) => (v === null || v === undefined || isNaN(v)) ? null : Number(v).toFixed(d);
+    const pretty = s => (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    const zip = ss('gl_zip') || r1.zip || '';
+    const city = site.city || r1.city || '';
+    const st = site.state_abbrev || r1.state || '';
+    const location = (city && st) ? `${city}, ${st} ${zip}` : (zip || '--');
+
+    const HVAC_PSF = {AL:32,AK:45,AZ:34,AR:30,CA:48,CO:40,CT:52,DE:44,FL:33,GA:33,HI:55,ID:36,IL:44,IN:38,IA:36,KS:34,KY:34,LA:33,ME:46,MD:46,MA:52,MI:42,MN:44,MS:30,MO:36,MT:40,NE:34,NV:38,NH:48,NJ:52,NM:35,NY:55,NC:35,ND:38,OH:40,OK:32,OR:42,PA:46,RI:52,SC:33,SD:36,TN:32,TX:33,UT:38,VT:48,VA:44,WA:44,WV:36,WI:42,WY:38,DC:55};
+    let costObj = {};
+    if (cost) {
+      const drill = (cost.base && cost.base.total_usd) || 0;
+      const hp = cost.hp_equipment_usd || 0;
+      const pk = cost.peaker_equipment_usd || 0;
+      const gshpTotal = drill + hp + pk;
+      const areaM2 = r1.floor_area_m2 || (r1.loads && r1.loads.floor_area_m2);
+      const sqft = areaM2 ? Math.round(areaM2 * 10.764) : null;
+      const convTotal = sqft ? Math.round(sqft * (HVAC_PSF[st] || 40)) : null;
+      costObj = {
+        gshp_total: gshpTotal || null,
+        conv_total: convTotal,
+        gshp_breakdown: [['Drilling & loops', drill], ['Heat pumps', hp], ['Peaker equip', pk]],
+        conv_breakdown: convTotal ? [['Boiler', convTotal * 0.40], ['Chiller', convTotal * 0.35], ['Distribution', convTotal * 0.25]] : [],
+        net_savings: (convTotal !== null) ? (convTotal - gshpTotal) : null,
+      };
+    }
+
+    const k = r1.k, Tg = r1.T_ground, cz = r1.climate_zone || site.climate_zone || '';
+    let feas = {};
+    if (k !== null && k !== undefined && Tg !== null && Tg !== undefined) {
+      const kS = Math.min(40, Math.max(0, (k - 0.5) / 3.5 * 40));
+      const tgS = Math.max(0, 20 - Math.abs(Tg - 13) * 2);
+      const zp = ({"4A":10,"4B":10,"4C":9,"5A":9,"5B":9,"5C":8,"3A":7,"3B":7,"3C":7,"6A":6,"6B":6,"2A":5,"2B":5}[cz]) || 5;
+      const score = Math.min(100, Math.round(30 + kS + tgS + zp));
+      const label = score >= 80 ? 'Excellent' : score >= 65 ? 'Good' : score >= 50 ? 'Fair' : 'Poor';
+      feas = { score, label, benchmark: 70,
+        bars: [['Soil conductivity', Math.round(kS), 40], ['Climate balance', Math.round(zp), 30],
+               ['Ground temperature', Math.round(tgS), 20], ['Building suitability', 10, 10]] };
+    }
+
+    const heatKw = r1.q_h != null ? Math.abs(r1.q_h) / 1000 : null;
+    const coolKw = r1.q_c != null ? Math.abs(r1.q_c) / 1000 : null;
+    const nb = sizing.NB || sizing.n_boreholes || null;
+    const depth = sizing.H || sizing.borehole_depth || null;
+
+    let perf = {}, peakerKw = null, peakerType = null;
+    if (strategy) {
+      const m2 = (strategy.comparison && strategy.comparison.m2) || {};
+      const dom = strategy.dominant_mode || strategy.mode || ((coolKw || 0) > (heatKw || 0) ? 'cooling' : 'heating');
+      peakerKw = strategy.peaker_kW || strategy.peaker_kw || null;
+      peakerType = (strategy.peaker_type || (dom === 'cooling' ? 'chiller' : 'electric heater')).replace(/_/g, ' ');
+      perf = {
+        dominant_mode: dom,
+        peaker_kw: peakerKw != null ? Math.round(peakerKw) : null,
+        peaker_type: peakerType,
+        coverage_hours_pct: (m2.cutoff_h != null) ? ((8760 - m2.cutoff_h) / 8760 * 100).toFixed(1) : null,
+        coverage_energy_pct: (m2.gshp_energy_pct != null) ? m2.gshp_energy_pct.toFixed(1) : null,
+        borefield_reduction_pct: (m2.savings_pct != null) ? m2.savings_pct.toFixed(1) : null,
+      };
+    } else {
+      perf = { dominant_mode: ((coolKw || 0) > (heatKw || 0) ? 'cooling' : 'heating') };
+    }
+
+    let lp = {};
+    const hourly = strategy && (strategy.hourly_profile || strategy.ldc_profile);
+    if (hourly && hourly.length) {
+      const N = 200, step = Math.floor(hourly.length / N);
+      const samples = [];
+      for (let i = 0; i < N; i++) samples.push(Math.abs(hourly[Math.min(i * step, hourly.length - 1)]) / 1000);
+      let pi = 0; for (let i = 1; i < samples.length; i++) if (samples[i] > samples[pi]) pi = i;
+      const ph = pi * step;
+      const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Math.floor(ph / 730)];
+      const day = Math.floor((ph % 730) / 24) + 1;
+      lp = { samples_kw: samples.map(v => Math.round(v * 10) / 10), peak_kw: Math.round(samples[pi]), peak_label: `${mn} ${day}` };
+    }
+
+    return {
+      location,
+      site: { climate_zone: cz || '--', soil_k: num(k, 2), ground_temp: num(Tg, 1), diffusivity: num(site.alpha, 3) },
+      building: { type: pretty(r1.building_type || ss('gl_building_type') || ''), wwr: ss('gl_wwr') || '--',
+                  infiltration: ss('gl_envelope') || ss('gl_infiltration') || '--', glazing: ss('gl_glazing') || '--',
+                  footprint_shape: pretty(r1.footprint_shape || ss('gl_footprint_shape') || 'rect_2_1'),
+                  floor_area_m2: r1.floor_area_m2 || ss('gl_area') || '--', n_floors: r1.num_floors || ss('gl_floors') || '--' },
+      cost: costObj,
+      feasibility: feas,
+      hero: { heating_kw: num(heatKw, 1), cooling_kw: num(coolKw, 0), boreholes: nb, borehole_depth_m: depth,
+              peaker_kw: peakerKw != null ? Math.round(peakerKw) : null,
+              peaker_type: peakerType ? (peakerType.charAt(0).toUpperCase() + peakerType.slice(1)) : null },
+      performance: perf,
+      borefield: { nb: nb, spacing_m: sizing.B || sizing.borehole_spacing || 6 },
+      load_profile: lp,
+    };
+  }
+
+  const D = await loadData();
+  window.REPORT_DATA = D;
+
+  // Header + Site
+  setTxt('v-location', D.location);
+  const s = D.site || {};
+  setTxt('v-climate-zone', s.climate_zone);
+  setTxt('v-soil-k', s.soil_k);
+  setTxt('v-ground-temp', s.ground_temp);
+  setTxt('v-diffusivity', s.diffusivity);
+  const b = D.building || {};
+  setTxt('v-wwr', b.wwr);
+  setTxt('v-infiltration', b.infiltration);
+  setTxt('v-glazing', b.glazing);
+  setTxt('v-building-type', b.type);
+  setTxt('v-footprint-shape', b.footprint_shape);
+  setTxt('v-floor-area', b.floor_area_m2);
+  setTxt('v-num-floors', b.n_floors);
+
+  // Cost & Savings
+  const c = D.cost || {};
+  setTxt('v-cost-gshp', fmtDollar(c.gshp_total));
+  setTxt('v-cost-conv', fmtDollar(c.conv_total));
+  const gids = ['v-cost-drilling', 'v-cost-heatpumps', 'v-cost-dist-gshp'];
+  const cids = ['v-cost-boiler', 'v-cost-chiller', 'v-cost-dist-conv'];
+  (c.gshp_breakdown || []).slice(0, 3).forEach((it, i) => setTxt(gids[i], it[0] + ' · ' + fmtK(it[1])));
+  (c.conv_breakdown || []).slice(0, 3).forEach((it, i) => setTxt(cids[i], it[0] + ' · ' + fmtK(it[1])));
+  if (c.net_savings !== undefined && c.net_savings !== null) {
+    const e = $('v-net-savings');
+    e.textContent = (c.net_savings >= 0 ? '+' : '') + fmtDollar(Math.abs(c.net_savings));
+    e.style.color = c.net_savings < 0 ? '#a03030' : '#4a5a3a';
+  }
+
+  // Feasibility Score
+  const f = D.feasibility || {};
+  setTxt('v-score', f.score);
+  setTxt('v-score-label', f.label);
+  if (f.score !== undefined && f.benchmark !== undefined) {
+    const d = f.score - f.benchmark;
+    setTxt('v-score-delta', (d >= 0 ? '+' : '') + d + ' vs benchmark');
+  }
+  const barIds = [['v-bar-soil', 'v-bar-soil-text'], ['v-bar-climate', 'v-bar-climate-text'],
+                  ['v-bar-gtemp', 'v-bar-gtemp-text'], ['v-bar-bldg', 'v-bar-bldg-text']];
+  (f.bars || []).slice(0, 4).forEach((bar, i) => {
+    const pts = bar[1], max = bar[2];
+    const [barId, txtId] = barIds[i];
+    setTxt(txtId, Math.round(pts) + ' / ' + max + ' pts');
+    const el = $(barId); if (el) el.style.width = Math.max(0, Math.min(100, pts / max * 100)) + '%';
+  });
+
+  // Hero stats
+  const h = D.hero || {};
+  setTxt('v-heat-kw', h.heating_kw);
+  setTxt('v-cool-kw', h.cooling_kw);
+  setTxt('v-num-boreholes', h.boreholes);
+  setTxt('v-borehole-depth', (h.borehole_depth_m !== undefined && h.borehole_depth_m !== null) ? h.borehole_depth_m + ' m each' : '-- m each');
+  setTxt('v-hero-peaker-kw', h.peaker_kw);
+  setTxt('v-hero-peaker-type', h.peaker_type);
+
+  // Estimated Performance
+  const pf = D.performance || {};
+  setTxt('v-dominant-mode', pf.dominant_mode);
+  setTxt('v-peaker-kw', pf.peaker_kw);
+  setTxt('v-peaker-type', pf.peaker_type ? '(' + pf.peaker_type + ')' : '');
+  setTxt('v-coverage-hours', (pf.coverage_hours_pct !== undefined && pf.coverage_hours_pct !== null) ? pf.coverage_hours_pct + '%' : '--');
+  setTxt('v-coverage-energy', (pf.coverage_energy_pct !== undefined && pf.coverage_energy_pct !== null) ? pf.coverage_energy_pct + '%' : '--');
+  setTxt('v-borefield-reduction', (pf.borefield_reduction_pct !== undefined && pf.borefield_reduction_pct !== null) ? pf.borefield_reduction_pct + '%' : '--');
+
+  // Charts
+  buildLoadProfile(D.load_profile || {});
+  buildBorefield(D.borefield || {});
+
+  // ── Load-profile curve (generated from samples_kw) ──
+  function buildLoadProfile(lp) {
+    const samples = lp.samples_kw;
+    if (!samples || !samples.length) return;
+    const N = samples.length;
+    const dataMax = Math.max.apply(null, samples);
+    const maxScale = lp.ymax_kw || Math.ceil(dataMax / 100) * 100 || 100;
+    let g = '';
+    const steps = 4;
+    for (let i = 0; i <= steps; i++) {
+      const kw = maxScale - (maxScale / steps) * i;
+      const y = 30 + (160 / steps) * i;
+      g += `<text x="42" y="${y + 3}" text-anchor="end" style="font-size:12px; fill:#a09c97;">${Math.round(kw)} kW</text>`;
+      g += `<line x1="45" y1="${y}" x2="430" y2="${y}" stroke="${i === steps ? '#ddd' : '#eee'}" stroke-width="0.5"/>`;
+    }
+    $('lp-grid').innerHTML = g;
+    const pts = samples.map((kw, i) => {
+      const x = 45 + (i / (N - 1)) * 385;
+      const y = 190 - (kw / maxScale) * 160;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    $('lp-curve').innerHTML =
+      `<polygon points="${pts.join(' ')} 430.0,190.0 45.0,190.0" fill="url(#loadGrad)"/>` +
+      `<polyline fill="none" stroke="url(#lineGrad)" stroke-width="1.5" stroke-linejoin="round" points="${pts.join(' ')}"/>`;
+    // Peak bubble: tip points at the profile max; box clamped to stay on canvas.
+    let peakIdx = 0; for (let i = 1; i < N; i++) if (samples[i] > samples[peakIdx]) peakIdx = i;
+    const peakVal = (lp.peak_kw !== undefined && lp.peak_kw !== null) ? lp.peak_kw : samples[peakIdx];
+    const peakX = 45 + (peakIdx / (N - 1)) * 385;
+    const peakY = 190 - (samples[peakIdx] / maxScale) * 160;
+    const bx = Math.max(47, Math.min(peakX - 30, 368));
+    const by = Math.max(14, peakY - 54);
+    const cx = bx + 30;
+    $('lp-peak').innerHTML =
+      `<rect x="${bx}" y="${by}" width="60" height="44" rx="5" fill="#1a1a1a"/>` +
+      `<polygon points="${peakX - 4},${by + 44} ${peakX},${by + 52} ${peakX + 4},${by + 44}" fill="#1a1a1a"/>` +
+      `<text x="${cx}" y="${by + 14}" text-anchor="middle" style="font-size:10px; fill:#999; font-weight:500;">Peak</text>` +
+      `<text x="${cx}" y="${by + 27}" text-anchor="middle" style="font-size:11px; fill:white; font-weight:700;">${Math.round(peakVal)} kW</text>` +
+      `<text x="${cx}" y="${by + 39}" text-anchor="middle" style="font-size:9px; fill:#999;">${lp.peak_label || ''}</text>`;
+  }
+
+  // ── Borefield layout (generated from nb + field dimensions) ──
+  function buildBorefield(bf) {
+    const svg = $('borefield-svg');
+    if (!svg || !bf.nb) return;
+    const nb = bf.nb;
+    const B = bf.spacing_m || 6;
+    let fieldW = bf.field_w_m, fieldH = bf.field_h_m;
+    if (!fieldW || !fieldH) {
+      const nSideEst = Math.max(2, Math.round(Math.sqrt(nb / 2)));
+      const nLongEst = Math.max(2, Math.round(nb / (2 * nSideEst)) + 1);
+      fieldW = Math.round((nLongEst - 1) * B * 10) / 10 || 61.5;
+      fieldH = Math.round((nSideEst - 1) * B * 10) / 10 || 30.7;
+    }
+    const perimeter = 2 * (fieldW + fieldH);
+    const spacing = perimeter / nb;
+    const nTop = Math.max(2, Math.round(fieldW / spacing) + 1);
+    const nSide = Math.max(0, Math.round(fieldH / spacing) - 1);
+    const nBot = nTop;
+    const bx = 80, by = 40, bw = 200, bh = 100, margin = 20;
+    let html = `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="2" fill="#e8f0e4" stroke="#3a5a2a" stroke-width="1.5"/>`;
+    const holes = [];
+    for (let i = 0; i < nTop; i++) holes.push({ x: (bx - margin) + i * ((bw + margin * 2) / (nTop - 1 || 1)), y: by - margin });
+    for (let i = 0; i < nBot; i++) holes.push({ x: (bx - margin) + i * ((bw + margin * 2) / (nBot - 1 || 1)), y: by + bh + margin });
+    for (let i = 1; i <= nSide; i++) holes.push({ x: bx - margin, y: by + i * (bh / (nSide + 1)) });
+    for (let i = 1; i <= nSide; i++) holes.push({ x: bx + bw + margin, y: by + i * (bh / (nSide + 1)) });
+    html += '<g stroke="#3a7a3a" stroke-width="0.8" stroke-dasharray="3,2" fill="none">';
+    for (let i = 0; i < holes.length - 1; i++) {
+      const a = holes[i], d = holes[i + 1];
+      if (Math.abs(a.y - d.y) < 2 || Math.abs(a.x - d.x) < 2) html += `<line x1="${a.x}" y1="${a.y}" x2="${d.x}" y2="${d.y}"/>`;
+    }
+    html += '</g><g fill="none" stroke="#3a7a3a" stroke-width="1.2">';
+    holes.forEach(({ x, y }) => {
+      html += `<circle cx="${x}" cy="${y}" r="6"/><line x1="${x - 4.2}" y1="${y - 4.2}" x2="${x + 4.2}" y2="${y + 4.2}"/><line x1="${x + 4.2}" y1="${y - 4.2}" x2="${x - 4.2}" y2="${y + 4.2}"/>`;
+    });
+    html += '</g>';
+    const dimY = by + bh + margin + 20;
+    html += `<line x1="${bx - margin}" y1="${dimY}" x2="${bx + bw + margin}" y2="${dimY}" stroke="#555" stroke-width="0.7"/>`;
+    html += `<polygon points="${bx - margin - 3},${dimY - 3} ${bx - margin - 8},${dimY} ${bx - margin - 3},${dimY + 3}" fill="#555"/>`;
+    html += `<polygon points="${bx + bw + margin + 3},${dimY - 3} ${bx + bw + margin + 8},${dimY} ${bx + bw + margin + 3},${dimY + 3}" fill="#555"/>`;
+    html += `<text x="${bx + bw / 2}" y="${dimY + 11}" text-anchor="middle" style="font-size:8px; fill:#555;">${fieldW} m</text>`;
+    const dimX = bx + bw + margin + 25;
+    html += `<line x1="${dimX}" y1="${by - margin}" x2="${dimX}" y2="${by + bh + margin}" stroke="#555" stroke-width="0.7"/>`;
+    html += `<polygon points="${dimX - 3},${by - margin - 3} ${dimX},${by - margin - 8} ${dimX + 3},${by - margin - 3}" fill="#555"/>`;
+    html += `<polygon points="${dimX - 3},${by + bh + margin + 3} ${dimX},${by + bh + margin + 8} ${dimX + 3},${by + bh + margin + 3}" fill="#555"/>`;
+    html += `<text x="${dimX + 15}" y="${by + bh / 2 + 5}" text-anchor="middle" style="font-size:8px; fill:#555;" transform="rotate(90,${dimX + 15},${by + bh / 2 + 5})">${fieldH} m</text>`;
+    svg.innerHTML = html;
+  }
+})();
+</script>
+</body>
+</html>

@@ -389,6 +389,7 @@
 
     <div class="actions">
       <button class="arrow-btn" onclick="generatePdf()">Generate PDF <span class="arr">→</span></button>
+      <button class="arrow-btn" onclick="renderOnepage()">Render one-page printout <span class="arr">→</span></button>
       <button class="arrow-btn" onclick="saveProject()">Save this project <span class="arr">→</span></button>
       <button class="arrow-btn muted" onclick="startOver()">New Analysis <span class="arr">→</span></button>
     </div>
@@ -401,6 +402,19 @@
 <script>
 const FLASK = '';
 const FACTOR_MAX = { 'Climate zone suitability': 35, 'Load suitability': 40, 'Footprint feasibility': 25 };
+
+function renderOnepage() {
+  // Open the one-page report model. It inherits this page's sessionStorage
+  // (gl_result1 / gl_result_final / gl_strategy_result / gl_cost_result) and
+  // renders the current simulation. The model has its own Print button.
+  const url = '/design/report_model.html';
+  if (window.top !== window) {
+    const popup = window.open(url, '_blank');
+    if (!popup) window.top.location.assign(url);
+  } else {
+    window.open(url, '_blank');
+  }
+}
 
 function generatePdf() {
   // Open the horizontal dashboard layout for printing as landscape PDF.

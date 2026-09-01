@@ -120,6 +120,18 @@ def app_web():
     return render_template("welcome.html")
 
 
+@app.route("/design/<path:filename>")
+def design_files(filename):
+    """Serve the one-page report model + its assets (Report_Deisgn/).
+
+    Lets /design/report_model.html load its style.css and cases/*.json by
+    relative path, and inherit the live sessionStorage (gl_result*) when
+    opened from the result page.
+    """
+    from flask import send_from_directory
+    return send_from_directory(os.path.join(app.root_path, "Report_Deisgn"), filename)
+
+
 @app.route("/<page>.html")
 def serve_html_page(page):
     """Serve any mobile-flow template by its .html filename.
