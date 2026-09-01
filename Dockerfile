@@ -14,6 +14,7 @@ COPY geosite ./geosite
 COPY templates ./templates
 COPY static ./static
 COPY data/public ./data/public
+COPY Report_Deisgn ./Report_Deisgn
 
 EXPOSE 8080
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "4", "--timeout", "120", "app:app"]
